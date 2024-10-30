@@ -2,9 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:intro_slider/intro_slider.dart';
-import 'package:introduction_screen/introduction_screen.dart';
-import 'package:jahit_baju/ui/login/login_screen.dart';
-import 'package:onboarding/onboarding.dart';
+import 'package:jahit_baju/views/login/login_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jahit_baju/ui/onboarding/onboarding_screen.dart';
+import 'package:jahit_baju/views/onboarding/onboarding_screen.dart';
 
 import 'login/login_screen.dart';
 
