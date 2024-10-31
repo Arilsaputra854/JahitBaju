@@ -14,6 +14,20 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   List<ContentConfig> listContentConfig = [];
 
+  var init = true;
+
+  @override
+  void didChangeDependencies() {
+    if(init){
+      precacheImage(AssetImage("assets/onboarding/onboarding_1.png"), context);
+      precacheImage(AssetImage("assets/onboarding/onboarding_2.png"), context);
+      precacheImage(AssetImage("assets/onboarding/onboarding_3.png"), context);
+      init = false;
+    }
+    super.didChangeDependencies();
+  }
+  
+
   @override
   void initState() {
     super.initState();

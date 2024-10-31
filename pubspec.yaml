@@ -39,6 +39,7 @@ dependencies:
   provider:
   fluttertoast: ^8.2.8
   flutter_launcher_icons: 
+  flutter_otp_text_field:
 
 
 flutter_launcher_icons:

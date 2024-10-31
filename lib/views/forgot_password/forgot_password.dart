@@ -1,20 +1,19 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:jahit_baju/helper/viewmodels/login_view_model.dart';
-import 'package:jahit_baju/helper/viewmodels/register_view_model.dart';
-import 'package:jahit_baju/views/forgot_password/forgot_password.dart';
+import 'package:jahit_baju/helper/viewmodels/forgot_password_view_model.dart';
 import 'package:jahit_baju/views/register/register_screen.dart';
+import 'package:jahit_baju/views/otp_screen/otp_screen.dart';
 import 'package:provider/provider.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class ForgotPasswordScreen extends StatefulWidget {
+  const ForgotPasswordScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   bool _isPasswordVisible = false;
   var deviceWidth, deviceHeight;
   var formKey = GlobalKey<FormState>();
@@ -42,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
     deviceHeight = MediaQuery.of(context).size.height;
 
     return ChangeNotifierProvider(
-        create: (context) => LoginViewModel(),
+        create: (context) => ForgotPasswordViewModel(),
         child: Stack(
           alignment: Alignment.center,
           children: [
@@ -58,15 +57,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         opacity: 0.6)),
               ),
             ),
-            Scaffold(
+            Scaffold(appBar: AppBar(
+                backgroundColor: Colors.transparent,
+                foregroundColor: Colors.white,
+              ),
               backgroundColor: Colors.transparent,
-              body: Consumer<LoginViewModel>(
+              body: Consumer<ForgotPasswordViewModel>(
                   builder: (context, viewModel, child) {
                 return Center(
                   child: SizedBox(
                     width: deviceWidth * 0.8,
                     height: deviceHeight * 0.5,
-                    child: loginForm(),
+                    child: forgotPasswordForm(),
                   ),
                 );
               }),
@@ -75,8 +77,8 @@ class _LoginScreenState extends State<LoginScreen> {
         ));
   }
 
-  loginForm() {
-    return Consumer<LoginViewModel>(builder: (context, viewModel, child) {
+  forgotPasswordForm() {
+    return Consumer<ForgotPasswordViewModel>(builder: (context, viewModel, child) {
       return Container(
           padding: const EdgeInsets.all(16),
           child: Form(
@@ -85,15 +87,24 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  "MASUK",
+                  "LUPA PASSWORD?",
                   textAlign: TextAlign.start,
                   style: TextStyle(
                       fontSize: 30,
                       fontWeight: FontWeight.bold,
                       color: Colors.white),
                 ),
+
+                const Text(
+                  "Tenang, kami bantu reset.",
+                  textAlign: TextAlign.start,
+                  style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.white),
+                ),
                 const SizedBox(
-                  height: 10,
+                  height: 30,
                 ),
                 TextFormField(
                   validator: (value) {
@@ -107,39 +118,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: inputEmailDecoration(),
                 ),
                 const SizedBox(
-                  height: 10,
-                ),
-                TextFormField(
-                  validator: (value){
-                    if(value == null || value.isEmpty){
-                      return "Kolom ini tidak boleh kosong!";
-                    }
-                    return  null;
-                  },
-                  onChanged: viewModel.setPassword,
-                  obscureText: !_isPasswordVisible,
-                  decoration: inputPasswordDecoration(),
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    RichText(
-                        text: TextSpan(children: [
-                      TextSpan(
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () => goToForgotPassword(),
-                        text: "Lupa password?",
-                        style: TextStyle(fontSize: 12, color: Colors.white),
-                      ),
-                    ]))
-                  ],
-                ),
-                const SizedBox(
                   height: 30,
                 ),
+                
                 Column(
                   children: [
                     SizedBox(
@@ -151,31 +132,22 @@ class _LoginScreenState extends State<LoginScreen> {
                               backgroundColor: Colors.white),
                           onPressed: () {
                             if (formKey.currentState!.validate()) {
-                              viewModel.Login();
+                              viewModel.resetPassword();
                               if (viewModel.errorMsg != null) {
                                 Fluttertoast.showToast(
                                     msg: viewModel.errorMsg.toString());
+                              }else{
+                                goToOtpPage();
                               }
                             }
                           },
                           child: const Text(
-                            "Login",
+                            "Kirim Kode",
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 20),
                           )),
                     ),
-                    const SizedBox(
-                      height: 5,
-                    ),
-                    RichText(
-                        text: TextSpan(children: [
-                      TextSpan(
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () => goToRegisterScreen(),
-                        text: "Ga punya akun? Buat sekarang!",
-                        style: TextStyle(fontSize: 12, color: Colors.white),
-                      ),
-                    ]))
+                    
                   ],
                 ),
               ],
@@ -195,33 +167,8 @@ class _LoginScreenState extends State<LoginScreen> {
             borderRadius: BorderRadius.all(Radius.circular(10))));
   }
 
-  inputPasswordDecoration() {
-    return InputDecoration(
-        fillColor: Colors.white,
-        filled: true,
-        errorStyle: TextStyle(color: Colors.white),
-        hintText: "********",
-        suffixIcon: IconButton(
-            onPressed: () {
-              setState(() {
-                _isPasswordVisible = !_isPasswordVisible;
-              });
-            },
-            icon: Icon(
-                _isPasswordVisible ? Icons.visibility : Icons.visibility_off)),
-        hintStyle:
-            const TextStyle(color: Colors.grey, fontWeight: FontWeight.normal),
-        border: const OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(10))));
-  }
-
-  goToForgotPassword() {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (context) => ForgotPasswordScreen()));
-  }
-
-  goToRegisterScreen() {
+  goToOtpPage() {
     Navigator.push(
-        context, MaterialPageRoute(builder: (context) => RegisterScreen()));
+        context, MaterialPageRoute(builder: (context) => OtpScreen()));
   }
 }
