@@ -2,6 +2,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/helper/viewmodels/register_view_model.dart';
+import 'package:jahit_baju/views/otp_screen/otp_screen.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -17,10 +19,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   var formKey = GlobalKey<FormState>();
 
   bool init = false;
+  bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
+    isLoading = false;
   }
 
   @override
@@ -70,7 +74,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 );
               }),
-            )
+            ),
+            if (isLoading)
+              LoadingAnimationWidget.staggeredDotsWave(
+                  color: Colors.black, size: 50)
           ],
         ));
   }
@@ -78,143 +85,154 @@ class _RegisterScreenState extends State<RegisterScreen> {
   registerForm() {
     return Consumer<RegisterViewModel>(builder: (context, viewModel, child) {
       return Container(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: formKey,
-          child: 
-        Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                "BUAT AKUN",
-                textAlign: TextAlign.start,
-                style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              TextFormField(
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Kolom ini tidak boleh kosong!";
-                  }
-                  return null;
-                },
-                onChanged: viewModel.setName,
-                decoration: standartInputDecoration("Nama Lengkap"),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              TextFormField(
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Kolom ini tidak boleh kosong!";
-                  }
-                  return null;
-                },
-                keyboardType: TextInputType.number,
-                onChanged: viewModel.setPhoneNumber,
-                decoration: standartInputDecoration("No Telepon"),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              TextFormField(
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Kolom ini tidak boleh kosong!";
-                  }
-                  return null;
-                },
-                onChanged: viewModel.setEmail,
-                keyboardType: TextInputType.emailAddress,
-                decoration: inputEmailDecoration(),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              TextFormField(
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Kolom ini tidak boleh kosong!";
-                  }
-                  return null;
-                },
-                onChanged: viewModel.setPassword,
-                obscureText: !_isPasswordVisible,
-                decoration: inputPasswordDecoration(),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              TextFormField(
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Kolom ini tidak boleh kosong!";
-                  }
-                  return null;
-                },
-                obscureText: !_isPasswordVisible,
-                decoration: inputPasswordDecoration(),
-              ),
-              const SizedBox(
-                height: 30,
-              ),
-              Column(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: formKey,
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  RichText(
-                      text: TextSpan(children: [
-                    TextSpan(
-                        text: "By signing up, you‘re agree to our ",
-                        style: TextStyle(fontSize: 12, color: Colors.white),
-                        children: [
-                          TextSpan(
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  decoration: TextDecoration.underline,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () {
-                                  Fluttertoast.showToast(msg: "msg");
-                                },
-                              text: "Term and Condition and Privacy Policy")
-                        ]),
-                  ])),
+                  const Text(
+                    "BUAT AKUN",
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
+                  ),
                   const SizedBox(
-                    height: 5,
+                    height: 20,
                   ),
-                  SizedBox(
-                    width: deviceWidth,
-                    child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(5)),
-                            backgroundColor: Colors.white),
-                        onPressed: () {
-                          if (formKey.currentState!.validate()) {
-                            viewModel.Login();
-                            if (viewModel.errorMsg != null) {
-                              Fluttertoast.showToast(
-                                  msg: viewModel.errorMsg.toString());
-                            }
-                          }
-                        },
-                        child: const Text(
-                          "Login",
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 20),
-                        )),
+                  TextFormField(
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Kolom ini tidak boleh kosong!";
+                      }
+                      return null;
+                    },
+                    onChanged: viewModel.setName,
+                    decoration: standartInputDecoration("Nama Lengkap"),
                   ),
-                ],
-              ),
-            ]),
-      ));
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  TextFormField(
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Kolom ini tidak boleh kosong!";
+                      }
+                      return null;
+                    },
+                    keyboardType: TextInputType.number,
+                    onChanged: viewModel.setPhoneNumber,
+                    decoration: standartInputDecoration("No Telepon"),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  TextFormField(
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Kolom ini tidak boleh kosong!";
+                      }
+                      return null;
+                    },
+                    onChanged: viewModel.setEmail,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: inputEmailDecoration(),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  TextFormField(
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Kolom ini tidak boleh kosong!";
+                      }
+                      return null;
+                    },
+                    onChanged: viewModel.setPassword,
+                    obscureText: !_isPasswordVisible,
+                    decoration: inputPasswordDecoration(),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  TextFormField(
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Kolom ini tidak boleh kosong!";
+                      }
+                      return null;
+                    },
+                    onChanged: viewModel.setConfirmPassword,
+                    obscureText: !_isPasswordVisible,
+                    decoration: inputPasswordDecoration(),
+                  ),
+                  const SizedBox(
+                    height: 30,
+                  ),
+                  Column(
+                    children: [
+                      RichText(
+                          text: TextSpan(children: [
+                        TextSpan(
+                            text: "By signing up, you‘re agree to our ",
+                            style: TextStyle(fontSize: 12, color: Colors.white),
+                            children: [
+                              TextSpan(
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      decoration: TextDecoration.underline,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () {
+                                      Fluttertoast.showToast(msg: "msg");
+                                    },
+                                  text: "Term and Condition and Privacy Policy")
+                            ]),
+                      ])),
+                      const SizedBox(
+                        height: 5,
+                      ),
+                      SizedBox(
+                        width: deviceWidth,
+                        child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(5)),
+                                backgroundColor: Colors.white),
+                            onPressed: () async {
+                              if (formKey.currentState!.validate()) {
+                                setState(() {
+                                  isLoading = true;
+                                });
+
+                                await viewModel.register();
+                                if (viewModel.message != null) {
+                                  if (viewModel.message == "Register Success!") {
+                                    goToOtpPage(viewModel.email);
+                                  }
+                                  Fluttertoast.showToast(
+                                      msg: viewModel.message.toString());
+                                }
+
+                                setState(() {
+                                  isLoading = false;
+                                });
+                              }
+                            },
+                            child: const Text(
+                              "Login",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 20),
+                            )),
+                      ),
+                    ],
+                  ),
+                ]),
+          ));
     });
   }
 
@@ -222,7 +240,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return const InputDecoration(
         fillColor: Colors.white,
         filled: true,
-
         errorStyle: TextStyle(color: Colors.white),
         hintText: "janedoe@gmail.com",
         hintStyle: TextStyle(color: Colors.grey, fontWeight: FontWeight.normal),
@@ -232,7 +249,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   standartInputDecoration(String hint) {
     return InputDecoration(
-
         errorStyle: TextStyle(color: Colors.white),
         fillColor: Colors.white,
         filled: true,
@@ -245,7 +261,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   inputPasswordDecoration() {
     return InputDecoration(
-
         errorStyle: TextStyle(color: Colors.white),
         fillColor: Colors.white,
         filled: true,
@@ -262,5 +277,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             const TextStyle(color: Colors.grey, fontWeight: FontWeight.normal),
         border: const OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(10))));
+  }
+
+  void goToOtpPage(String? email) {
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => OtpScreen(email!, OtpScreen.REGISTER)));
   }
 }

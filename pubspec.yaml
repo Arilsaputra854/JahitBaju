@@ -40,7 +40,8 @@ dependencies:
   fluttertoast: ^8.2.8
   flutter_launcher_icons: 
   flutter_otp_text_field:
-
+  http: ^0.13.5
+  loading_animation_widget:
 
 flutter_launcher_icons:
   android: "launcher_icon"

@@ -137,7 +137,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                 Fluttertoast.showToast(
                                     msg: viewModel.errorMsg.toString());
                               }else{
-                                goToOtpPage();
+                                goToOtpPage(viewModel.email);
                               }
                             }
                           },
@@ -167,8 +167,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             borderRadius: BorderRadius.all(Radius.circular(10))));
   }
 
-  goToOtpPage() {
+  goToOtpPage(String? email) {
     Navigator.push(
-        context, MaterialPageRoute(builder: (context) => OtpScreen()));
+        context, MaterialPageRoute(builder: (context) => OtpScreen(email!,OtpScreen.RESET_PASSWORD)));
   }
 }

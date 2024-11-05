@@ -5,6 +5,7 @@ import 'package:jahit_baju/helper/viewmodels/login_view_model.dart';
 import 'package:jahit_baju/helper/viewmodels/register_view_model.dart';
 import 'package:jahit_baju/views/forgot_password/forgot_password.dart';
 import 'package:jahit_baju/views/register/register_screen.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -21,9 +22,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool init = false;
 
+  bool isLoading = false;
+
   @override
   void initState() {
     super.initState();
+    isLoading = false;
   }
 
   @override
@@ -70,7 +74,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 );
               }),
-            )
+            ),
+            if (isLoading)
+              LoadingAnimationWidget.staggeredDotsWave(
+                  color: Colors.white, size: 50)
           ],
         ));
   }
@@ -110,11 +117,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 10,
                 ),
                 TextFormField(
-                  validator: (value){
-                    if(value == null || value.isEmpty){
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
                       return "Kolom ini tidak boleh kosong!";
                     }
-                    return  null;
+                    return null;
                   },
                   onChanged: viewModel.setPassword,
                   obscureText: !_isPasswordVisible,
@@ -149,13 +156,19 @@ class _LoginScreenState extends State<LoginScreen> {
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(5)),
                               backgroundColor: Colors.white),
-                          onPressed: () {
+                          onPressed: () async {
                             if (formKey.currentState!.validate()) {
-                              viewModel.Login();
+                              setState(() {
+                                isLoading = true;
+                              });
+                              await viewModel.Login();
                               if (viewModel.errorMsg != null) {
                                 Fluttertoast.showToast(
                                     msg: viewModel.errorMsg.toString());
                               }
+                              setState(() {
+                                isLoading = false;
+                              });
                             }
                           },
                           child: const Text(
