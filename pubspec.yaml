@@ -1,5 +1,5 @@
 name: jahit_baju
-description: "A new Flutter project."
+description: "Aplikasi Jahit Baju"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -42,6 +42,7 @@ dependencies:
   flutter_otp_text_field:
   http: ^0.13.5
   loading_animation_widget:
+  intl:
 
 flutter_launcher_icons:
   android: "launcher_icon"

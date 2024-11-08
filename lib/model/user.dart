@@ -1,23 +1,43 @@
-
-
 class User {
+  String id;
   String email;
   String name;
   String phoneNumber;
   String password;
   String address;
-  String imgUrl;
+  String imageUrl;
 
-  User({required this.email,this.password = "",required this.name,this.phoneNumber = "",this.address = "", this.imgUrl = ""});
-  
+  User({
+    this.id = "",
+    required this.email,
+    required this.name,
+     this.phoneNumber= "",
+    required this.password,
+     this.address= "",
+     this.imageUrl= "",
+  });
 
-   factory User.fromJson(Map<String, dynamic> json) {
+  factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      email: json['id'],
+      id: json['id'],
+      email: json['email'],
       name: json['name'],
-      phoneNumber: json['phone_number'] ?? "",
-      address: json['address'] ?? "",
-      imgUrl: json['img_url'] ?? "",
+      phoneNumber: json['phone_number'],
+      password: json['password'],
+      address: json['address'],
+      imageUrl: json['image_url'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'email': email,
+      'name': name,
+      'phone_number': phoneNumber,
+      'password': password,
+      'address': address,
+      'image_url': imageUrl,
+    };
   }
 }

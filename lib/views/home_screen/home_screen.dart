@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:jahit_baju/model/order.dart';
+import 'package:jahit_baju/model/order_item.dart';
+import 'package:jahit_baju/model/product.dart';
+import 'package:jahit_baju/views/home_screen/fragment/favorite_page.dart';
 import 'package:jahit_baju/views/home_screen/fragment/history_page.dart';
 import 'package:jahit_baju/views/home_screen/fragment/home_page.dart';
 import 'package:jahit_baju/views/home_screen/fragment/profile_page.dart';
+import 'package:jahit_baju/views/home_screen/fragment/search_page.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,16 +16,17 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
   int _indexPage = 0;
 
-  final List<Widget> page =[
+  final List<Widget> page = [
     HomePage(),
+    SearchPage(),
     HistoryPage(),
+    FavoritePage(),
     ProfilePage()
   ];
 
-  onItemTapped(int index){
+  onItemTapped(int index) {
     setState(() {
       _indexPage = index;
     });
@@ -43,15 +49,20 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         body: page[_indexPage],
         bottomNavigationBar: BottomNavigationBar(
-          onTap: onItemTapped,
-          currentIndex: _indexPage,
-          items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home),label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: "History"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile")
-        ]));
+            onTap: onItemTapped,
+            type: BottomNavigationBarType.fixed,
+            currentIndex: _indexPage,
+            items: [
+              BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.search), label: "Search"),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.history), label: "History"),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.favorite), label: "Favorite"),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.person), label: "Profile")
+            ]));
   }
+
 }
-
-
-
