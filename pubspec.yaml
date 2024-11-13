@@ -43,6 +43,8 @@ dependencies:
   http: ^0.13.5
   loading_animation_widget:
   intl:
+  swipe_image_gallery:
+  flutter_svg:
 
 flutter_launcher_icons:
   android: "launcher_icon"
@@ -81,6 +83,9 @@ flutter:
     - assets/onboarding/onboarding_2.png
     - assets/onboarding/onboarding_3.png
     - assets/background/bg.png
+    - assets/coat/clutch-coat-badan-depan-kanan.svg
+    - assets/coat/clutch-coat-badan-depan-kiri.svg
+    - assets/coat/clutch-coat-kerah.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

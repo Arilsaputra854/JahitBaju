@@ -17,24 +17,51 @@ class _HistoryPageState extends State<HistoryPage> {
   var deviceWidth;
   @override
   Widget build(BuildContext context) {
-    Product product = Product(
-        id: 1,
-        name: "Handuk",
-        description:
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sit amet est eget orci pulvinar volutpat. Proin et elit sit amet felis condimentum convallis. Pellentesque id purus eros. Donec pharetra suscipit velit et convallis. Fusce finibus justo semper, mattis mauris ac, semper urna. Praesent nec turpis eros. Etiam mollis in nisi non accumsan. Aliquam id neque sit amet sem commodo eleifend ut vel tellus. Donec molestie lobortis mi ac pellentesque. Vestibulum posuere condimentum ornare.",
-        price: 25000,
-        stock: 13,
-        type: Product.READY_TO_WEAR,
-        imageUrl: '');
-    Product product2 = Product(
+    Product product = Product(      
         id: 2,
-        name: "Kemeja",
+        name: "Obi Mangiring Merah-Ulos",
+        tags: [Tag(tag: "terlaris"), Tag(tag: "promo spesial")],
         description:
             "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sit amet est eget orci pulvinar volutpat. Proin et elit sit amet felis condimentum convallis. Pellentesque id purus eros. Donec pharetra suscipit velit et convallis. Fusce finibus justo semper, mattis mauris ac, semper urna. Praesent nec turpis eros. Etiam mollis in nisi non accumsan. Aliquam id neque sit amet sem commodo eleifend ut vel tellus. Donec molestie lobortis mi ac pellentesque. Vestibulum posuere condimentum ornare.",
-        price: 15000,
+        price: 375000,
         stock: 123,
+        favorite: 2,
+        seen: 24,
+        sold: 5,
         type: Product.CUSTOM,
-        imageUrl: '');
+        size: [
+          "XL",
+          "S",
+          "M"
+        ],
+        imageUrl: [
+          "https://down-id.img.susercontent.com/file/sg-11134201-22090-oj0c6ox3mxhv4e.webp",
+          "https://down-id.img.susercontent.com/file/sg-11134201-22090-nzt8ypx3mxhv2d.webp",
+          "https://down-id.img.susercontent.com/file/881145e16b11a838019faa3b79310e48.webp"
+        ]);
+Product product2 = Product(      
+        id: 2,
+        name: "Obi Mangiring Merah-Ulos",
+        tags: [Tag(tag: "terlaris"), Tag(tag: "promo spesial")],
+        description:
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sit amet est eget orci pulvinar volutpat. Proin et elit sit amet felis condimentum convallis. Pellentesque id purus eros. Donec pharetra suscipit velit et convallis. Fusce finibus justo semper, mattis mauris ac, semper urna. Praesent nec turpis eros. Etiam mollis in nisi non accumsan. Aliquam id neque sit amet sem commodo eleifend ut vel tellus. Donec molestie lobortis mi ac pellentesque. Vestibulum posuere condimentum ornare.",
+        price: 375000,
+        stock: 123,
+        favorite: 2,
+        seen: 24,
+        sold: 5,
+        type: Product.READY_TO_WEAR,
+        size: [
+          "XL",
+          "S",
+          "M"
+        ],
+        imageUrl: [
+          "https://down-id.img.susercontent.com/file/sg-11134201-22090-oj0c6ox3mxhv4e.webp",
+          "https://down-id.img.susercontent.com/file/sg-11134201-22090-nzt8ypx3mxhv2d.webp",
+          "https://down-id.img.susercontent.com/file/881145e16b11a838019faa3b79310e48.webp"
+        ]);
+
 
     // Contoh order dengan tanggal yang berbeda
     Order order1 = Order(
@@ -214,7 +241,7 @@ class _HistoryPageState extends State<HistoryPage> {
           ),
           child: InkWell(
             onTap: (){
-              goToProductScreen(item);
+              goToProductScreen(item.product);
             },
             child: Card(
             elevation: 4,
@@ -232,7 +259,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     aspectRatio: 4 / 5,
                     child: item.product.imageUrl.isNotEmpty
                         ? Image.network(
-                            item.product.imageUrl,
+                            item.product.imageUrl.first,
                             fit: BoxFit.cover,
                           )
                         : Image.asset(
@@ -327,7 +354,7 @@ class _HistoryPageState extends State<HistoryPage> {
     return formattedDate.toString();
   }
   
-  void goToProductScreen(OrderItem item) {
+  void goToProductScreen(Product item) {
     Navigator.push(context, MaterialPageRoute(builder: (context) => ProductScreen(item)));
   }
 }
