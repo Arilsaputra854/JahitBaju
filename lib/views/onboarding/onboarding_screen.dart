@@ -2,9 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:intro_slider/intro_slider.dart';
-import 'package:introduction_screen/introduction_screen.dart';
-import 'package:jahit_baju/ui/login/login_screen.dart';
-import 'package:onboarding/onboarding.dart';
+import 'package:jahit_baju/views/login/login_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -15,6 +13,20 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   List<ContentConfig> listContentConfig = [];
+
+  var init = true;
+
+  @override
+  void didChangeDependencies() {
+    if(init){
+      precacheImage(AssetImage("assets/onboarding/onboarding_1.png"), context);
+      precacheImage(AssetImage("assets/onboarding/onboarding_2.png"), context);
+      precacheImage(AssetImage("assets/onboarding/onboarding_3.png"), context);
+      init = false;
+    }
+    super.didChangeDependencies();
+  }
+  
 
   @override
   void initState() {
