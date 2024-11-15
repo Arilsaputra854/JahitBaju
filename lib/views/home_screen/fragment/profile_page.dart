@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jahit_baju/api/api_service.dart';
 import 'package:jahit_baju/model/user.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -12,14 +13,21 @@ class _HomePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     var deviceWidth = MediaQuery.of(context).size.width;
-    User user = User(
-        email: "Arilsaputra854@gmail.com",
-        name: "Aril Saputra",
-        password: "Rahasia",
-        imageUrl:
-            "https://t3.ftcdn.net/jpg/02/43/12/34/360_F_243123463_zTooub557xEWABDLk0jJklDyLSGl2jrr.jpg");
 
-    return Container(
+    return FutureBuilder(future: loadUserFromDatabase(), builder: (context, snapshot){
+
+      if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator()); // Show loading indicator while waiting
+        } else if (snapshot.hasError) {
+          return Center(child: Text("Error: ${snapshot.error}")); // Show error if something goes wrong
+        } else if (!snapshot.hasData) {
+          return Center(child: Text("No user data found")); // Show message if no user data is returned
+        }
+
+        // Get the user data once it's loaded
+        User user = snapshot.data!;
+
+      return Container(
         margin: EdgeInsets.symmetric(horizontal: 40),
         width: deviceWidth,
         child: Form(
@@ -134,6 +142,7 @@ class _HomePageState extends State<ProfilePage> {
             ],
           ),
         ));
+    });
   }
 
   standartInputDecoration(String hint, IconData icon) {
@@ -152,3 +161,12 @@ class _HomePageState extends State<ProfilePage> {
             borderRadius: BorderRadius.all(Radius.circular(10))));
   }
 }
+
+  Future<User> loadUserFromDatabase() async{
+    var apiService =  await ApiService().userGet("f4734ade-8bcd-4ad7-8204-9b8ad681ca0a");
+
+    if(apiService is User){
+      return apiService as User;
+    }
+    return new User(email: "email", name: "name", password: "password");
+  }

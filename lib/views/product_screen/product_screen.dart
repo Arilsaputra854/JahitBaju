@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:jahit_baju/api/api_service.dart';
+import 'package:jahit_baju/model/order.dart';
 import 'package:jahit_baju/model/order_item.dart';
 import 'package:jahit_baju/model/product.dart';
+import 'package:jahit_baju/views/cart_screen/cart_screen.dart';
 import 'package:swipe_image_gallery/swipe_image_gallery.dart';
 
 class ProductScreen extends StatefulWidget {
@@ -30,6 +33,81 @@ class _ProductScreenState extends State<ProductScreen> {
           child: widget.product.type == Product.READY_TO_WEAR
               ? showRTW()
               : showCustom()),
+      bottomNavigationBar: widget.product.type == Product.READY_TO_WEAR
+          ? Container(
+              padding: EdgeInsets.all(20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  OutlinedButton(
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(0)),
+                        backgroundColor: Colors.white, // Latar belakang merah
+                        padding: EdgeInsets.symmetric(
+                            vertical: 15,
+                            horizontal: 10), // Padding agar tombol lebih besar
+                      ),
+                      onPressed: () =>addToCart(),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.shopping_bag,
+                            color: Colors.black,
+                          ),
+                          SizedBox(width: 3),
+                          Text(
+                            "Tambah ke keranjang",
+                            style: TextStyle(
+                              color: Colors.black, // Warna teks putih
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      )),
+                  SizedBox(width: 10),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(0)),
+                      backgroundColor: Colors.red, // Latar belakang merah
+                      padding: EdgeInsets.symmetric(
+                          vertical: 15,
+                          horizontal: 30), // Padding agar tombol lebih besar
+                    ),
+                    onPressed: () {},
+                    child: Text(
+                      "Beli Sekarang",
+                      style: TextStyle(
+                        color: Colors.white, // Warna teks putih
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : Container(
+              padding: EdgeInsets.all(20),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(0)),
+                  backgroundColor: Colors.red, // Latar belakang merah
+                  padding: EdgeInsets.symmetric(
+                      vertical: 15,
+                      horizontal: 30), // Padding agar tombol lebih besar
+                ),
+                onPressed: () {},
+                child: Text(
+                  "Selanjutnya",
+                  style: TextStyle(
+                    color: Colors.white, // Warna teks putih
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
     );
   }
 
@@ -87,7 +165,7 @@ class _ProductScreenState extends State<ProductScreen> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
-                            tag.tag,
+                            tag,
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -115,7 +193,7 @@ class _ProductScreenState extends State<ProductScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "${widget.product.sold} Terjual | ${widget.product.seen} Favorit \n${widget.product.seen} Orang melihat produk ini",
+                    "${widget.product.sold} Terjual | ${widget.product.seen} Favorit | ${widget.product.stock} Stok \n${widget.product.seen} Orang melihat produk ini",
                     style: TextStyle(
                       fontSize: 15,
                     ),
@@ -190,60 +268,6 @@ class _ProductScreenState extends State<ProductScreen> {
                           ),
                         );
                       })),
-              Container(
-                padding: EdgeInsets.all(20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    OutlinedButton(
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(0)),
-                          backgroundColor: Colors.white, // Latar belakang merah
-                          padding: EdgeInsets.symmetric(
-                              vertical: 15,
-                              horizontal:
-                                  10), // Padding agar tombol lebih besar
-                        ),
-                        onPressed: () {},
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.shopping_bag,
-                              color: Colors.black,
-                            ),
-                            SizedBox(width: 3),
-                            Text(
-                              "Tambah ke keranjang",
-                              style: TextStyle(
-                                color: Colors.black, // Warna teks putih
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        )),
-                    SizedBox(width: 10),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(0)),
-                        backgroundColor: Colors.red, // Latar belakang merah
-                        padding: EdgeInsets.symmetric(
-                            vertical: 15,
-                            horizontal: 30), // Padding agar tombol lebih besar
-                      ),
-                      onPressed: () {},
-                      child: Text(
-                        "Beli Sekarang",
-                        style: TextStyle(
-                          color: Colors.white, // Warna teks putih
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              )
             ],
           ),
         )
@@ -269,12 +293,7 @@ class _ProductScreenState extends State<ProductScreen> {
                         onPressed: () {}, child: Text("Kanan Depan")),
                   ],
                 ),
-                Stack(
-                  children: [
-                    SvgPicture.asset(
-                        "assets/coat/clutch-coat-kerah.svg"),
-                  ],
-                )
+                //customPreview()
               ],
             )),
         Container(
@@ -293,7 +312,7 @@ class _ProductScreenState extends State<ProductScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "${widget.product.sold} Terjual | ${widget.product.seen} Favorit \n${widget.product.seen} Orang melihat produk ini",
+                      "${widget.product.sold} Terjual | ${widget.product.seen} Favorit | ${widget.product.stock} Stok \n${widget.product.seen} Orang melihat produk ini",
                       style: TextStyle(
                         fontSize: 15,
                       ),
@@ -369,65 +388,50 @@ class _ProductScreenState extends State<ProductScreen> {
                             ),
                           );
                         })),
-                Container(
-                  padding: EdgeInsets.all(20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      OutlinedButton(
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(0)),
-                            backgroundColor:
-                                Colors.white, // Latar belakang merah
-                            padding: EdgeInsets.symmetric(
-                                vertical: 15,
-                                horizontal:
-                                    10), // Padding agar tombol lebih besar
-                          ),
-                          onPressed: () {},
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.shopping_bag,
-                                color: Colors.black,
-                              ),
-                              SizedBox(width: 3),
-                              Text(
-                                "Tambah ke keranjang",
-                                style: TextStyle(
-                                  color: Colors.black, // Warna teks putih
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          )),
-                      SizedBox(width: 10),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(0)),
-                          backgroundColor: Colors.red, // Latar belakang merah
-                          padding: EdgeInsets.symmetric(
-                              vertical: 15,
-                              horizontal:
-                                  30), // Padding agar tombol lebih besar
-                        ),
-                        onPressed: () {},
-                        child: Text(
-                          "Beli Sekarang",
-                          style: TextStyle(
-                            color: Colors.white, // Warna teks putih
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
               ],
             ))
       ],
     );
   }
+  
+  goToCartScreen() {
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => CartScreen()));
+  }
+  
+  addToCart() {
+    var success = true;
+    if(success){
+      goToCartScreen();
+    }
+  }
 }
+
+customPreview() {
+  return Container(
+    width: 300,
+    padding: EdgeInsets.all(10),
+    color: Colors.red
+    ,
+    child:  Stack(
+      alignment: Alignment.center,
+    children: [
+       
+      Positioned(
+        left: 20,
+        child: 
+      SvgPicture.asset("assets/coat/clutch-coat-badan-depan-kiri.svg",color: const Color.fromARGB(255, 38, 1, 142)),),
+      Positioned(
+        child: 
+      SvgPicture.asset("assets/coat/clutch-coat-badan-depan-kanan.svg",color: const Color.fromARGB(255, 10, 49, 188)),),
+      Positioned(        
+        left: 50,
+        top: -40,    
+        child: SvgPicture.asset("assets/coat/clutch-coat-kerah.svg",color: Colors.white,),
+       ),
+    ],
+  )
+  );
+}
+
+

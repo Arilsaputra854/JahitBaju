@@ -16,16 +16,15 @@ class User {
      this.address= "",
      this.imageUrl= "",
   });
-
-  factory User.fromJson(Map<String, dynamic> json) {
+factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'],
-      email: json['email'],
-      name: json['name'],
-      phoneNumber: json['phone_number'],
-      password: json['password'],
-      address: json['address'],
-      imageUrl: json['image_url'],
+      id: json['id'] ?? "",  // Use empty string if 'id' is null
+      email: json['email'] ?? "",  // Use empty string if 'email' is null
+      name: json['name'] ?? "",  // Use empty string if 'name' is null
+      phoneNumber: json['phone_number'],  // Nullable field
+      password: json['password'] ?? "",  // Use empty string if 'password' is null
+      address: json['address'],  // Nullable field
+      imageUrl: json['img_url'],  // Nullable field
     );
   }
 
@@ -37,7 +36,7 @@ class User {
       'phone_number': phoneNumber,
       'password': password,
       'address': address,
-      'image_url': imageUrl,
+      'img_url': imageUrl,
     };
   }
 }

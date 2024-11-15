@@ -17,99 +17,55 @@ class _HistoryPageState extends State<HistoryPage> {
   var deviceWidth;
   @override
   Widget build(BuildContext context) {
-    Product product = Product(      
-        id: 2,
-        name: "Obi Mangiring Merah-Ulos",
-        tags: [Tag(tag: "terlaris"), Tag(tag: "promo spesial")],
-        description:
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sit amet est eget orci pulvinar volutpat. Proin et elit sit amet felis condimentum convallis. Pellentesque id purus eros. Donec pharetra suscipit velit et convallis. Fusce finibus justo semper, mattis mauris ac, semper urna. Praesent nec turpis eros. Etiam mollis in nisi non accumsan. Aliquam id neque sit amet sem commodo eleifend ut vel tellus. Donec molestie lobortis mi ac pellentesque. Vestibulum posuere condimentum ornare.",
-        price: 375000,
-        stock: 123,
-        favorite: 2,
-        seen: 24,
-        sold: 5,
-        type: Product.CUSTOM,
-        size: [
-          "XL",
-          "S",
-          "M"
-        ],
-        imageUrl: [
-          "https://down-id.img.susercontent.com/file/sg-11134201-22090-oj0c6ox3mxhv4e.webp",
-          "https://down-id.img.susercontent.com/file/sg-11134201-22090-nzt8ypx3mxhv2d.webp",
-          "https://down-id.img.susercontent.com/file/881145e16b11a838019faa3b79310e48.webp"
-        ]);
-Product product2 = Product(      
-        id: 2,
-        name: "Obi Mangiring Merah-Ulos",
-        tags: [Tag(tag: "terlaris"), Tag(tag: "promo spesial")],
-        description:
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sit amet est eget orci pulvinar volutpat. Proin et elit sit amet felis condimentum convallis. Pellentesque id purus eros. Donec pharetra suscipit velit et convallis. Fusce finibus justo semper, mattis mauris ac, semper urna. Praesent nec turpis eros. Etiam mollis in nisi non accumsan. Aliquam id neque sit amet sem commodo eleifend ut vel tellus. Donec molestie lobortis mi ac pellentesque. Vestibulum posuere condimentum ornare.",
-        price: 375000,
-        stock: 123,
-        favorite: 2,
-        seen: 24,
-        sold: 5,
-        type: Product.READY_TO_WEAR,
-        size: [
-          "XL",
-          "S",
-          "M"
-        ],
-        imageUrl: [
-          "https://down-id.img.susercontent.com/file/sg-11134201-22090-oj0c6ox3mxhv4e.webp",
-          "https://down-id.img.susercontent.com/file/sg-11134201-22090-nzt8ypx3mxhv2d.webp",
-          "https://down-id.img.susercontent.com/file/881145e16b11a838019faa3b79310e48.webp"
-        ]);
+    
 
-
-    // Contoh order dengan tanggal yang berbeda
-    Order order1 = Order(
-        id: 1,
-        buyerId: 1,
-        orderDate: DateTime(2024, 11, 7, 10, 0),
-        totalPrice: 25000,
-        items: [
-          OrderItem(
-              id: 1,
-              orderId: 1,
-              product: product,
-              quantity: 1,
-              status: Order.PROCESS,
-              priceAtPurchase: product.price),
-          OrderItem(
-              id: 2,
-              orderId: 2,
-              product: product2,
-              quantity: 1,
-              status: Order.PROCESS,
-              priceAtPurchase: product2.price),
-          OrderItem(
-              id: 3,
-              orderId: 3,
-              product: product2,
-              quantity: 1,
-              status: Order.COMPLETED,
-              priceAtPurchase: product2.price)
-        ]);
-    Order order2 = Order(
-        id: 2,
-        buyerId: 1,
-        orderDate: DateTime(2024, 11, 8, 12, 0),
-        totalPrice: 15000,
-        items: [
-          OrderItem(
-              id: 2,
-              orderId: 2,
-              product: product2,
-              quantity: 1,
-              status: Order.PROCESS,
-              priceAtPurchase: product2.price)
-        ]);
+    // // Contoh order dengan tanggal yang berbeda
+    // Order order1 = Order(
+    //     id: 1,
+    //     buyerId: 1,
+    //     orderDate: DateTime(2024, 11, 7, 10, 0),
+    //     totalPrice: 25000,
+    //     items: [
+    //       OrderItem(
+    //           id: 1,
+    //           orderId: 1,
+    //           product: SampleProduct.productRTW,
+    //           quantity: 1,
+    //           status: Order.PROCESS,
+    //           priceAtPurchase: SampleProduct.productRTW.price),
+    //       OrderItem(
+    //           id: 2,
+    //           orderId: 2,
+    //           product: SampleProduct.productRTW,
+    //           quantity: 1,
+    //           status: Order.PROCESS,
+    //           priceAtPurchase: SampleProduct.productRTW.price),
+    //       OrderItem(
+    //           id: 3,
+    //           orderId: 3,
+    //           product: SampleProduct.productRTW,
+    //           quantity: 1,
+    //           status: Order.COMPLETED,
+    //           priceAtPurchase: SampleProduct.productRTW.price)
+    //     ]);
+    // Order order2 = Order(
+    //     id: 2,
+    //     buyerId: 1,
+    //     orderDate: DateTime(2024, 11, 8, 12, 0),
+    //     totalPrice: 15000,
+    //     items: [
+    //       OrderItem(
+    //           id: 2,
+    //           orderId: 2,
+    //           product: SampleProduct.productRTW,
+    //           quantity: 1,
+    //           status: Order.PROCESS,
+    //           priceAtPurchase: SampleProduct.productRTW.price)
+    //     ]);
 
     // Daftar order diurutkan berdasarkan tanggal
 
-    List<Order> dummy = [order1, order2];
+    List<Order> dummy = [];
 
     List<Order> orders = dummy;
 
