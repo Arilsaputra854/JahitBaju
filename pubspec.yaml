@@ -1,5 +1,5 @@
 name: jahit_baju
-description: "A new Flutter project."
+description: "Aplikasi Jahit Baju"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -42,6 +42,9 @@ dependencies:
   flutter_otp_text_field:
   http: ^0.13.5
   loading_animation_widget:
+  intl:
+  swipe_image_gallery:
+  flutter_svg:
 
 flutter_launcher_icons:
   android: "launcher_icon"
@@ -75,10 +78,14 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/logo/jahit_baju_logo.png
+    - assets/logo/title_jahit_baju.png
     - assets/onboarding/onboarding_1.png
     - assets/onboarding/onboarding_2.png
     - assets/onboarding/onboarding_3.png
     - assets/background/bg.png
+    - assets/coat/clutch-coat-badan-depan-kanan.svg
+    - assets/coat/clutch-coat-badan-depan-kiri.svg
+    - assets/coat/clutch-coat-kerah.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

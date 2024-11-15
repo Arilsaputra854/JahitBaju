@@ -4,7 +4,7 @@ import 'dart:developer';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:jahit_baju/helper/api/api_service.dart';
+import 'package:jahit_baju/api/api_service.dart';
 
 class LoginViewModel extends ChangeNotifier {
   ApiService api = ApiService();
@@ -41,7 +41,7 @@ class LoginViewModel extends ChangeNotifier {
       return "";
     }
 
-    var status = await api.login(_email!, _password!);
+    var status = await api.userLogin(_email!, _password!);
 
     print(status);
     if (status != null && status.startsWith("Email")) {
