@@ -17,72 +17,9 @@ class _HistoryPageState extends State<HistoryPage> {
   var deviceWidth;
   @override
   Widget build(BuildContext context) {
-    Product product = Product(
-        id: 1,
-        name: "Handuk",
-        description:
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sit amet est eget orci pulvinar volutpat. Proin et elit sit amet felis condimentum convallis. Pellentesque id purus eros. Donec pharetra suscipit velit et convallis. Fusce finibus justo semper, mattis mauris ac, semper urna. Praesent nec turpis eros. Etiam mollis in nisi non accumsan. Aliquam id neque sit amet sem commodo eleifend ut vel tellus. Donec molestie lobortis mi ac pellentesque. Vestibulum posuere condimentum ornare.",
-        price: 25000,
-        stock: 13,
-        type: Product.READY_TO_WEAR,
-        imageUrl: '');
-    Product product2 = Product(
-        id: 2,
-        name: "Kemeja",
-        description:
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sit amet est eget orci pulvinar volutpat. Proin et elit sit amet felis condimentum convallis. Pellentesque id purus eros. Donec pharetra suscipit velit et convallis. Fusce finibus justo semper, mattis mauris ac, semper urna. Praesent nec turpis eros. Etiam mollis in nisi non accumsan. Aliquam id neque sit amet sem commodo eleifend ut vel tellus. Donec molestie lobortis mi ac pellentesque. Vestibulum posuere condimentum ornare.",
-        price: 15000,
-        stock: 123,
-        type: Product.CUSTOM,
-        imageUrl: '');
+    
 
-    // Contoh order dengan tanggal yang berbeda
-    Order order1 = Order(
-        id: 1,
-        buyerId: 1,
-        orderDate: DateTime(2024, 11, 7, 10, 0),
-        totalPrice: 25000,
-        items: [
-          OrderItem(
-              id: 1,
-              orderId: 1,
-              product: product,
-              quantity: 1,
-              status: Order.PROCESS,
-              priceAtPurchase: product.price),
-          OrderItem(
-              id: 2,
-              orderId: 2,
-              product: product2,
-              quantity: 1,
-              status: Order.PROCESS,
-              priceAtPurchase: product2.price),
-          OrderItem(
-              id: 3,
-              orderId: 3,
-              product: product2,
-              quantity: 1,
-              status: Order.COMPLETED,
-              priceAtPurchase: product2.price)
-        ]);
-    Order order2 = Order(
-        id: 2,
-        buyerId: 1,
-        orderDate: DateTime(2024, 11, 8, 12, 0),
-        totalPrice: 15000,
-        items: [
-          OrderItem(
-              id: 2,
-              orderId: 2,
-              product: product2,
-              quantity: 1,
-              status: Order.PROCESS,
-              priceAtPurchase: product2.price)
-        ]);
-
-    // Daftar order diurutkan berdasarkan tanggal
-
-    List<Order> dummy = [order1, order2];
+    List<Order> dummy = [];
 
     List<Order> orders = dummy;
 
@@ -214,7 +151,7 @@ class _HistoryPageState extends State<HistoryPage> {
           ),
           child: InkWell(
             onTap: (){
-              goToProductScreen(item);
+              // goToProductScreen(item.productId);
             },
             child: Card(
             elevation: 4,
@@ -224,24 +161,24 @@ class _HistoryPageState extends State<HistoryPage> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
+                // Container(
                  
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.only(topLeft: Radius.circular(8),bottomLeft: Radius.circular(8)),
-                    child: AspectRatio(
-                    aspectRatio: 4 / 5,
-                    child: item.product.imageUrl.isNotEmpty
-                        ? Image.network(
-                            item.product.imageUrl,
-                            fit: BoxFit.cover,
-                          )
-                        : Image.asset(
-                            "assets/background/bg.png",
-                            fit: BoxFit.cover,
-                          ),
-                  ),
-                  )
-                ),
+                //   child: ClipRRect(
+                //     borderRadius: BorderRadius.only(topLeft: Radius.circular(8),bottomLeft: Radius.circular(8)),
+                //     child: AspectRatio(
+                //     aspectRatio: 4 / 5,
+                //     child: item.product.imageUrl.isNotEmpty
+                //         ? Image.network(
+                //             item.product.imageUrl.first,
+                //             fit: BoxFit.cover,
+                //           )
+                //         : Image.asset(
+                //             "assets/background/bg.png",
+                //             fit: BoxFit.cover,
+                //           ),
+                //   ),
+                //   )
+                // ),
                 Expanded(
                   child: Container(
                     margin: EdgeInsets.all(10),
@@ -249,37 +186,37 @@ class _HistoryPageState extends State<HistoryPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.product.name,
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 20),
-                            ),
-                            Text(
-                              item.product.description,
-                              maxLines: 4,
-                              overflow: TextOverflow.ellipsis,
-                              softWrap: true,
-                              style: TextStyle(fontSize: 15),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              item.status,
-                              style: TextStyle(
-                                  fontSize: 15, fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              'Rp ${item.product.price}',
-                              style: TextStyle(fontSize: 15),
-                            ),
-                          ],
-                        )
+                        // Column(
+                        //   crossAxisAlignment: CrossAxisAlignment.start,
+                        //   children: [
+                        //     Text(
+                        //       item.product.name,
+                        //       style: TextStyle(
+                        //           fontWeight: FontWeight.bold, fontSize: 20),
+                        //     ),
+                        //     Text(
+                        //       item.product.description,
+                        //       maxLines: 4,
+                        //       overflow: TextOverflow.ellipsis,
+                        //       softWrap: true,
+                        //       style: TextStyle(fontSize: 15),
+                        //     ),
+                        //   ],
+                        // ),
+                        // Row(
+                        //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        //   children: [
+                        //     Text(
+                        //       item.status,
+                        //       style: TextStyle(
+                        //           fontSize: 15, fontWeight: FontWeight.bold),
+                        //     ),
+                        //     Text(
+                        //       'Rp ${item.product.price}',
+                        //       style: TextStyle(fontSize: 15),
+                        //     ),
+                        //   ],
+                        // )
                       ],
                     ),
                   ),
@@ -298,19 +235,19 @@ class _HistoryPageState extends State<HistoryPage> {
     List<dynamic> itemsWithDates = [];
     DateTime? lastDate;
 
-    for (var order in orders) {
-      var itemOfType =
-          order.items.where((item) => item.product.type == type).toList();
+    // for (var order in orders) {
+    //   var itemOfType =
+    //       order.items.where((item) => item.product.type == type).toList();
 
-      if (itemOfType.isNotEmpty) {
-        if (lastDate == null || _isDifferentDate(lastDate, order.orderDate)) {
-          itemsWithDates.add(_formatDate(order.orderDate));
-        }
+    //   if (itemOfType.isNotEmpty) {
+    //     if (lastDate == null || _isDifferentDate(lastDate, order.orderDate)) {
+    //       itemsWithDates.add(_formatDate(order.orderDate));
+    //     }
 
-        itemsWithDates.addAll(itemOfType);
-        lastDate = order.orderDate;
-      }
-    }
+    //     itemsWithDates.addAll(itemOfType);
+    //     lastDate = order.orderDate;
+    //   }
+    // }
 
     return itemsWithDates;
   }
@@ -327,7 +264,7 @@ class _HistoryPageState extends State<HistoryPage> {
     return formattedDate.toString();
   }
   
-  void goToProductScreen(OrderItem item) {
+  void goToProductScreen(Product item) {
     Navigator.push(context, MaterialPageRoute(builder: (context) => ProductScreen(item)));
   }
 }

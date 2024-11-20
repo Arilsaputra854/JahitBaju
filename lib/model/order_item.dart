@@ -1,41 +1,47 @@
-import 'package:jahit_baju/model/product.dart';
-
 class OrderItem {
-  final int id;
-  final int orderId;
-  final Product product;
+  final String id;
+  final String orderId;
+  final String productId;
   final int quantity;
+  final int priceAtPurchase;
   final String status;
-  final double priceAtPurchase;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   OrderItem({
     required this.id,
     required this.orderId,
-    required this.product,
-    required this.quantity,
-    required this.status,
+    required this.productId,
+    this.quantity = 1,
     required this.priceAtPurchase,
+    this.status = 'pending',
+    required this.createdAt,
+    required this.updatedAt,
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
     return OrderItem(
       id: json['id'],
-      orderId: json['order_id'],
-      product: json['product'],
-      status: json['status'],
-      quantity: json['quantity'],
-      priceAtPurchase: json['price_at_purchase'].toDouble(),
+      orderId: json['orderId'],
+      productId: json['productId'],
+      quantity: json['quantity'] ?? 1,
+      priceAtPurchase: json['priceAtPurchase'],
+      status: json['status'] ?? 'pending',
+      createdAt: DateTime.parse(json['createdAt']),
+      updatedAt: DateTime.parse(json['updatedAt']),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'order_id': orderId,
-      'product': product.toJson(),
-      'status': status,
+      'orderId': orderId,
+      'productId': productId,
       'quantity': quantity,
-      'price_at_purchase': priceAtPurchase,
+      'priceAtPurchase': priceAtPurchase,
+      'status': status,
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
     };
   }
 }

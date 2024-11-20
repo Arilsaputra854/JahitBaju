@@ -4,13 +4,18 @@ class Product {
   static const READY_TO_WEAR = 1;
   static const CUSTOM = 2;
 
-  final int id;
+  final String id;
   final String name;
   final String description;
   final double price;
   final int stock;
+  final int sold;
+  final int seen;
+  final int favorite;
   final int type;
-  final String imageUrl;
+  final List<String> imageUrl;
+  final List<String> tags;
+  final List<String> size;
 
   Product({
     required this.id,
@@ -18,8 +23,13 @@ class Product {
     required this.description,
     required this.price,
     required this.stock,
+    required this.sold,
+    required this.seen,
+    required this.favorite,
     required this.type,
-    required this.imageUrl
+    required this.imageUrl,
+    required this.tags,
+    required this.size,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -27,10 +37,15 @@ class Product {
       id: json['id'],
       name: json['name'],
       description: json['description'],
-      price: json['price'].toDouble(),
+      price: (json['price'] as num).toDouble(),
       stock: json['stock'],
+      sold: json['sold'],
+      seen: json['seen'],
+      favorite: json['favorite'],
       type: json['type'],
-      imageUrl: json['image_url'],
+      imageUrl: List<String>.from(json['images_url']), // parsing List<String>
+      tags: List<String>.from(json['tags']),           // parsing List<String>
+      size: List<String>.from(json['size']), 
     );
   }
 
@@ -41,8 +56,14 @@ class Product {
       'description': description,
       'price': price,
       'stock': stock,
+      'sold': sold,
+      'seen': seen,
+      'favorite': favorite,
       'type': type,
       'image_url': imageUrl,
+      'tags': tags,
+      'size': size,
     };
   }
 }
+

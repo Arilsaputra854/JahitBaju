@@ -1,45 +1,61 @@
 import 'package:jahit_baju/model/order_item.dart';
 
+
 class Order {
-  final int id;
-  final int buyerId;
+  final String id;
+  final String buyerId;
   final DateTime orderDate;
-   double totalPrice;
-   List<OrderItem> items;
+  final int totalPrice;
+  final String status;
+  final List<OrderItem> items;
+  final String createdAt;
+  final String updatedAt;
+
 
 
   static const String PROCESS = "PROCESS";
   static const String COMPLETED = "COMPLETED";
   static const String CANCELED = "CANCELED";
+  static const String PENDING = "PENDING";
+
 
   Order({
     required this.id,
     required this.buyerId,
     required this.orderDate,
     required this.totalPrice,
-    required this.items,
+    this.status = PENDING,
+    this.items = const [],
+    required this.createdAt,
+    required this.updatedAt,
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
-    var itemsList = json['items'] as List;
-    List<OrderItem> orderItems = itemsList.map((i) => OrderItem.fromJson(i)).toList();
-
     return Order(
       id: json['id'],
-      buyerId: json['buyer_id'],
-      orderDate: DateTime.parse(json['order_date']),
-      totalPrice: json['total_price'].toDouble(),
-      items: orderItems,
+      buyerId: json['buyerId'],
+      orderDate: DateTime.parse(json['orderDate']),
+      totalPrice: json['totalPrice'],
+      status: json['status'] ?? 'pending',
+      items: (json['items'] as List<dynamic>?)
+              ?.map((item) => OrderItem.fromJson(item))
+              .toList() ??
+          [],
+      createdAt:json['createdAt'] ?? "",
+      updatedAt:json['updatedAt'] ?? "",
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'buyer_id': buyerId,
-      'order_date': orderDate.toIso8601String(),
-      'total_price': totalPrice,
+      'buyerId': buyerId,
+      'orderDate': orderDate.toIso8601String(),
+      'totalPrice': totalPrice,
+      'status': status,
       'items': items.map((item) => item.toJson()).toList(),
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
     };
   }
 }

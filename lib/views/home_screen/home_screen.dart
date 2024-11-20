@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jahit_baju/model/order.dart';
 import 'package:jahit_baju/model/order_item.dart';
 import 'package:jahit_baju/model/product.dart';
+import 'package:jahit_baju/views/cart_screen/cart_screen.dart';
 import 'package:jahit_baju/views/home_screen/fragment/favorite_page.dart';
 import 'package:jahit_baju/views/home_screen/fragment/history_page.dart';
 import 'package:jahit_baju/views/home_screen/fragment/home_page.dart';
@@ -35,6 +36,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
 
+    
+
     return Scaffold(
         appBar: AppBar(
           leading: Image.asset(
@@ -44,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
           centerTitle: false,
           backgroundColor: Colors.white,
           actions: [
-            IconButton(onPressed: () {}, icon: Icon(Icons.shopping_cart))
+            IconButton(onPressed: () => goToCartScreen(), icon: Icon(Icons.shopping_cart))
           ],
         ),
         body: page[_indexPage],
@@ -63,6 +66,11 @@ class _HomeScreenState extends State<HomeScreen> {
               BottomNavigationBarItem(
                   icon: Icon(Icons.person), label: "Profile")
             ]));
+  }
+  
+  goToCartScreen() {
+     Navigator.push(
+        context, MaterialPageRoute(builder: (context) => CartScreen()));
   }
 
 }

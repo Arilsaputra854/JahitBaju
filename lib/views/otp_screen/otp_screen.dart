@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:jahit_baju/helper/api/api_service.dart';
+import 'package:jahit_baju/api/api_service.dart';
 import 'package:jahit_baju/views/home_screen/home_screen.dart';
 import 'package:jahit_baju/views/login/login_screen.dart';
 import 'package:jahit_baju/views/reset_password/reset_password.dart';
