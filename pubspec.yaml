@@ -45,6 +45,7 @@ dependencies:
   intl:
   swipe_image_gallery:
   flutter_svg:
+  flutter_secure_storage:
 
 flutter_launcher_icons:
   android: "launcher_icon"
