@@ -65,7 +65,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 foregroundColor: Colors.white,
               ),
               backgroundColor: Colors.transparent,
-              body: Consumer<RegisterViewModel>(
+              body: SingleChildScrollView(
+                child: Consumer<RegisterViewModel>(
                   builder: (context, viewModel, child) {
                 return Center(
                   child: SizedBox(
@@ -75,6 +76,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 );
               }),
             ),
+              ),
             if (isLoading)
               LoadingAnimationWidget.staggeredDotsWave(
                   color: Colors.black, size: 50)
@@ -224,7 +226,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               }
                             },
                             child: const Text(
-                              "Login",
+                              "Register",
                               style: TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 20),
                             )),

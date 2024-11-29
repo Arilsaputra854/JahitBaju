@@ -48,8 +48,8 @@ class _SplashScreenState extends State<SplashScreen> {
       ], begin: Alignment.topRight, end: Alignment.bottomLeft)),
       child: Center(
         child: SizedBox(
-            width: 250,
-            height: 250,
+            width: deviceWidth * 0.6,
+            height: deviceWidth * 0.6,
             child: Image.asset("assets/logo/jahit_baju_logo.png")),
       ),
     ));
@@ -60,8 +60,8 @@ class _SplashScreenState extends State<SplashScreen> {
     
     if (token != null && token.isNotEmpty && token != "") {
       Future.delayed(const Duration(seconds: 2), () {
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => const HomeScreen()));
+        Navigator.pushReplacement(          
+            context, MaterialPageRoute(builder: (context) => const HomeScreen(), settings: RouteSettings(name: "Home")));
       });
       
     } else {

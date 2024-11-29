@@ -14,7 +14,7 @@ class ProfilePage extends StatefulWidget {
 
 class _HomePageState extends State<ProfilePage> {
   TokenStorage tokenStorage = TokenStorage();
-  late bool onEdit;
+  late bool onEdit, enabled;
   late TextEditingController nameController;
   late TextEditingController emailController;
   late TextEditingController phoneController;
@@ -25,6 +25,7 @@ class _HomePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     onEdit = false;
+    enabled = false;
   }
 
   @override
@@ -35,11 +36,11 @@ class _HomePageState extends State<ProfilePage> {
       future: loadUserFromDatabase(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Center(child: Text("Error: ${snapshot.error}"));
-        } else if (!snapshot.hasData) {
-          return Center(child: Text("No user data found"));
+          enabled = false;
+        } else if (snapshot.hasData) {
+          onEdit = true;
         }
 
         // Initialize the controllers with user data
@@ -49,70 +50,71 @@ class _HomePageState extends State<ProfilePage> {
         addressController = TextEditingController();
         passwordController = TextEditingController();
 
-        User user = snapshot.data!;
+        User? user = snapshot.data;
 
         // Set initial values for controllers
-        nameController.text = user.name;
-        emailController.text = user.email;
-        phoneController.text = user.phoneNumber;
-        addressController.text = user.address;
-        passwordController.text = user.password;
+        nameController.text = user?.name ?? "";
+        emailController.text = user?.email ?? "";
+        phoneController.text = user?.phoneNumber ?? "";
+        addressController.text = user?.address ?? "";
+        passwordController.text = user?.password ?? "";
 
-        return Container(
+        //TODO REFRESH UI WHEN UPDATE SUCCESS
+        return SingleChildScrollView(
+            child: Container(
           color: Colors.white,
           child: Container(
-            margin: EdgeInsets.symmetric(horizontal: 40),
+            margin: const EdgeInsets.symmetric(horizontal: 40),
             width: deviceWidth,
             child: Form(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  SizedBox(height: 50),
+                  const SizedBox(height: 50),
                   Container(
-                    width: 200,
-                    height: 200,
+                    width: deviceWidth * 0.4,
+                    height: deviceWidth * 0.4,
                     child: ClipOval(
-                      child: user.imageUrl == ""
-                          ? Icon(Icons.person, size: 200)
-                          : Image.network(
-                              user.imageUrl,
-                              fit: BoxFit.cover,
-                              width: 200,
-                              height: 200,
-                            ),
+                      child: user?.imageUrl == "" || user?.imageUrl == null
+                          ? Center(child: const Icon(Icons.person, size: 150))
+                          : Image.network(user!.imageUrl,
+                              fit: BoxFit.cover, width: double.infinity),
                     ),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Text(
-                    user.name,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+                    user?.name ?? "",
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 25),
                   ),
-                  SizedBox(height: 40),
+                  const SizedBox(height: 40),
                   InkWell(
                     onTap: () {
-                      if (onEdit) {
-                        // Save the settings and only then toggle edit mode
-                        saveSetting();
-                        setState(() {
-                          onEdit = !onEdit; // Only toggle after save
-                        });
-                      } else {
-                        setState(() {
-                          onEdit = !onEdit; // Simply toggle edit mode
-                        });
+                      if (enabled) {
+                        if (onEdit) {
+                          // Save the settings and only then toggle edit mode
+                          saveSetting();
+                          setState(() {
+                            onEdit = !onEdit; // Only toggle after save
+                          });
+                        } else {
+                          setState(() {
+                            onEdit = !onEdit; // Simply toggle edit mode
+                          });
+                        }
                       }
                     },
                     child: Container(
                       width: deviceWidth,
                       child: Text(
                         onEdit ? "Simpan Data" : "Edit Data",
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 15,
-                            color: const Color.fromARGB(255, 141, 120, 119)),
+                            color: Color.fromARGB(255, 141, 120, 119)),
                       ),
                     ),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   TextFormField(
                     controller: emailController,
                     enabled: onEdit,
@@ -123,10 +125,10 @@ class _HomePageState extends State<ProfilePage> {
                       return null;
                     },
                     keyboardType: TextInputType.emailAddress,
-                    decoration:
-                        standartInputDecoration(user.email, Icons.email),
+                    decoration: standartInputDecoration(
+                        user?.email ?? "email", Icons.email),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   TextFormField(
                     controller: phoneController,
                     enabled: onEdit,
@@ -138,12 +140,12 @@ class _HomePageState extends State<ProfilePage> {
                     },
                     keyboardType: TextInputType.phone,
                     decoration: standartInputDecoration(
-                        user.phoneNumber != ""
-                            ? user.phoneNumber
+                        user?.phoneNumber != "" && user?.phoneNumber != null
+                            ? user!.phoneNumber
                             : "Phone Number",
                         Icons.phone),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   TextFormField(
                     controller: addressController,
                     enabled: onEdit,
@@ -154,10 +156,12 @@ class _HomePageState extends State<ProfilePage> {
                       return null;
                     },
                     decoration: standartInputDecoration(
-                        user.address != "" ? user.address : "Address",
+                        user?.address != "" && user?.address != null
+                            ? user!.address
+                            : "Address",
                         Icons.location_pin),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   TextFormField(
                     controller: passwordController,
                     enabled: onEdit,
@@ -169,13 +173,15 @@ class _HomePageState extends State<ProfilePage> {
                     },
                     obscureText: true,
                     decoration: standartInputDecoration(
-                        user.password != "" ? user.password : "***********",
+                        user?.password != "" && user?.password != null
+                            ? user!.password
+                            : "***********",
                         Icons.password),
                   ),
-                  SizedBox(height: 40),
+                  const SizedBox(height: 40),
                   InkWell(
                     onTap: () => logoutUser(),
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
@@ -192,24 +198,25 @@ class _HomePageState extends State<ProfilePage> {
               ),
             ),
           ),
-        );
+        ));
       },
     );
   }
 
   standartInputDecoration(String hint, IconData icon) {
     return InputDecoration(
-      errorStyle: TextStyle(color: Colors.white),
+      errorStyle: const TextStyle(color: Colors.white),
       fillColor: Colors.white,
       filled: true,
       suffixIcon: Icon(icon),
       suffixIconColor: Colors.black,
       hintText: hint,
-      disabledBorder: OutlineInputBorder(
+      disabledBorder: const OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(10)),
       ),
-      hintStyle: TextStyle(color: Colors.black, fontWeight: FontWeight.normal),
-      border: OutlineInputBorder(
+      hintStyle:
+          const TextStyle(color: Colors.black, fontWeight: FontWeight.normal),
+      border: const OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(10)),
       ),
     );
@@ -237,7 +244,7 @@ class _HomePageState extends State<ProfilePage> {
   void goToLoginScreen() {
     Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => LoginScreen()),
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
         (Route<dynamic> route) => false);
   }
 
@@ -247,8 +254,8 @@ class _HomePageState extends State<ProfilePage> {
     ApiService apiService = ApiService();
 
     try {
-      
-      String? token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);;
+      String? token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+
       if (token != null) {
         await apiService
             .userUpdate(

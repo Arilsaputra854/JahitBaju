@@ -1,13 +1,20 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:jahit_baju/api/api_service.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
+import 'package:jahit_baju/helper/viewmodels/cart_view_model.dart';
 import 'package:jahit_baju/model/cart.dart';
 import 'package:jahit_baju/model/order.dart';
 import 'package:jahit_baju/model/order_item.dart';
 import 'package:jahit_baju/model/product.dart';
+import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/views/product_screen/product_screen.dart';
+import 'package:jahit_baju/views/shipping_screen/shipping_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -17,359 +24,377 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-  var deviceWidth;
+  var deviceWidth, deviceHeight;
+  Cart? cart;
 
   @override
   Widget build(BuildContext context) {
-    
-
-    loadOrderData();
-
-
     deviceWidth = MediaQuery.of(context).size.width;
-    var deviceHeight = MediaQuery.of(context).size.height;
+    deviceHeight = MediaQuery.of(context).size.height;
 
-    return Scaffold(
-        appBar: AppBar(
-          title: Text("Cart"),
-          centerTitle: true,
-        ),
-        bottomNavigationBar: Container(
-          padding: EdgeInsets.all(20),
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(0)),
-              backgroundColor: Colors.red, // Latar belakang merah
-              padding: EdgeInsets.symmetric(
-                  vertical: 15,
-                  horizontal: 30), // Padding agar tombol lebih besar
-            ),
-            onPressed: () {},
-            child: Text(
-              "Checkout",
-              style: TextStyle(
-                color: Colors.white, // Warna teks putih
-                fontWeight: FontWeight.bold,
+    return ChangeNotifierProvider(
+        create: (context) => CartViewModel(),
+        child: Consumer<CartViewModel>(builder: (context, viewModel, child) {
+          return Scaffold(
+              appBar: AppBar(
+                title: const Text("Cart"),
+                centerTitle: true,
               ),
-            ),
-          ),
-        ),
-        body: FutureBuilder(future: loadOrderData(), builder: (context, snapshot){
-          if(snapshot.hasData){
-            return SingleChildScrollView(
-                child: Column(
-                  children: [
-                    Container(
-                      width: deviceWidth,
-                      margin: EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Siap Pakai",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 25),
-                          ),
-                          SizedBox(height: 10),
-                          FutureBuilder<List<dynamic>>(future: _getCartItems(snapshot.data!, Product.READY_TO_WEAR), builder: (context, snapshot){                            
-                            print(snapshot.data);
-                            if(snapshot.hasData){
-                              return Container(
-                                  child: ListView.builder(
-                                  physics: NeverScrollableScrollPhysics(),
-                                  shrinkWrap: true,
-                                  itemCount:
-                                      snapshot.data!
-                                          .length,
-                                  itemBuilder: (context, index) {
-                                    final item = snapshot.data![index];
-
-                                    if (item is String) {
-                                      // Jika item adalah String, tampilkan sebagai tanggal
-                                      return Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 8.0),
-                                        child: Text(
-                                          item,
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16),
-                                        ),
-                                      );
-                                    } else if (item is OrderItem) {
-                                      // Jika item adalah OrderItem, tampilkan detail produk
-                                      return _buildOrderItem(item);
-                                    }
-                                    return Container();
-                                  },
-                                ));
-                            }
-                            return Container(
-                                  height: deviceHeight * 0.2,
-                                  child: Center(
-                                    child: Text("Tidak ada data"),
-                                  ),
-                                );
-                          }),
-                          SizedBox(height: 10),
-                          Text(
-                            "Custom Produk",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 25),
-                          ),
-                          SizedBox(height: 10),
-                          FutureBuilder<List<dynamic>>(future: _getCartItems(snapshot.data!, Product.CUSTOM), builder: (context, snapshot){
-                            if(snapshot.hasData){
-                              return snapshot.data!.isNotEmpty
-                              ? Container(
-                                  child: ListView.builder(
-                                  physics: NeverScrollableScrollPhysics(),
-                                  shrinkWrap: true,
-                                  itemCount:
-                                      snapshot.data!
-                                          .length,
-                                  itemBuilder: (context, index) {
-                                    final item = snapshot.data![index];
-
-                                    if (item is String) {
-                                      // Jika item adalah String, tampilkan sebagai tanggal
-                                      return Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 8.0),
-                                        child: Text(
-                                          item,
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16),
-                                        ),
-                                      );
-                                    } else if (item is OrderItem) {
-                                      // Jika item adalah OrderItem, tampilkan detail produk
-                                      return _buildOrderItem(item);
-                                    }
-                                    return Container();
-                                  },
-                                ))
-                              : Container(
-                                  height: deviceHeight * 0.2,
-                                  child: Center(
-                                    child: Text("Tidak ada data"),
-                                  ),
-                                );
-                            }
-                            return Placeholder();
-                          }),
-                          SizedBox(height: 30),
-                          Container(
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "Siap pakai",
-                                      style: TextStyle(fontSize: 15),
-                                    ),
-                                    Text(
-                                      "Rp 0.00",
-                                      style: TextStyle(fontSize: 15),
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "Custom",
-                                      style: TextStyle(fontSize: 15),
-                                    ),
-                                    Text(
-                                      "Rp 0.00",
-                                      style: TextStyle(fontSize: 15),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 15),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "Total",
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 20),
-                                    ),
-                                    Text(
-                                      "Rp 0.00",
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 20),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          )
-                        ],
-                      ),
+              bottomNavigationBar: Container(
+                padding: const EdgeInsets.all(20),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(0)),
+                    backgroundColor: Colors.red, // Latar belakang merah
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 15,
+                        horizontal: 30), // Padding agar tombol lebih besar
+                  ),
+                  onPressed: () => goToShippingScreen(cart),
+                  child: const Text(
+                    "Selanjutnya",
+                    style: TextStyle(
+                      color: Colors.white, // Warna teks putih
+                      fontWeight: FontWeight.bold,
                     ),
-                  ],
+                  ),
                 ),
-              );
-              
-          }else{
-            return Placeholder();
-          }
+              ),
+              body: _body(viewModel));
         }));
   }
 
-  Widget _buildOrderItem(dynamic item) {
-    if (item is String) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Text(
-          item,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-      );
-    } else if (item is OrderItem) {
-      return Container(
-          height: 200,
-          width: deviceWidth,
-          margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
-          child: InkWell(
-              onTap: () {},
-              child: Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+  //widget setiap item di cart
+  Widget _buildCartItem(CartItem cartItem, Product item) {
+    return Container(
+        width: deviceWidth,
+        margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8), color: Colors.white),
+        child: InkWell(
+            onTap: () {},
+            child: Card(
+              color: Colors.white,
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                      height: deviceWidth * 0.3,
+                      padding: const EdgeInsets.all(5),
+                      color: Colors.white,
+                      child: ClipRRect(
+                          borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(8),
+                              bottomLeft: Radius.circular(8)),
+                          child: AspectRatio(
+                              aspectRatio: 4 / 5,
+                              child: item.type == Product.READY_TO_WEAR
+                                  ? CachedNetworkImage(
+                                      imageUrl: item.imageUrl.first,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) {
+                                        return Shimmer.fromColors(
+                                            baseColor: Colors.grey[300]!,
+                                            highlightColor: Colors.grey[100]!,
+                                            child: Container(
+                                              width: double.infinity,
+                                              height: double.infinity,
+                                              color: Colors.grey,
+                                            ));
+                                      },
+                                    )
+                                  : SvgPicture.network(
+                                      item.imageUrl.first,
+                                      placeholderBuilder: (context) {
+                                        return Shimmer.fromColors(
+                                            baseColor: Colors.grey[300]!,
+                                            highlightColor: Colors.grey[100]!,
+                                            child: Container(
+                                              width: double.infinity,
+                                              height: double.infinity,
+                                              color: Colors.grey,
+                                            ));
+                                      },
+                                    )))),
+                  Expanded(
+                    child: Container(
+                      color: Colors.white,
+                      margin: const EdgeInsets.all(10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.name,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 16),
+                              ),
+                              Text(
+                                convertToRupiah(item.price),
+                                style: const TextStyle(fontSize: 15),
+                              ),
+                              Text(
+                                '${cartItem.size}',
+                                style: const TextStyle(fontSize: 15),
+                              )
+                            ],
+                          ),
+                          Container(
+                              padding: const EdgeInsets.all(3),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "${cartItem.quantity} pcs",
+                                    style: const TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  IconButton(
+                                      onPressed: () => deleteCartItem(cartItem),
+                                      icon: Icon(Icons.delete_rounded))
+                                ],
+                              ))
+                        ],
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            )));
+  }
+
+  Widget itemCartShimmer() {
+    return ListView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      itemCount: 1, // Jumlah item shimmer
+      itemBuilder: (context, index) {
+        return Shimmer.fromColors(
+          baseColor: Colors.grey[300]!,
+          highlightColor: Colors.grey[100]!,
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  color: Colors.grey[400],
                 ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      child: Text(item.quantity.toString() + " x "),
+                      width: 150,
+                      height: 15,
+                      color: Colors.grey[400],
                     ),
+                    const SizedBox(height: 10),
                     Container(
-                        child: ClipRRect(
-                            borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(8),
-                                bottomLeft: Radius.circular(8)),
-                            child: AspectRatio(
-                                aspectRatio: 4 / 5,
-                                child: FutureBuilder(
-                                    future: getProductById(item.productId),
-                                    builder: (context, snapshot) {
-                                      return snapshot.data!.type ==
-                                              Product.READY_TO_WEAR
-                                          ? Image.network(
-                                              snapshot.data!.imageUrl.first,
-                                              fit: BoxFit.cover,
-                                            )
-                                          : SvgPicture.network(
-                                              snapshot.data!.imageUrl.first);
-                                    })))),
-                    Expanded(
-                      child: Container(
-                        margin: EdgeInsets.all(10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                FutureBuilder<Product>(
-                                    future: getProductById(item.productId),
-                                    builder: (context, snapshot) {
-                                      if (snapshot.hasData) {
-                                        return Text(
-                                          snapshot.data!.name,
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16),
-                                        );
-                                      }
-                                      return Container();
-                                    }),
-                                
-                              ],
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  item.status,
-                                  style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                FutureBuilder<Product>(
-                                    future: getProductById(item.productId),
-                                    builder: (context, snapshot) {
-                                      if (snapshot.hasData) {
-                                        return Text(
-                                          'Rp ${snapshot.data!.price}',
-                                          style: TextStyle(fontSize: 15),
-                                        );
-                                      }
-                                      return Container();
-                                    })
-                              ],
-                            )
-                          ],
-                        ),
-                      ),
-                    )
+                      width: 100,
+                      height: 12,
+                      color: Colors.grey[400],
+                    ),
                   ],
                 ),
-              )));
-    }
-    return Container();
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
-  Future<Product> getProductById(String productId) async {
-    TokenStorage tokenStorage = TokenStorage();
-    String? token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
-
+  deleteCartItem(CartItem item) async {
     ApiService apiService = ApiService();
-    Product product = await apiService.productsGetById(token!, productId);
-    return product;
+
+    var msg = await apiService.itemCartDelete(item);
+    Fluttertoast.showToast(msg: msg);
+    setState(() {});
   }
 
-  Future<List<dynamic>> _getCartItems(List<Cart> orders, int type) async {
-
-    List<dynamic> items = [];
-
-    for (var order in orders) {
-      // Ambil semua produk secara paralel
-      var products = await Future.wait(
-          order.items.map((item) => getProductById(item.productId)));
-
-      var itemOfType = order.items.where((item) {
-        var product = products.firstWhere((p) => p.id == item.productId);
-        return product.type == type;
-      }).toList();
-
-      if (itemOfType.isNotEmpty) {
-        items.addAll(itemOfType);
-      }
+  goToShippingScreen(Cart? cart) {
+    if (cart != null) {
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => ShippingScreen(cart: cart)));
+    } else {
+      Fluttertoast.showToast(
+          msg: "Tidak ada produk, silakan belanja terlebih dahulu.");
     }
-
-    return items;
   }
-  
-  Future<List<Cart>> loadOrderData() async{
-    TokenStorage tokenStorage = TokenStorage();
-    String? token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
-    ApiService apiService = ApiService();
-    List<Cart> cart = await apiService.cartGet(token!);
-    return cart;
+  Widget _body(var viewModel) {
+    return FutureBuilder(
+        future: viewModel.getCart(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {}
+
+          Cart? cart = snapshot.data as Cart?;
+          this.cart = cart;
+
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                Container(
+                  width: deviceWidth,
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Siap Pakai",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 18),
+                      ),
+                      const SizedBox(height: 10),
+                      FutureBuilder<List<MapEntry<CartItem, Product>>?>(
+                        future: viewModel.getCartItems(
+                            cart?.items, Product.READY_TO_WEAR),
+                        builder: (context, snapshot) {
+                          print(snapshot.data);
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return itemCartShimmer();
+                          } else if (snapshot.hasError) {
+                            return itemCartShimmer();
+                          } else if (snapshot.data != null) {
+                            return ListView.builder(
+                              physics: const NeverScrollableScrollPhysics(),
+                              shrinkWrap: true,
+                              itemCount: snapshot.data!.length,
+                              itemBuilder: (context, index) {
+                                var entry = snapshot.data![index];
+                                CartItem cartItem = entry.key;
+                                Product product = entry.value;
+
+                                return _buildCartItem(cartItem, product);
+                              },
+                            );
+                          } else {
+                            return Container(
+                              height: 100,
+                              child: const Center(
+                                child: Text("Tidak ada produk"),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        "Custom Produk",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 18),
+                      ),
+                      const SizedBox(height: 10),
+                      FutureBuilder<List<MapEntry<CartItem, Product>>?>(
+                        future:
+                            viewModel.getCartItems(cart?.items, Product.CUSTOM),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return itemCartShimmer();
+                            
+                          } if (snapshot.hasError) {
+                            return itemCartShimmer();
+                          } else if (snapshot.data != null) {
+                              List<MapEntry<CartItem, Product>>? data =
+                                  snapshot.data;
+
+                              return ListView.builder(
+                                physics: const NeverScrollableScrollPhysics(),
+                                shrinkWrap: true,
+                                itemCount: snapshot.data!.length,
+                                itemBuilder: (context, index) {
+                                  var entry = snapshot.data![index];
+                                  CartItem cartItem = entry.key;
+                                  Product product = entry.value;
+
+                                  return _buildCartItem(cartItem, product);
+                                },
+                              );
+                            } else {
+                              return Container(
+                                height: 100,
+                                child: const Center(
+                                  child: Text("Tidak ada produk"),
+                                ),
+                              );
+                            }
+                        },
+                      ),
+                      const SizedBox(height: 30),
+                      Column(
+                        children: [
+                          const Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Siap pakai",
+                                style: TextStyle(fontSize: 15),
+                              ),
+                              Text(
+                                "Rp 0.00",
+                                style: TextStyle(fontSize: 15),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Custom",
+                                style: TextStyle(fontSize: 15),
+                              ),
+                              Text(
+                                "Rp 0.00",
+                                style: const TextStyle(fontSize: 15),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 15),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Total",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 20),
+                              ),
+                              Text(
+                                cart?.totalPrice != null
+                                    ? convertToRupiah(cart!.totalPrice)
+                                    : "Rp 0",
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 20),
+                              ),
+                            ],
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        });
   }
 }

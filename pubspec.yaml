@@ -46,6 +46,9 @@ dependencies:
   swipe_image_gallery:
   flutter_svg:
   flutter_secure_storage:
+  cached_network_image:
+  shimmer:
+  connectivity_plus:
 
 flutter_launcher_icons:
   android: "launcher_icon"

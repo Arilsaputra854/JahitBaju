@@ -1,10 +1,17 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:jahit_baju/api/api_service.dart';
+import 'package:jahit_baju/model/cart.dart';
 import 'package:jahit_baju/model/order.dart';
-import 'package:jahit_baju/model/order_item.dart';
+import 'package:jahit_baju/model/order_item.dart' as orderItem;
 import 'package:jahit_baju/model/product.dart';
+import 'package:jahit_baju/util/util.dart';
+import 'package:jahit_baju/views/payment_screen/payment_screen.dart';
 import 'package:jahit_baju/views/product_screen/product_screen.dart';
+import 'package:shimmer/shimmer.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -14,257 +21,376 @@ class HistoryPage extends StatefulWidget {
 }
 
 class _HistoryPageState extends State<HistoryPage> {
-  var deviceWidth;
+  var deviceWidth, deviceHeight;
+  List<Order?> orders = [];
+
   @override
   Widget build(BuildContext context) {
-    
-
-    List<Order> dummy = [];
-
-    List<Order> orders = dummy;
-
     deviceWidth = MediaQuery.of(context).size.width;
-    var deviceHeight = MediaQuery.of(context).size.height;
+    deviceHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              width: deviceWidth,
-              margin: EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Siap Pakai",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
-                  ),
-                  SizedBox(height: 10),
-                  _getOrderItemsWithDate(orders, Product.READY_TO_WEAR)
-                          .isNotEmpty
-                      ? Container(
-                          child: ListView.builder(
-                          physics: NeverScrollableScrollPhysics(),
-                          shrinkWrap: true,
-                          itemCount: _getOrderItemsWithDate(
-                                  orders, Product.READY_TO_WEAR)
-                              .length,
-                          itemBuilder: (context, index) {
-                            final item = _getOrderItemsWithDate(
-                                orders, Product.READY_TO_WEAR)[index];
-
-                            if (item is String) {
-                              // Jika item adalah String, tampilkan sebagai tanggal
-                              return Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 8.0),
-                                child: Text(
-                                  item,
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16),
-                                ),
-                              );
-                            } else if (item is OrderItem) {
-                              // Jika item adalah OrderItem, tampilkan detail produk
-                              return _buildOrderItem(item);
-                            }
-                            return Container();
-                          },
-                        ))
-                      : Container(
-                          height: deviceHeight * 0.2,
-                          child: Center(
-                            child: Text("Tidak ada data"),
-                          ),
-                        ),
-                  SizedBox(height: 10),
-                  Text(
-                    "Custom Produk",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
-                  ),
-                  SizedBox(height: 10),
-                  _getOrderItemsWithDate(orders, Product.CUSTOM).isNotEmpty
-                      ? Container(
-                          child: ListView.builder(
-                          physics: NeverScrollableScrollPhysics(),
-                          shrinkWrap: true,
-                          itemCount:
-                              _getOrderItemsWithDate(orders, Product.CUSTOM)
-                                  .length,
-                          itemBuilder: (context, index) {
-                            final item = _getOrderItemsWithDate(
-                                orders, Product.CUSTOM)[index];
-
-                            if (item is String) {
-                              // Jika item adalah String, tampilkan sebagai tanggal
-                              return Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 8.0),
-                                child: Text(
-                                  item,
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16),
-                                ),
-                              );
-                            } else if (item is OrderItem) {
-                              // Jika item adalah OrderItem, tampilkan detail produk
-                              return _buildOrderItem(item);
-                            }
-                            return Container();
-                          },
-                        ))
-                      : Container(
-                          height: deviceHeight * 0.2,
-                          child: Center(
-                            child: Text("Tidak ada data"),
-                          ),
-                        ),
-                  SizedBox(height: 10),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOrderItem(dynamic item) {
-    if (item is String) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Text(
-          item,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-      );
-    } else if (item is OrderItem) {
-      return Container(
-          height: 200,
-          width: deviceWidth,
-          margin: EdgeInsets.symmetric(vertical: 5),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8)
-          ),
-          child: InkWell(
-            onTap: (){
-              // goToProductScreen(item.productId);
-            },
-            child: Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
+        body: RefreshIndicator(
+      child: Column(
+        children: [
+          Container(
+            width: deviceWidth,
+            margin: EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Container(
-                 
-                //   child: ClipRRect(
-                //     borderRadius: BorderRadius.only(topLeft: Radius.circular(8),bottomLeft: Radius.circular(8)),
-                //     child: AspectRatio(
-                //     aspectRatio: 4 / 5,
-                //     child: item.product.imageUrl.isNotEmpty
-                //         ? Image.network(
-                //             item.product.imageUrl.first,
-                //             fit: BoxFit.cover,
-                //           )
-                //         : Image.asset(
-                //             "assets/background/bg.png",
-                //             fit: BoxFit.cover,
-                //           ),
-                //   ),
-                //   )
-                // ),
-                Expanded(
-                  child: Container(
-                    margin: EdgeInsets.all(10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Column(
-                        //   crossAxisAlignment: CrossAxisAlignment.start,
-                        //   children: [
-                        //     Text(
-                        //       item.product.name,
-                        //       style: TextStyle(
-                        //           fontWeight: FontWeight.bold, fontSize: 20),
-                        //     ),
-                        //     Text(
-                        //       item.product.description,
-                        //       maxLines: 4,
-                        //       overflow: TextOverflow.ellipsis,
-                        //       softWrap: true,
-                        //       style: TextStyle(fontSize: 15),
-                        //     ),
-                        //   ],
-                        // ),
-                        // Row(
-                        //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        //   children: [
-                        //     Text(
-                        //       item.status,
-                        //       style: TextStyle(
-                        //           fontSize: 15, fontWeight: FontWeight.bold),
-                        //     ),
-                        //     Text(
-                        //       'Rp ${item.product.price}',
-                        //       style: TextStyle(fontSize: 15),
-                        //     ),
-                        //   ],
-                        // )
-                      ],
-                    ),
-                  ),
+                Text(
+                  "History",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+                ),
+                SizedBox(height: 10),
+                FutureBuilder(
+                  future: getOrder(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      orders = snapshot.data!;
+                      Map<String, List<Order?>> groupedOrders =
+                          sortOrderWithDate(orders);
+
+                      if (orders.isNotEmpty) {
+                        return ListView.builder(
+                          itemCount: groupedOrders.keys.length,
+                          shrinkWrap: true,
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          itemBuilder: (context, dateIndex) {
+                            String dateKey =
+                                groupedOrders.keys.elementAt(dateIndex);
+                            List<Order?> ordersByDate = groupedOrders[dateKey]!;
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8.0),
+                                  child: Text(
+                                    DateFormat('EEEE, dd MMMM yyyy')
+                                        .format(DateTime.parse(dateKey)),
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18),
+                                  ),
+                                ),
+                                ListView.builder(
+                                  itemCount: ordersByDate.length,
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemBuilder: (context, orderIndex) {
+                                    Order? order = ordersByDate[orderIndex];
+                                    return _buildCartItem(order!);
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      } else {
+                        return Container(
+                          height: 100,
+                          child: const Center(
+                            child: Text("Tidak ada history"),
+                          ),
+                        );
+                      }
+                    } else if (snapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return itemCartShimmer();
+                    } else {
+                      return itemCartShimmer();
+                    }
+                  },
                 )
               ],
             ),
-          ))
-          );
+          ),
+        ],
+      ),
+      onRefresh: () async {
+        setState(() {});
+      },
+    ));
+  }
+
+  Map<String, List<Order?>> sortOrderWithDate(List<Order?> orders) {
+    Map<String, List<Order?>> sortedOrders = {};
+
+    for (var order in orders) {
+      if (order != null) {
+        String dateKey = DateFormat('yyyy-MM-dd').format(order.orderCreated);
+
+        if (!sortedOrders.containsKey(dateKey)) {
+          sortedOrders[dateKey] = [];
+        }
+        sortedOrders[dateKey]!.add(order);
+      }
     }
-    return Container();
+
+    return sortedOrders;
   }
 
-  List<dynamic> _getOrderItemsWithDate(List<Order> orders, int type) {
-    orders.sort((a, b) => b.orderDate.compareTo(a.orderDate));
-
-    List<dynamic> itemsWithDates = [];
-    DateTime? lastDate;
-
-    // for (var order in orders) {
-    //   var itemOfType =
-    //       order.items.where((item) => item.product.type == type).toList();
-
-    //   if (itemOfType.isNotEmpty) {
-    //     if (lastDate == null || _isDifferentDate(lastDate, order.orderDate)) {
-    //       itemsWithDates.add(_formatDate(order.orderDate));
-    //     }
-
-    //     itemsWithDates.addAll(itemOfType);
-    //     lastDate = order.orderDate;
-    //   }
-    // }
-
-    return itemsWithDates;
+  Widget itemCartShimmer() {
+    return ListView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      itemCount: 1, // Jumlah item shimmer
+      itemBuilder: (context, index) {
+        return Shimmer.fromColors(
+          baseColor: Colors.grey[300]!,
+          highlightColor: Colors.grey[100]!,
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 150,
+                      height: 15,
+                      color: Colors.grey[400],
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      width: 100,
+                      height: 12,
+                      color: Colors.grey[400],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
-  bool _isDifferentDate(DateTime date1, DateTime date2) {
-    return date1.year != date2.year ||
-        date1.month != date2.month ||
-        date1.day != date2.day;
+  Widget _buildCartItem(Order order) {
+    print("Order Items: ${order.items}");
+    return Container(
+        width: deviceWidth,
+        margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8), color: Colors.white),
+        child: InkWell(
+            onTap: () {
+              if (order.orderStatus == Order.WAITING_FOR_PAYMENT) {
+                _goToPaymentScreen(order);
+              }
+            },
+            child: Card(
+                color: Colors.white,
+                elevation: 10,
+                shape: RoundedRectangleBorder(
+                  side: BorderSide(width: 2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.all(10),
+                      child: Text(
+                        "ID: ${order.id}",
+                        style: const TextStyle(
+                            fontSize: 8, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    ListView.builder(
+                        itemCount: order.items.length,
+                        shrinkWrap: true,
+                        itemBuilder: (context, index) {
+                          return FutureBuilder<Product>(
+                              future: getProduct(order.items[index].productId),
+                              builder: (context, snapshot) {
+                                print(snapshot.data);
+                                if (snapshot.hasData) {
+                                  Product product = snapshot.data!;
+                                  return Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                          height: deviceWidth * 0.3,
+                                          padding: const EdgeInsets.all(5),
+                                          color: Colors.white,
+                                          child: ClipRRect(
+                                              borderRadius:
+                                                  const BorderRadius.only(
+                                                      topLeft:
+                                                          Radius.circular(8),
+                                                      bottomLeft:
+                                                          Radius.circular(8)),
+                                              child: AspectRatio(
+                                                  aspectRatio: 4 / 5,
+                                                  child:
+                                                      product.type ==
+                                                              Product
+                                                                  .READY_TO_WEAR
+                                                          ? CachedNetworkImage(
+                                                              imageUrl: product
+                                                                  .imageUrl
+                                                                  .first,
+                                                              fit: BoxFit.cover,
+                                                              placeholder:
+                                                                  (context,
+                                                                      url) {
+                                                                return Shimmer
+                                                                    .fromColors(
+                                                                        baseColor:
+                                                                            Colors.grey[
+                                                                                300]!,
+                                                                        highlightColor:
+                                                                            Colors.grey[
+                                                                                100]!,
+                                                                        child:
+                                                                            Container(
+                                                                          width:
+                                                                              double.infinity,
+                                                                          height:
+                                                                              double.infinity,
+                                                                          color:
+                                                                              Colors.grey,
+                                                                        ));
+                                                              },
+                                                            )
+                                                          : SvgPicture.network(
+                                                              product.imageUrl
+                                                                  .first,
+                                                              placeholderBuilder:
+                                                                  (context) {
+                                                                return Shimmer
+                                                                    .fromColors(
+                                                                        baseColor:
+                                                                            Colors.grey[
+                                                                                300]!,
+                                                                        highlightColor:
+                                                                            Colors.grey[
+                                                                                100]!,
+                                                                        child:
+                                                                            Container(
+                                                                          width:
+                                                                              double.infinity,
+                                                                          height:
+                                                                              double.infinity,
+                                                                          color:
+                                                                              Colors.grey,
+                                                                        ));
+                                                              },
+                                                            )))),
+                                      Expanded(
+                                        child: Container(
+                                          color: Colors.white,
+                                          margin: const EdgeInsets.all(10),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    product.name,
+                                                    style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 16),
+                                                  ),
+                                                  Text(
+                                                    convertToRupiah(
+                                                        product.price),
+                                                    style: const TextStyle(
+                                                        fontSize: 15),
+                                                  ),
+                                                  Text(
+                                                    '${order.items[index].size}',
+                                                    style: const TextStyle(
+                                                        fontSize: 15),
+                                                  )
+                                                ],
+                                              ),
+                                              Container(
+                                                  padding:
+                                                      const EdgeInsets.all(3),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      Text(
+                                                        "${order.items[index].quantity} pcs",
+                                                        style: const TextStyle(
+                                                            fontSize: 12,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
+                                                      ),
+                                                      Text(
+                                                        "${order.orderStatus}",
+                                                        style: const TextStyle(
+                                                            fontSize: 12,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
+                                                      )
+                                                    ],
+                                                  ))
+                                            ],
+                                          ),
+                                        ),
+                                      )
+                                    ],
+                                  );
+                                } else {
+                                  return Container();
+                                }
+                              });
+                        })
+                  ],
+                ))));
   }
 
-  String _formatDate(DateTime date) {
-    String formattedDate =
-        DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(date);
-    return formattedDate.toString();
+  Future<List<Order?>> getOrder() async {
+    ApiService apiService = ApiService();
+
+    dynamic orders = await apiService.orderGet();
+    if (orders is List<Order>) {
+      return orders;
+    } else {
+      print(orders);
+      return [];
+    }
   }
-  
-  void goToProductScreen(Product item) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => ProductScreen(item)));
+
+  Future<Product> getProduct(String productId) async {
+    ApiService apiService = ApiService();
+    Product product = await apiService.productsGetById(productId);
+    print(productId);
+    return product;
+  }
+
+  void _goToPaymentScreen(order) {
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => PaymentScreen(order: order)));
   }
 }

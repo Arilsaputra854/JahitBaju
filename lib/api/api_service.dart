@@ -3,13 +3,17 @@ import 'dart:developer';
 
 import 'package:flutter/gestures.dart';
 import 'package:http/http.dart' as http;
+import 'package:jahit_baju/helper/secure/token_storage.dart';
 import 'package:jahit_baju/model/cart.dart';
 import 'package:jahit_baju/model/order.dart';
+import 'package:jahit_baju/model/packaging.dart';
 import 'package:jahit_baju/model/product.dart';
+import 'package:jahit_baju/model/shipping.dart';
 import 'package:jahit_baju/model/user.dart';
 
 class ApiService {
   final String baseUrl = "http://192.168.1.155:3000/api/";
+  TokenStorage tokenStorage = TokenStorage();
 
   Future<String?> userLogin(String email, String password) async {
     final url = Uri.parse("${baseUrl}users/login");
@@ -29,7 +33,7 @@ class ApiService {
       if (response.statusCode == 200) {
         message = data["data"]["token"];
       } else {
-        message = data["errors"];
+        message = data["message"];
       }
 
       return message;
@@ -61,7 +65,7 @@ class ApiService {
       if (response.statusCode == 200) {
         message = User.fromJson(data["data"]);
       } else {
-        message = data["errors"] ?? "Unknown error occurred";
+        message = data["message"] ?? "Unknown error occurred";
       }
 
       return message;
@@ -73,13 +77,12 @@ class ApiService {
 
   Future<dynamic> userGet(String token) async {
     final url = Uri.parse("${baseUrl}users/current");
+    final response = await http.get(url, headers: <String, String>{
+      'Content-Type': 'application/json',
+      'Authorization': '${token}'
+    });
 
     try {
-      final response = await http.get(url, headers: <String, String>{
-        'Content-Type': 'application/json',
-        'Authorization': '${token}'
-      });
-
       var data = jsonDecode(response.body);
       dynamic message;
       if (response.statusCode == 200) {
@@ -89,7 +92,7 @@ class ApiService {
 
         return user;
       } else {
-        message = data["errors"] ?? "Unknown error occurred";
+        message = data["message"] ?? "Unknown error occurred";
       }
       return message;
     } catch (e) {
@@ -99,7 +102,7 @@ class ApiService {
   }
 
   Future<String?> userUpdate(String token, String? email, String? password,
-    String? imageUrl, String? address, String? phoneNumber) async {
+      String? imageUrl, String? address, String? phoneNumber) async {
     final url = Uri.parse("${baseUrl}users/current");
 
     try {
@@ -138,8 +141,6 @@ class ApiService {
         },
       );
 
-      print(response.body);
-
       var data = jsonDecode(response.body);
       String? message;
 
@@ -147,7 +148,7 @@ class ApiService {
       if (response.statusCode == 200) {
         message = "Update successful";
       } else {
-        message = data["errors"] ?? "Unknown error occurred";
+        message = data["message"] ?? "Unknown error occurred";
       }
 
       return message;
@@ -161,11 +162,12 @@ class ApiService {
 
   Future<dynamic> productsGet() async {
     final url = Uri.parse("${baseUrl}products");
+    
 
     try {
-      final response = await http.get(url,
-          headers: <String, String>{'Content-Type': 'application/json',
-          });
+      final response = await http.get(url, headers: <String, String>{
+        'Content-Type': 'application/json',
+      });
 
       var data = jsonDecode(response.body);
       dynamic message;
@@ -176,38 +178,36 @@ class ApiService {
             .map<Product>((json) => Product.fromJson(json))
             .toList();
 
-
         return products;
       } else {
-        message = data["errors"] ?? "Unknown error occurred";
+        message = data["message"] ?? "Unknown error occurred";
         return message;
       }
     } catch (e) {
       print("Error: ${e}");
-      return "Network error or invalid response";
+      return "error";
     }
   }
 
-
-   Future<dynamic> cartGet(var token) async {
+  Future<dynamic> cartGet() async {
     final url = Uri.parse("${baseUrl}cart");
 
+
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+
     try {
-      final response = await http.get(url,
-          headers: <String, String>{'Content-Type': 'application/json','Authorization': '${token}'});
+      final response = await http.get(url, headers: <String, String>{
+        'Content-Type': 'application/json',
+        'Authorization': '${token}'
+      });
 
       var data = jsonDecode(response.body);
       dynamic message;
       if (response.statusCode == 200) {
-        var ordersData = data["data"] as List;
-
-        List<Cart> orders = ordersData
-            .map<Cart>((json) => Cart.fromJson(json))
-            .toList();
-
-        return orders;
+        Cart cartData = Cart.fromJson(data["data"]);
+        return cartData;
       } else {
-        message = data["errors"] ?? "Unknown error occurred";
+        message = data["message"] ?? "Unknown error occurred";
         return message;
       }
     } catch (e) {
@@ -216,13 +216,203 @@ class ApiService {
     }
   }
 
-  productsGetById(String token, String productId) async{
-    final url = Uri.parse("${baseUrl}products/$productId");
+  Future<dynamic> cartAdd(
+    Product product, int quantity, String selectedSize) async {
+    final url = Uri.parse("${baseUrl}cart");
+
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
     try {
-      final response = await http.get(url,
-          headers: <String, String>{'Content-Type': 'application/json', 'Authorization': '${token}'
-          });
+      final response = await http.post(
+        url,
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': '${token}'
+        },
+        body: jsonEncode(<String, dynamic>{
+          'productId': product.id,
+          'quantity': quantity,
+          'price': product.price,
+          'size': selectedSize
+        }),
+      );
+
+      var data = jsonDecode(response.body);
+      print(data);
+      dynamic message;
+      if (response.statusCode == 200) {
+        message = data["message"];
+        return message;
+      } else {
+        message = data["message"] ?? "Unknown error occurred";
+        return message;
+      }
+    } catch (e) {
+      print("Error: ${e}");
+      return "Network error or invalid response";
+    }
+  }
+
+  Future<dynamic> itemCartDelete(CartItem item) async {
+    final url = Uri.parse("${baseUrl}cart/item/${item.id}");
+
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+
+    try {
+      final response = await http.delete(url, headers: <String, String>{
+        'Content-Type': 'application/json',
+        'Authorization': '${token}'
+      });
+
+      var data = jsonDecode(response.body);
+      dynamic message;
+      if (response.statusCode == 200) {
+        message = data["message"];
+        return message;
+      } else {
+        message = data["message"] ?? "Unknown error occurred";
+        return message;
+      }
+    } catch (e) {
+      print("Error: ${e}");
+      return "Network error or invalid response";
+    }
+  }
+
+  Future<dynamic> shippingGet() async {
+    final url = Uri.parse("${baseUrl}shippings");
+
+    try {
+      final response = await http.get(url, headers: <String, String>{
+        'Content-Type': 'application/json',
+      });
+
+      var data = jsonDecode(response.body);
+      dynamic message;
+
+      if (response.statusCode == 200) {
+        var productsData = data["data"] as List;
+
+        List<Shipping> products = productsData
+            .map<Shipping>((json) => Shipping.fromJson(json))
+            .toList();
+
+        return products;
+      } else {
+        message = data["message"] ?? "Unknown error occurred";
+        return message;
+      }
+    } catch (e) {
+      print("Error: ${e}");
+      return "error";
+    }
+  }
+
+  Future<dynamic> packagingGet() async {
+    final url = Uri.parse("${baseUrl}packagings");
+
+    try {
+      final response = await http.get(url, headers: <String, String>{
+        'Content-Type': 'application/json',
+      });
+
+      var data = jsonDecode(response.body);
+      dynamic message;
+
+      if (response.statusCode == 200) {
+        var packagingData = data["data"] as List;
+
+        List<Packaging> packaging = packagingData
+            .map<Packaging>((json) => Packaging.fromJson(json))
+            .toList();
+
+        return packaging;
+      } else {
+        message = data["message"] ?? "Unknown error occurred";
+        return message;
+      }
+    } catch (e) {
+      print("Error: ${e}");
+      return "error";
+    }
+  }
+
+  Future<dynamic> orderCreate(Order order) async {
+    final url = Uri.parse("${baseUrl}order");
+
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+
+    try {
+      final response = await http.post(
+        url,
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': '${token}'
+        },
+        body: jsonEncode(<String, dynamic>{
+          'buyer_id': order.buyerId,
+          'shipping_id': order.shippingId,
+          'packaging_id': order.packagingId,
+          'cart_id': order.cartId,
+          'total_price': order.totalPrice,
+          'order_status': order.orderStatus
+        }),
+      );
+
+      var data = jsonDecode(response.body);
+      dynamic message;
+      if (response.statusCode == 201) {
+        var order = data["data"];
+                
+        return Order.fromJson(order);
+      } else {
+        message = data["message"] ?? "Unknown error occurred";
+        return message;
+      }
+    } catch (e) {
+      print("Error: ${e}");
+      return "Network error or invalid response";
+    }
+  }
+
+  Future<dynamic> orderGet() async {
+
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+    final url = Uri.parse("${baseUrl}order");
+    final response = await http.get(url, headers: <String, String>{
+      'Content-Type': 'application/json',
+      'Authorization': '${token}'
+    });
+
+    try {
+      var data = jsonDecode(response.body);
+      dynamic message;
+        print(data);
+      if (response.statusCode == 200) {
+        var ordersData = data["data"];
+
+        List<Order> orders = Order.listFromJson(ordersData);
+
+        return orders;
+      } else {
+        message = data["message"] ?? "Unknown error occurred";
+      }
+      return message;
+    } catch (e) {
+      print("Error: ${e}");
+      return "Network error or invalid response";
+    }
+  }
+
+  productsGetById(String productId) async {
+    final url = Uri.parse("${baseUrl}products/$productId");
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+
+    try {
+      final response = await http.get(url, headers: <String, String>{
+        'Content-Type': 'application/json',
+        'Authorization': '${token}'
+      });
 
       var data = jsonDecode(response.body);
       dynamic message;
@@ -231,10 +421,9 @@ class ApiService {
 
         Product product = Product.fromJson(productData);
 
-
         return product;
       } else {
-        message = data["errors"] ?? "Unknown error occurred";
+        message = data["message"] ?? "Unknown error occurred";
         return message;
       }
     } catch (e) {

@@ -32,12 +32,16 @@ class Cart {
       'items': items.map((item) => item.toJson()).toList(),
     };
   }
+  
 }
+
+
 
 class CartItem {
   final String id;
   final String cartId;
   final String productId;
+  final String size;
   final int quantity;
   final double price;
 
@@ -45,6 +49,7 @@ class CartItem {
     required this.id,
     required this.cartId,
     required this.productId,
+    required this.size,
     required this.quantity,
     required this.price,
   });
@@ -55,6 +60,7 @@ class CartItem {
       id: json['id'],
       cartId: json['cartId'],
       productId: json['productId'],
+      size: json['size'],
       quantity: json['quantity'],
       price: json['price'].toDouble(),
     );
@@ -66,6 +72,7 @@ class CartItem {
       'id': id,
       'cartId': cartId,
       'productId': productId,
+      'size': size,
       'quantity': quantity,
       'price': price,
     };

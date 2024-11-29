@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:jahit_baju/api/api_service.dart';
+import 'package:jahit_baju/helper/secure/token_storage.dart';
+import 'package:jahit_baju/model/cart.dart';
 import 'package:jahit_baju/model/order.dart';
 import 'package:jahit_baju/model/order_item.dart';
 import 'package:jahit_baju/model/product.dart';
@@ -18,6 +21,10 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _indexPage = 0;
+  late int cartItemSize;
+  late TokenStorage 
+    tokenStorage = TokenStorage();
+  late ApiService apiService = ApiService();
 
   final List<Widget> page = [
     HomePage(),
@@ -34,10 +41,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    cartItemSize = 0;
+    updateCartItemSize();
+  }
+
+  @override
   Widget build(BuildContext context) {
-
-    
-
     return Scaffold(
         appBar: AppBar(
           leading: Image.asset(
@@ -46,9 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
           leadingWidth: 150,
           centerTitle: false,
           backgroundColor: Colors.white,
-          actions: [
-            IconButton(onPressed: () => goToCartScreen(), icon: Icon(Icons.shopping_cart))
-          ],
+          actions: [cartIcon(cartItemSize)],
         ),
         body: page[_indexPage],
         bottomNavigationBar: BottomNavigationBar(
@@ -67,10 +76,61 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: Icon(Icons.person), label: "Profile")
             ]));
   }
-  
+
   goToCartScreen() {
-     Navigator.push(
+    Navigator.push(
         context, MaterialPageRoute(builder: (context) => CartScreen()));
   }
 
+  Widget cartIcon(int itemCount) {
+    return InkWell(
+        onTap: goToCartScreen,
+        child: Stack(
+          children: [
+            Icon(
+              Icons.shopping_cart,
+              size: 30, // Ukuran ikon keranjang
+              color: Colors.black,
+            ),
+            if (itemCount > 0) // Menambahkan badge jika ada item
+              Positioned(
+                right: 0,
+                top: 0,
+                child: Container(
+                  padding: EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: Colors.red, // Warna badge
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  constraints: BoxConstraints(
+                    minWidth: 12,
+                    minHeight: 12,
+                  ),
+                  child: Text(
+                    itemCount.toString(),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+          ],
+        ));
+  }
+
+  Future<void> updateCartItemSize() async {
+    String? token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+    if (token != null) {
+      await apiService.cartGet().then((value) {
+        if (value is Cart) {          
+          setState(() {
+            cartItemSize = value.items.length;
+          });
+        }
+      });
+    }
+  }
 }

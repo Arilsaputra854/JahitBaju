@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/api/api_service.dart';
+import 'package:jahit_baju/model/cart.dart';
 import 'package:jahit_baju/model/order.dart';
 import 'package:jahit_baju/model/order_item.dart';
 import 'package:jahit_baju/model/product.dart';
+import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/views/cart_screen/cart_screen.dart';
 import 'package:swipe_image_gallery/swipe_image_gallery.dart';
 
@@ -17,98 +19,109 @@ class ProductScreen extends StatefulWidget {
 }
 
 class _ProductScreenState extends State<ProductScreen> {
+  var _selectedSize = "";
   var deviceWidth;
 
   @override
   Widget build(BuildContext context) {
     deviceWidth = MediaQuery.of(context).size.width;
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text(widget.product.type == Product.READY_TO_WEAR
-            ? "Siap Pakai"
-            : "Custom Produk"),
-      ),
-      body: SingleChildScrollView(
-          child: widget.product.type == Product.READY_TO_WEAR
-              ? showRTW()
-              : showCustom()),
-      bottomNavigationBar: widget.product.type == Product.READY_TO_WEAR
-          ? Container(
-              padding: EdgeInsets.all(20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  OutlinedButton(
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(0)),
-                        backgroundColor: Colors.white, // Latar belakang merah
-                        padding: EdgeInsets.symmetric(
-                            vertical: 15,
-                            horizontal: 10), // Padding agar tombol lebih besar
-                      ),
-                      onPressed: () =>addToCart(),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.shopping_bag,
-                            color: Colors.black,
+        appBar: AppBar(
+          centerTitle: true,
+          title: Text(widget.product.type == Product.READY_TO_WEAR
+              ? "Siap Pakai"
+              : "Custom Produk"),
+        ),
+        body: SingleChildScrollView(
+            child: widget.product.type == Product.READY_TO_WEAR
+                ? showRTW()
+                : showCustom()),
+        bottomNavigationBar: widget.product.type == Product.READY_TO_WEAR
+            ? Container(
+                padding: EdgeInsets.all(20),
+                child: Row(
+                  mainAxisAlignment:
+                      MainAxisAlignment.spaceBetween, // Untuk distribusi tombol
+                  children: [
+                    // Tombol Tambah ke Keranjang
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          SizedBox(width: 3),
-                          Text(
-                            "Tambah ke keranjang",
-                            style: TextStyle(
-                              color: Colors.black, // Warna teks putih
-                              fontWeight: FontWeight.bold,
+                          backgroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(vertical: 15),
+                        ),
+                        onPressed: () => addToCart(),
+                        child: Wrap(
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 5, // Jarak antara ikon dan teks
+                          children: [
+                            Icon(
+                              Icons.shopping_bag,
+                              color: Colors.black,
                             ),
+                            Text(
+                              "Tambah ke Keranjang",
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              softWrap:
+                                  true, // Agar teks membungkus jika tidak cukup ruang
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    // Tombol Beli Sekarang
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                        ],
-                      )),
-                  SizedBox(width: 10),
-                  ElevatedButton(
+                          backgroundColor: Colors.red,
+                          padding: EdgeInsets.symmetric(vertical: 15),
+                        ),
+                        onPressed: () {},
+                        child: Text(
+                          "Beli Sekarang",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          softWrap:
+                              true, // Agar teks membungkus jika terlalu panjang
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : Container(
+                padding: EdgeInsets.all(20),
+                child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(0)),
-                      backgroundColor: Colors.red, // Latar belakang merah
-                      padding: EdgeInsets.symmetric(
-                          vertical: 15,
-                          horizontal: 30), // Padding agar tombol lebih besar
+                          borderRadius: BorderRadius.circular(8)),
+                      backgroundColor: Colors.red,
+                      padding:
+                          EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                     ),
                     onPressed: () {},
                     child: Text(
-                      "Beli Sekarang",
+                      "Selanjutnya",
                       style: TextStyle(
-                        color: Colors.white, // Warna teks putih
+                        color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          : Container(
-              padding: EdgeInsets.all(20),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(0)),
-                  backgroundColor: Colors.red, // Latar belakang merah
-                  padding: EdgeInsets.symmetric(
-                      vertical: 15,
-                      horizontal: 30), // Padding agar tombol lebih besar
-                ),
-                onPressed: () {},
-                child: Text(
-                  "Selanjutnya",
-                  style: TextStyle(
-                    color: Colors.white, // Warna teks putih
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-    );
+                    ))));
   }
 
   showRTW() {
@@ -117,15 +130,17 @@ class _ProductScreenState extends State<ProductScreen> {
       children: [
         InkWell(
           child: Container(
-            color: Colors.black,
-            height: 400,
-            width: deviceWidth,
-            child: Image.network(
-              alignment: Alignment(1, -0.3),
-              widget.product.imageUrl[0],
-              fit: BoxFit.cover,
-            ),
-          ),
+              color: Colors.black,
+              height: deviceWidth * 0.7,
+              width: deviceWidth,
+              child: AspectRatio(
+                aspectRatio: 4 / 5,
+                child: Image.network(
+                  alignment: Alignment(1, -0.3),
+                  widget.product.imageUrl[0],
+                  fit: BoxFit.cover,
+                ),
+              )),
           onTap: () {
             SwipeImageGallery(
               context: context,
@@ -178,7 +193,7 @@ class _ProductScreenState extends State<ProductScreen> {
                   ),
                   // Teks harga
                   Text(
-                    "IDR ${widget.product.price.toString()}",
+                    convertToRupiah(widget.product.price),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -248,26 +263,49 @@ class _ProductScreenState extends State<ProductScreen> {
                 ),
               ),
               Container(
-                  margin: EdgeInsets.only(top: 10, bottom: 10),
-                  height: 60,
-                  child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: widget.product.size.length,
-                      itemBuilder: (context, index) {
-                        return Container(
-                          width: 50,
-                          height: 50,
-                          margin: EdgeInsets.symmetric(horizontal: 6),
-                          decoration: BoxDecoration(
-                              shape: BoxShape.circle, color: Color(0xFFFFAAAA)),
-                          child: Center(
-                            child: Text(
-                              widget.product.size[index],
-                              style: TextStyle(fontSize: 15),
-                            ),
-                          ),
-                        );
-                      })),
+      margin: EdgeInsets.only(top: 10, bottom: 10),
+      height: 60,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: widget.product.size.length,
+        itemBuilder: (context, index) {
+          final size = widget.product.size[index];
+          final isSelected = _selectedSize == size;
+
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedSize = size; // Update ukuran yang dipilih
+              });
+            },
+            child: Container(
+              padding: EdgeInsets.all(5),
+              width: 50,
+              height: 50,
+              margin: EdgeInsets.symmetric(horizontal: 6),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected ? Colors.red : Color(0xFFFFAAAA),
+                border: isSelected
+                    ? Border.all(color: Colors.black, width: 2)
+                    : null,
+              ),
+              child: Center(
+                child: Text(
+                  textAlign: TextAlign.center,
+                  size,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: isSelected ? Colors.white : Colors.black,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+            )
             ],
           ),
         )
@@ -381,9 +419,10 @@ class _ProductScreenState extends State<ProductScreen> {
                                 shape: BoxShape.circle,
                                 color: Color(0xFFFFAAAA)),
                             child: Center(
-                              child: Text(
+                              child: Text(                                
                                 widget.product.size[index],
-                                style: TextStyle(fontSize: 15),
+                                style: TextStyle(fontSize: 12),
+                                textAlign: TextAlign.center
                               ),
                             ),
                           );
@@ -393,45 +432,53 @@ class _ProductScreenState extends State<ProductScreen> {
       ],
     );
   }
-  
+
   goToCartScreen() {
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => CartScreen()));
   }
-  
-  addToCart() {
-    var success = true;
-    if(success){
-      goToCartScreen();
+
+  addToCart() async{
+
+    ApiService apiService = ApiService();
+
+    if (_selectedSize != "" && _selectedSize.isNotEmpty) {
+      var msg = await apiService.cartAdd(widget.product, 1, _selectedSize);
+      Fluttertoast.showToast(msg: msg);
+    }else{
+      Fluttertoast.showToast(msg: "Silakan pilih ukuran terlebih dahulu");
     }
+    
   }
 }
 
 customPreview() {
   return Container(
-    width: 300,
-    padding: EdgeInsets.all(10),
-    color: Colors.red
-    ,
-    child:  Stack(
-      alignment: Alignment.center,
-    children: [
-       
-      Positioned(
-        left: 20,
-        child: 
-      SvgPicture.asset("assets/coat/clutch-coat-badan-depan-kiri.svg",color: const Color.fromARGB(255, 38, 1, 142)),),
-      Positioned(
-        child: 
-      SvgPicture.asset("assets/coat/clutch-coat-badan-depan-kanan.svg",color: const Color.fromARGB(255, 10, 49, 188)),),
-      Positioned(        
-        left: 50,
-        top: -40,    
-        child: SvgPicture.asset("assets/coat/clutch-coat-kerah.svg",color: Colors.white,),
-       ),
-    ],
-  )
-  );
+      width: 300,
+      padding: EdgeInsets.all(10),
+      color: Colors.red,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            left: 20,
+            child: SvgPicture.asset(
+                "assets/coat/clutch-coat-badan-depan-kiri.svg",
+                color: const Color.fromARGB(255, 38, 1, 142)),
+          ),
+          Positioned(
+            child: SvgPicture.asset(
+                "assets/coat/clutch-coat-badan-depan-kanan.svg",
+                color: const Color.fromARGB(255, 10, 49, 188)),
+          ),
+          Positioned(
+            left: 50,
+            top: -40,
+            child: SvgPicture.asset(
+              "assets/coat/clutch-coat-kerah.svg",
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ));
 }
-
-

@@ -15,7 +15,7 @@ class LoginViewModel extends ChangeNotifier {
   String? get password => _password;
   String? get errorMsg => _errorMsg;
 
-  TokenStorage _tokenStorage = TokenStorage();
+  final TokenStorage _tokenStorage = TokenStorage();
 
   void setEmail(String email) {
     _email = email;

@@ -21,10 +21,10 @@ factory User.fromJson(Map<String, dynamic> json) {
       id: json['id'] ?? "",  // Use empty string if 'id' is null
       email: json['email'] ?? "",  // Use empty string if 'email' is null
       name: json['name'] ?? "",  // Use empty string if 'name' is null
-      phoneNumber: json['phone_number'],  // Nullable field
+      phoneNumber: json['phone_number']?? "",  // Nullable field
       password: json['password'] ?? "",  // Use empty string if 'password' is null
-      address: json['address'],  // Nullable field
-      imageUrl: json['img_url'],  // Nullable field
+      address: json['address']?? "",  // Nullable field
+      imageUrl: json['img_url']?? ""  // Nullable field
     );
   }
 
