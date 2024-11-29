@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:jahit_baju/api/api_service.dart';
+import 'package:jahit_baju/helper/app_color.dart';
 import 'package:jahit_baju/model/cart.dart';
 import 'package:jahit_baju/model/order.dart';
 import 'package:jahit_baju/model/order_item.dart' as orderItem;
@@ -43,7 +44,7 @@ class _HistoryPageState extends State<HistoryPage> {
                   "History",
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
                 ),
-                SizedBox(height: 10),
+                SizedBox(height: 5),
                 FutureBuilder(
                   future: getOrder(),
                   builder: (context, snapshot) {
@@ -67,13 +68,13 @@ class _HistoryPageState extends State<HistoryPage> {
                               children: [
                                 Padding(
                                   padding:
-                                      const EdgeInsets.symmetric(vertical: 8.0),
+                                      const EdgeInsets.symmetric(vertical: 2.0),
                                   child: Text(
                                     DateFormat('EEEE, dd MMMM yyyy')
                                         .format(DateTime.parse(dateKey)),
                                     style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18),
+                                        fontWeight: FontWeight.normal,
+                                        fontSize: 16),
                                   ),
                                 ),
                                 ListView.builder(
@@ -183,7 +184,6 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   Widget _buildCartItem(Order order) {
-    print("Order Items: ${order.items}");
     return Container(
         width: deviceWidth,
         margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
@@ -206,13 +206,26 @@ class _HistoryPageState extends State<HistoryPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: EdgeInsets.all(10),
-                      child: Text(
-                        "ID: ${order.id}",
-                        style: const TextStyle(
-                            fontSize: 8, fontWeight: FontWeight.bold),
-                      ),
-                    ),
+                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "ID: ${order.id}",
+                              style: const TextStyle(
+                                  fontSize: 8, fontWeight: FontWeight.bold),
+                            ),
+                            order.orderStatus == Order.WAITING_FOR_PAYMENT ? InkWell(                              
+                                onTap: () => _deleteOrder(order.id),
+                                child: Text(
+                                  "Cancel",
+                                  style: const TextStyle(
+                                    color: AppColor.primary,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold),
+                                )) : Container()
+                          ],
+                        )),
                     ListView.builder(
                         itemCount: order.items.length,
                         shrinkWrap: true,
@@ -220,7 +233,6 @@ class _HistoryPageState extends State<HistoryPage> {
                           return FutureBuilder<Product>(
                               future: getProduct(order.items[index].productId),
                               builder: (context, snapshot) {
-                                print(snapshot.data);
                                 if (snapshot.hasData) {
                                   Product product = snapshot.data!;
                                   return Row(
@@ -377,7 +389,6 @@ class _HistoryPageState extends State<HistoryPage> {
     if (orders is List<Order>) {
       return orders;
     } else {
-      print(orders);
       return [];
     }
   }
@@ -385,7 +396,6 @@ class _HistoryPageState extends State<HistoryPage> {
   Future<Product> getProduct(String productId) async {
     ApiService apiService = ApiService();
     Product product = await apiService.productsGetById(productId);
-    print(productId);
     return product;
   }
 
@@ -393,4 +403,7 @@ class _HistoryPageState extends State<HistoryPage> {
     Navigator.push(context,
         MaterialPageRoute(builder: (context) => PaymentScreen(order: order)));
   }
+
 }
+
+  _deleteOrder(String? id) {}

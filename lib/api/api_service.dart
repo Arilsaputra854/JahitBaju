@@ -387,7 +387,7 @@ class ApiService {
     try {
       var data = jsonDecode(response.body);
       dynamic message;
-        print(data);
+
       if (response.statusCode == 200) {
         var ordersData = data["data"];
 
@@ -397,6 +397,27 @@ class ApiService {
       } else {
         message = data["message"] ?? "Unknown error occurred";
       }
+      return message;
+    } catch (e) {
+      print("Error: ${e}");
+      return "Network error or invalid response";
+    }
+  }
+
+  Future<dynamic> orderDelete(var orderId) async {
+
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+    final url = Uri.parse("${baseUrl}order/${orderId}");
+    final response = await http.delete(url, headers: <String, String>{
+      'Content-Type': 'application/json',
+      'Authorization': '${token}'
+    });
+
+    try {
+      var data = jsonDecode(response.body);
+      
+      var message = data["message"];     
+      
       return message;
     } catch (e) {
       print("Error: ${e}");
