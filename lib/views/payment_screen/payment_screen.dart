@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:jahit_baju/api/api_service.dart';
+import 'package:jahit_baju/service/remote/api_service.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
 import 'package:jahit_baju/model/order.dart';
 import 'package:jahit_baju/util/util.dart';

@@ -1,7 +1,7 @@
 
 
 import 'package:flutter/material.dart';
-import 'package:jahit_baju/api/api_service.dart';
+import 'package:jahit_baju/service/remote/api_service.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
 import 'package:jahit_baju/model/packaging.dart';
 import 'package:jahit_baju/model/shipping.dart';

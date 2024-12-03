@@ -1,7 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
-
-import 'package:flutter/gestures.dart';
 import 'package:http/http.dart' as http;
 import 'package:jahit_baju/helper/secure/token_storage.dart';
 import 'package:jahit_baju/model/cart.dart';
@@ -159,35 +156,6 @@ class ApiService {
   }
 
   Future<void> userVerifyAccount(int OtpCode) async {}
-
-  Future<dynamic> productsGet() async {
-    final url = Uri.parse("${baseUrl}products");
-    
-
-    try {
-      final response = await http.get(url, headers: <String, String>{
-        'Content-Type': 'application/json',
-      });
-
-      var data = jsonDecode(response.body);
-      dynamic message;
-      if (response.statusCode == 200) {
-        var productsData = data["data"] as List;
-
-        List<Product> products = productsData
-            .map<Product>((json) => Product.fromJson(json))
-            .toList();
-
-        return products;
-      } else {
-        message = data["message"] ?? "Unknown error occurred";
-        return message;
-      }
-    } catch (e) {
-      print("Error: ${e}");
-      return "error";
-    }
-  }
 
   Future<dynamic> cartGet() async {
     final url = Uri.parse("${baseUrl}cart");
@@ -452,4 +420,35 @@ class ApiService {
       return "Network error or invalid response";
     }
   }
+
+
+  Future<dynamic> productsGet() async {
+    final url = Uri.parse("${baseUrl}products");
+    
+
+    try {
+      final response = await http.get(url, headers: <String, String>{
+        'Content-Type': 'application/json',
+      });
+
+      var data = jsonDecode(response.body);
+      dynamic message;
+      if (response.statusCode == 200) {
+        var productsData = data["data"] as List;
+
+        List<Product> products = productsData
+            .map<Product>((json) => Product.fromJson(json))
+            .toList();
+
+        return products;
+      } else {
+        message = data["message"] ?? "Unknown error occurred";
+        return message;
+      }
+    } catch (e) {
+      print("Error: ${e}");
+      return "error";
+    }
+  }
+
 }

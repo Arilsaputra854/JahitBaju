@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:jahit_baju/api/api_service.dart';
-import 'package:jahit_baju/helper/viewmodels/shipping_view_model.dart';
+import 'package:jahit_baju/service/remote/api_service.dart';
+import 'package:jahit_baju/viewmodels/shipping_view_model.dart';
 import 'package:jahit_baju/model/cart.dart';
 import 'package:jahit_baju/model/order.dart';
 import 'package:jahit_baju/model/packaging.dart';

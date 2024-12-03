@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jahit_baju/api/api_service.dart';
+import 'package:jahit_baju/service/remote/api_service.dart';
 import 'package:jahit_baju/model/product.dart';
 
 class HomeViewModel extends ChangeNotifier {

@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:jahit_baju/helper/viewmodels/reset_password_view_model.dart';
+import 'package:jahit_baju/viewmodels/reset_password_view_model.dart';
 import 'package:jahit_baju/views/login/login_screen.dart';
 import 'package:provider/provider.dart';
 
