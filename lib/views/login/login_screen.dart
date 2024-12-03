@@ -159,24 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               backgroundColor: Colors.white),
                           onPressed: () async {
                             if (formKey.currentState!.validate()) {
-                              setState(() {
-                                isLoading = true;
-                              });
-                              await viewModel.Login().then((status) {
-                                if (viewModel.errorMsg != null) {
-                                  Fluttertoast.showToast(
-                                      msg: viewModel.errorMsg.toString());
-                                }
-                                if (status) {
-                                  Fluttertoast.showToast(
-                                      msg: "Login berhasil!");
-
-                                  goToHomeScreen();
-                                }
-                                setState(() {
-                                  isLoading = false;
-                                });
-                              });
+                              login(viewModel);
                             }
                           },
                           child: const Text(
@@ -251,5 +234,24 @@ class _LoginScreenState extends State<LoginScreen> {
         context,
         MaterialPageRoute(builder: (context) => HomeScreen()),
         (Route<dynamic> route) => false);
+  }
+
+  Future<void> login(LoginViewModel viewModel) async {
+    setState(() {
+      isLoading = true;
+    });
+    await viewModel.login().then((isSuccess) {
+      if (viewModel.errorMsg != null) {
+        Fluttertoast.showToast(msg: viewModel.errorMsg.toString());
+      }
+      if (isSuccess) {
+        Fluttertoast.showToast(msg: "Login berhasil!");
+
+        goToHomeScreen();
+      }
+      setState(() {
+        isLoading = false;
+      });
+    });
   }
 }

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:jahit_baju/service/remote/api_service.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
@@ -27,7 +26,7 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> Login() async {
+  Future<bool> login() async {
     if (_email == null || !_email!.contains('@')) {
       _errorMsg = 'Email tidak valid!';
       notifyListeners();
@@ -40,20 +39,18 @@ class LoginViewModel extends ChangeNotifier {
       return false;
     }
 
-    var status = await api.userLogin(_email!, _password!);
-    
-    if (status != null && status.startsWith("Email")) {
-      _errorMsg = status; // Tampilkan pesan error
+    var response = await api.userLogin(_email!, _password!);
+
+    if (response.error) {
+      _errorMsg = response.message;
       notifyListeners();
-      return false; // Kembalikan string kosong jika error
-    } 
+      return false;
+    } else {
       _errorMsg = null;
-      print(status);
-      await _tokenStorage.saveToken(status!);      
-      
+      await _tokenStorage.saveToken(response.token!);
       notifyListeners();
 
       return true;
-    
+    }
   }
 }

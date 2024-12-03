@@ -7,12 +7,13 @@ import 'package:jahit_baju/model/packaging.dart';
 import 'package:jahit_baju/model/product.dart';
 import 'package:jahit_baju/model/shipping.dart';
 import 'package:jahit_baju/model/user.dart';
+import 'package:jahit_baju/service/remote/response/login_response.dart';
 
 class ApiService {
   final String baseUrl = "http://192.168.1.155:3000/api/";
   TokenStorage tokenStorage = TokenStorage();
 
-  Future<String?> userLogin(String email, String password) async {
+  Future<LoginResponse> userLogin(String email, String password) async {
     final url = Uri.parse("${baseUrl}users/login");
 
     try {
@@ -25,18 +26,13 @@ class ApiService {
       );
 
       var data = jsonDecode(response.body);
-      String? message;
+      LoginResponse responseBody = LoginResponse.fromJson(data);
 
-      if (response.statusCode == 200) {
-        message = data["data"]["token"];
-      } else {
-        message = data["message"];
-      }
-
-      return message;
+      return responseBody;
     } catch (e) {
       print("Error: $e");
-      return "Network error or invalid response";
+      return LoginResponse(
+          message: "Network error or invalid response", error: true);
     }
   }
 
@@ -160,7 +156,6 @@ class ApiService {
   Future<dynamic> cartGet() async {
     final url = Uri.parse("${baseUrl}cart");
 
-
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
     try {
@@ -185,7 +180,7 @@ class ApiService {
   }
 
   Future<dynamic> cartAdd(
-    Product product, int quantity, String selectedSize) async {
+      Product product, int quantity, String selectedSize) async {
     final url = Uri.parse("${baseUrl}cart");
 
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
@@ -331,7 +326,7 @@ class ApiService {
       dynamic message;
       if (response.statusCode == 201) {
         var order = data["data"];
-                
+
         return Order.fromJson(order);
       } else {
         message = data["message"] ?? "Unknown error occurred";
@@ -344,7 +339,6 @@ class ApiService {
   }
 
   Future<dynamic> orderGet() async {
-
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
     final url = Uri.parse("${baseUrl}order");
     final response = await http.get(url, headers: <String, String>{
@@ -373,7 +367,6 @@ class ApiService {
   }
 
   Future<dynamic> orderDelete(var orderId) async {
-
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
     final url = Uri.parse("${baseUrl}order/${orderId}");
     final response = await http.delete(url, headers: <String, String>{
@@ -383,9 +376,9 @@ class ApiService {
 
     try {
       var data = jsonDecode(response.body);
-      
-      var message = data["message"];     
-      
+
+      var message = data["message"];
+
       return message;
     } catch (e) {
       print("Error: ${e}");
@@ -421,10 +414,8 @@ class ApiService {
     }
   }
 
-
   Future<dynamic> productsGet() async {
     final url = Uri.parse("${baseUrl}products");
-    
 
     try {
       final response = await http.get(url, headers: <String, String>{
@@ -450,5 +441,4 @@ class ApiService {
       return "error";
     }
   }
-
 }
