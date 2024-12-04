@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:jahit_baju/model/favorite.dart';
 import 'package:jahit_baju/service/remote/api_service.dart';
 import 'package:jahit_baju/model/cart.dart';
 import 'package:jahit_baju/model/order.dart';
 import 'package:jahit_baju/model/order_item.dart';
 import 'package:jahit_baju/model/product.dart';
+import 'package:jahit_baju/service/remote/response/favorite_response.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/views/cart_screen/cart_screen.dart';
 import 'package:swipe_image_gallery/swipe_image_gallery.dart';
@@ -21,6 +23,15 @@ class ProductScreen extends StatefulWidget {
 class _ProductScreenState extends State<ProductScreen> {
   var _selectedSize = "";
   var deviceWidth;
+
+  late bool isFavorited;
+  late int favoriteId;
+
+  @override
+  void initState() {
+    isFavorited = false;
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -213,8 +224,21 @@ class _ProductScreenState extends State<ProductScreen> {
                       fontSize: 15,
                     ),
                   ),
-                  IconButton(
-                      onPressed: () {}, icon: Icon(Icons.favorite_border))
+                  FutureBuilder(
+                      future: getFavoriteStatus(),
+                      builder: (context, snapshot) {
+                        return IconButton(
+                            onPressed: () {
+                              addProductFavorite(widget.product);
+                            },
+                            icon: IconButton(
+                                onPressed: () {
+                                  addProductFavorite(widget.product);
+                                },
+                                icon: isFavorited
+                                    ? Icon(Icons.favorite)
+                                    : Icon(Icons.favorite_border)));
+                      })
                 ],
               ),
               SizedBox(
@@ -263,49 +287,49 @@ class _ProductScreenState extends State<ProductScreen> {
                 ),
               ),
               Container(
-      margin: EdgeInsets.only(top: 10, bottom: 10),
-      height: 60,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: widget.product.size.length,
-        itemBuilder: (context, index) {
-          final size = widget.product.size[index];
-          final isSelected = _selectedSize == size;
+                margin: EdgeInsets.only(top: 10, bottom: 10),
+                height: 60,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: widget.product.size.length,
+                  itemBuilder: (context, index) {
+                    final size = widget.product.size[index];
+                    final isSelected = _selectedSize == size;
 
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedSize = size; // Update ukuran yang dipilih
-              });
-            },
-            child: Container(
-              padding: EdgeInsets.all(5),
-              width: 50,
-              height: 50,
-              margin: EdgeInsets.symmetric(horizontal: 6),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isSelected ? Colors.red : Color(0xFFFFAAAA),
-                border: isSelected
-                    ? Border.all(color: Colors.black, width: 2)
-                    : null,
-              ),
-              child: Center(
-                child: Text(
-                  textAlign: TextAlign.center,
-                  size,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: isSelected ? Colors.white : Colors.black,
-                  ),
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedSize = size; // Update ukuran yang dipilih
+                        });
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(5),
+                        width: 50,
+                        height: 50,
+                        margin: EdgeInsets.symmetric(horizontal: 6),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isSelected ? Colors.red : Color(0xFFFFAAAA),
+                          border: isSelected
+                              ? Border.all(color: Colors.black, width: 2)
+                              : null,
+                        ),
+                        child: Center(
+                          child: Text(
+                            textAlign: TextAlign.center,
+                            size,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected ? Colors.white : Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              ),
-            ),
-          );
-        },
-      ),
-            )
+              )
             ],
           ),
         )
@@ -356,7 +380,12 @@ class _ProductScreenState extends State<ProductScreen> {
                       ),
                     ),
                     IconButton(
-                        onPressed: () {}, icon: Icon(Icons.favorite_border))
+                        onPressed: () {
+                          addProductFavorite(widget.product);
+                        },
+                        icon: isFavorited
+                            ? Icon(Icons.favorite)
+                            : Icon(Icons.favorite_border))
                   ],
                 ),
                 SizedBox(
@@ -419,11 +448,9 @@ class _ProductScreenState extends State<ProductScreen> {
                                 shape: BoxShape.circle,
                                 color: Color(0xFFFFAAAA)),
                             child: Center(
-                              child: Text(                                
-                                widget.product.size[index],
-                                style: TextStyle(fontSize: 12),
-                                textAlign: TextAlign.center
-                              ),
+                              child: Text(widget.product.size[index],
+                                  style: TextStyle(fontSize: 12),
+                                  textAlign: TextAlign.center),
                             ),
                           );
                         })),
@@ -438,17 +465,63 @@ class _ProductScreenState extends State<ProductScreen> {
         context, MaterialPageRoute(builder: (context) => CartScreen()));
   }
 
-  addToCart() async{
-
+  addToCart() async {
     ApiService apiService = ApiService();
 
     if (_selectedSize != "" && _selectedSize.isNotEmpty) {
       var msg = await apiService.cartAdd(widget.product, 1, _selectedSize);
       Fluttertoast.showToast(msg: msg);
-    }else{
+    } else {
       Fluttertoast.showToast(msg: "Silakan pilih ukuran terlebih dahulu");
     }
-    
+  }
+
+  Future getFavoriteStatus() async {
+    ApiService apiService = ApiService();
+    List<Favorite> favorites = await apiService.favoriteGet();
+
+    if (favorites.isNotEmpty) {
+      favorites.forEach((favorite) {
+        if (favorite.productId == widget.product.id) {
+          favoriteId = favorite.id!;
+          isFavorited = true;
+        } else {
+          isFavorited = false;
+        }
+      });
+    }
+  }
+
+  Future<void> addProductFavorite(Product product) async {
+    ApiService apiService = ApiService();
+
+    Favorite favorite = Favorite(productId: product.id);
+
+    if (!isFavorited) {
+      FavoriteResponse response = await apiService.favoriteAdd(favorite);
+      if (response.error) {
+        Fluttertoast.showToast(msg: "${response.message}");
+      } else {
+        favoriteId = response.id!;
+
+        setState(() {
+          
+        });
+        Fluttertoast.showToast(msg: "Berhasil menambahkan ke favorit.");
+      }
+    } else {
+        FavoriteResponse response = await apiService.favoriteDelete(favoriteId);
+        
+      if (response.error) {
+        Fluttertoast.showToast(msg: "${response.message}");
+      } else {
+
+        setState(() {
+          isFavorited = false;
+        });
+        Fluttertoast.showToast(msg: "Berhasil menghapus produk.");
+      }
+    }
   }
 }
 

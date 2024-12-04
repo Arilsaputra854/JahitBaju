@@ -1,17 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:jahit_baju/service/remote/api_service.dart';
 import 'package:jahit_baju/helper/app_color.dart';
-import 'package:jahit_baju/model/cart.dart';
 import 'package:jahit_baju/model/order.dart';
-import 'package:jahit_baju/model/order_item.dart' as orderItem;
 import 'package:jahit_baju/model/product.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/views/payment_screen/payment_screen.dart';
-import 'package:jahit_baju/views/product_screen/product_screen.dart';
 import 'package:shimmer/shimmer.dart';
 
 class HistoryPage extends StatefulWidget {

@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:jahit_baju/service/remote/api_service.dart';
-import 'package:jahit_baju/views/home_screen/home_screen.dart';
 import 'package:jahit_baju/views/login/login_screen.dart';
 import 'package:jahit_baju/views/reset_password/reset_password.dart';
-import 'package:provider/provider.dart';
 
 class OtpScreen extends StatefulWidget {
   static const REGISTER = 1;

@@ -2,15 +2,17 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:jahit_baju/helper/secure/token_storage.dart';
 import 'package:jahit_baju/model/cart.dart';
+import 'package:jahit_baju/model/favorite.dart';
 import 'package:jahit_baju/model/order.dart';
 import 'package:jahit_baju/model/packaging.dart';
 import 'package:jahit_baju/model/product.dart';
 import 'package:jahit_baju/model/shipping.dart';
 import 'package:jahit_baju/model/user.dart';
+import 'package:jahit_baju/service/remote/response/favorite_response.dart';
 import 'package:jahit_baju/service/remote/response/login_response.dart';
 
 class ApiService {
-  final String baseUrl = "http://192.168.1.155:3000/api/";
+  final String baseUrl = "http://192.168.1.151:3000/api/";
   TokenStorage tokenStorage = TokenStorage();
 
   Future<LoginResponse> userLogin(String email, String password) async {
@@ -441,4 +443,81 @@ class ApiService {
       return "error";
     }
   }
+
+
+  Future<dynamic> favoriteGet() async {
+    final url = Uri.parse("${baseUrl}favorite");
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+
+    try {
+      final response = await http.get(url, headers: <String, String>{
+        'Content-Type': 'application/json',
+      'Authorization': '${token}'
+      });
+
+      var data = jsonDecode(response.body);
+      dynamic message;
+      if (response.statusCode == 200) {
+        var favoriteData = data["data"] as List;
+
+        List<Favorite> favorites = favoriteData
+            .map<Favorite>((json) => Favorite.fromJson(json))
+            .toList();
+
+        return favorites;
+      } else {
+        message = data["message"] ?? "Unknown error occurred";
+        return message;
+      }
+    } catch (e) {
+      print("Error: ${e}");
+      return "error";
+    }
+  }
+
+  Future<FavoriteResponse> favoriteDelete(int id) async {
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+    final url = Uri.parse("${baseUrl}favorite");
+    final response = await http.delete(url, headers: <String, String>{
+      'Content-Type': 'application/json',
+      'Authorization': '${token}'
+    }, body: jsonEncode(<String, dynamic>{
+      "id" : id
+    }));
+
+    try {
+      var data = jsonDecode(response.body);
+
+      FavoriteResponse favoriteResponse = FavoriteResponse.fromJson(data);
+
+      return favoriteResponse;
+    } catch (e) {
+      print("Error: ${e}");
+      return FavoriteResponse(error: true, message: "Network error or invalid response");
+    }
+  }
+
+  Future<FavoriteResponse> favoriteAdd(Favorite favorite) async {
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+    final url = Uri.parse("${baseUrl}favorite");
+    final response = await http.post(url, headers: <String, String>{
+      'Content-Type': 'application/json',
+      'Authorization': '${token}'
+    }, body: jsonEncode(<String, dynamic>{
+        "product_id" : favorite.productId
+    }));
+
+    try {
+      var data = jsonDecode(response.body);
+
+      FavoriteResponse favoriteResponse = FavoriteResponse.fromJson(data);
+
+      return favoriteResponse;
+    } catch (e) {
+      print("Error: ${e}");
+      return FavoriteResponse(error: true, message: "Network error or invalid response");
+    }
+  }
+
+
 }
