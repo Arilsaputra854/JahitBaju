@@ -1,11 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:jahit_baju/service/remote/api_service.dart';
 import 'package:jahit_baju/helper/app_color.dart';
 import 'package:jahit_baju/model/order.dart';
 import 'package:jahit_baju/model/product.dart';
+import 'package:jahit_baju/service/remote/response/order_response.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/views/payment_screen/payment_screen.dart';
 import 'package:shimmer/shimmer.dart';
@@ -27,10 +29,9 @@ class _HistoryPageState extends State<HistoryPage> {
     deviceHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
+      backgroundColor: Colors.white,
         body: RefreshIndicator(
-      child: Column(
-        children: [
-          Container(
+      child: Container(
             width: deviceWidth,
             margin: EdgeInsets.symmetric(horizontal: 20),
             child: Column(
@@ -44,15 +45,15 @@ class _HistoryPageState extends State<HistoryPage> {
                 FutureBuilder(
                   future: getOrder(),
                   builder: (context, snapshot) {
+                    //if fetch success
                     if (snapshot.hasData) {
                       orders = snapshot.data!;
                       Map<String, List<Order?>> groupedOrders =
                           sortOrderWithDate(orders);
-
+                      //if data exists
                       if (orders.isNotEmpty) {
-                        return ListView.builder(
+                        return Expanded(child: ListView.builder(
                           itemCount: groupedOrders.keys.length,
-                          shrinkWrap: true,
                           physics: const AlwaysScrollableScrollPhysics(),
                           itemBuilder: (context, dateIndex) {
                             String dateKey =
@@ -85,19 +86,23 @@ class _HistoryPageState extends State<HistoryPage> {
                               ],
                             );
                           },
-                        );
+                        ));
                       } else {
+                        //if data is empty
                         return Container(
-                          height: 100,
+                          height: deviceHeight*0.5,
                           child: const Center(
                             child: Text("Tidak ada history"),
                           ),
                         );
                       }
+                      
                     } else if (snapshot.connectionState ==
                         ConnectionState.waiting) {
+                      //if status is fetching data from server
                       return itemCartShimmer();
                     } else {
+                      //if error
                       return itemCartShimmer();
                     }
                   },
@@ -105,8 +110,6 @@ class _HistoryPageState extends State<HistoryPage> {
               ],
             ),
           ),
-        ],
-      ),
       onRefresh: () async {
         setState(() {});
       },
@@ -381,9 +384,10 @@ class _HistoryPageState extends State<HistoryPage> {
   Future<List<Order?>> getOrder() async {
     ApiService apiService = ApiService();
 
-    dynamic orders = await apiService.orderGet();
-    if (orders is List<Order>) {
-      return orders;
+    OrderResponse orders = await apiService.orderGet();
+    
+    if (orders.data is List<Order>) {
+      return orders.data;
     } else {
       return [];
     }
@@ -400,6 +404,18 @@ class _HistoryPageState extends State<HistoryPage> {
         MaterialPageRoute(builder: (context) => PaymentScreen(order: order)));
   }
 
-}
 
-  _deleteOrder(String? id) {}
+  _deleteOrder(String? id)async{
+    ApiService apiService = ApiService();
+    OrderResponse response = await apiService.orderDelete(id);
+    if(response.error){
+      Fluttertoast.showToast(msg: response.message!);
+    }else{      
+      Fluttertoast.showToast(msg: response.message!);
+      setState(() {
+        
+      });
+    }
+    
+  }
+}

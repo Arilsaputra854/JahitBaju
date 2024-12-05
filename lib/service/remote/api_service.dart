@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:http/http.dart' as http;
 import 'package:jahit_baju/helper/secure/token_storage.dart';
 import 'package:jahit_baju/model/cart.dart';
@@ -10,10 +11,13 @@ import 'package:jahit_baju/model/shipping.dart';
 import 'package:jahit_baju/model/user.dart';
 import 'package:jahit_baju/service/remote/response/favorite_response.dart';
 import 'package:jahit_baju/service/remote/response/login_response.dart';
+import 'package:jahit_baju/service/remote/response/order_response.dart';
+import 'package:logger/web.dart';
 
 class ApiService {
-  final String baseUrl = "http://192.168.1.151:3000/api/";
+  final String baseUrl = "http://192.168.1.155:3000/api/";
   TokenStorage tokenStorage = TokenStorage();
+  Logger logger = Logger();
 
   Future<LoginResponse> userLogin(String email, String password) async {
     final url = Uri.parse("${baseUrl}users/login");
@@ -203,7 +207,6 @@ class ApiService {
       );
 
       var data = jsonDecode(response.body);
-      print(data);
       dynamic message;
       if (response.statusCode == 200) {
         message = data["message"];
@@ -325,22 +328,23 @@ class ApiService {
       );
 
       var data = jsonDecode(response.body);
-      dynamic message;
-      if (response.statusCode == 201) {
-        var order = data["data"];
-
-        return Order.fromJson(order);
-      } else {
-        message = data["message"] ?? "Unknown error occurred";
-        return message;
+      OrderResponse orderResponse = OrderResponse.fromJson(data);
+      
+      if (response.statusCode != 201) {          
+        orderResponse.message = data["message"] ?? "Unknown error occurred";
+        logger.e("Create Order: ${orderResponse.message}");
       }
+      logger.i("Create Order: ${orderResponse.data}");
+      orderResponse.data = Order.fromJson(orderResponse.data);
+
+      return orderResponse;
     } catch (e) {
-      print("Error: ${e}");
-      return "Network error or invalid response";
+      logger.e("Create Order: ${e}");
+      return OrderResponse(error: true, message: "Network error or invalid response");
     }
   }
 
-  Future<dynamic> orderGet() async {
+  Future<OrderResponse> orderGet() async {
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
     final url = Uri.parse("${baseUrl}order");
     final response = await http.get(url, headers: <String, String>{
@@ -350,25 +354,25 @@ class ApiService {
 
     try {
       var data = jsonDecode(response.body);
-      dynamic message;
+      OrderResponse orderResponse = OrderResponse.fromJson(data);
+
 
       if (response.statusCode == 200) {
-        var ordersData = data["data"];
-
-        List<Order> orders = Order.listFromJson(ordersData);
-
-        return orders;
+        List<Order> orders = Order.listFromJson(orderResponse.data);
+        orderResponse.data = orders;
       } else {
-        message = data["message"] ?? "Unknown error occurred";
+        orderResponse.message = data["message"] ?? "Unknown error occurred";
+        logger.e("Get Order: ${orderResponse.message}");
       }
-      return message;
+      logger.i("Get Order: ${orderResponse.data}");
+      return orderResponse;
     } catch (e) {
-      print("Error: ${e}");
-      return "Network error or invalid response";
-    }
+      logger.e("Get Order: ${e}");
+      return OrderResponse(error: true, message: "Network error or invalid response");    
+      }
   }
 
-  Future<dynamic> orderDelete(var orderId) async {
+  Future<OrderResponse> orderDelete(var orderId) async {
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
     final url = Uri.parse("${baseUrl}order/${orderId}");
     final response = await http.delete(url, headers: <String, String>{
@@ -378,13 +382,13 @@ class ApiService {
 
     try {
       var data = jsonDecode(response.body);
+      OrderResponse orderResponse = OrderResponse.fromJson(data);
 
-      var message = data["message"];
-
-      return message;
+      logger.i("Delete Order: ${orderResponse.message}");
+      return orderResponse;
     } catch (e) {
-      print("Error: ${e}");
-      return "Network error or invalid response";
+      logger.e("Delete Order: ${e}");
+      return OrderResponse(error: true, message: "Network error or invalid response");
     }
   }
 

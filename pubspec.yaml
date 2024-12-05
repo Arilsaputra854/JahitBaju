@@ -49,6 +49,7 @@ dependencies:
   cached_network_image:
   shimmer:
   connectivity_plus:
+  logger: 
 
 flutter_launcher_icons:
   android: "launcher_icon"

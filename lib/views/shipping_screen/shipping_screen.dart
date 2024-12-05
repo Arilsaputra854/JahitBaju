@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/service/remote/api_service.dart';
+import 'package:jahit_baju/service/remote/response/order_response.dart';
 import 'package:jahit_baju/viewmodels/shipping_view_model.dart';
 import 'package:jahit_baju/model/cart.dart';
 import 'package:jahit_baju/model/order.dart';
@@ -408,11 +409,11 @@ Future<Order?> createOrder(Order? order) async {
   if (order != null) {
     ApiService apiService = ApiService();
 
-    dynamic orderData = await apiService.orderCreate(order);
-    if(orderData is Order){
-      return orderData;
-    }else if(orderData is String){
-      print(orderData);
+    OrderResponse orderResponse = await apiService.orderCreate(order);
+    
+    if(orderResponse.data is Order){
+      return orderResponse.data;
+    }else if(orderResponse.data is String){      
       return null;
     }
   }
