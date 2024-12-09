@@ -50,6 +50,8 @@ dependencies:
   shimmer:
   connectivity_plus:
   logger: 
+  dropdown_search:
+  animated_snack_bar:
 
 flutter_launcher_icons:
   android: "launcher_icon"
@@ -91,6 +93,7 @@ flutter:
     - assets/coat/clutch-coat-badan-depan-kanan.svg
     - assets/coat/clutch-coat-badan-depan-kiri.svg
     - assets/coat/clutch-coat-kerah.svg
+    - assets/icon/profile.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -1,3 +1,4 @@
+import 'package:animated_snack_bar/animated_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:jahit_baju/service/remote/api_service.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
@@ -5,6 +6,7 @@ import 'package:jahit_baju/model/cart.dart';
 import 'package:jahit_baju/model/order.dart';
 import 'package:jahit_baju/model/order_item.dart';
 import 'package:jahit_baju/model/product.dart';
+import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/views/cart_screen/cart_screen.dart';
 import 'package:jahit_baju/views/home_screen/fragment/favorite_page.dart';
 import 'package:jahit_baju/views/home_screen/fragment/history_page.dart';
@@ -49,6 +51,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    checkConnection(context);
+
     return Scaffold(
         appBar: AppBar(
           leading: Image.asset(

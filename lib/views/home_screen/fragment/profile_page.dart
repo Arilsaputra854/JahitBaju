@@ -20,7 +20,7 @@ class _HomePageState extends State<ProfilePage> {
   late TextEditingController phoneController;
   late TextEditingController addressController;
   late TextEditingController passwordController;
-
+  var deviceWidth;
   @override
   void initState() {
     super.initState();
@@ -30,7 +30,7 @@ class _HomePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    var deviceWidth = MediaQuery.of(context).size.width;
+    deviceWidth = MediaQuery.of(context).size.width;
 
     return FutureBuilder(
       future: loadUserFromDatabase(),
@@ -40,7 +40,7 @@ class _HomePageState extends State<ProfilePage> {
         } else if (snapshot.hasError) {
           enabled = false;
         } else if (snapshot.hasData) {
-          onEdit = true;
+          enabled = true;
         }
 
         // Initialize the controllers with user data
@@ -59,7 +59,7 @@ class _HomePageState extends State<ProfilePage> {
         addressController.text = user?.address ?? "";
         passwordController.text = user?.password ?? "";
 
-        //TODO REFRESH UI WHEN UPDATE SUCCESS
+        
         return SingleChildScrollView(
             child: Container(
           color: Colors.white,
@@ -70,24 +70,22 @@ class _HomePageState extends State<ProfilePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 50),
                   Container(
-                    width: deviceWidth * 0.4,
-                    height: deviceWidth * 0.4,
-                    child: ClipOval(
+                    width: deviceWidth * 0.3,
+                    height: deviceWidth * 0.3,
+                    child: InkWell(
+                      onTap: (){
+                        editProfilePicture();
+                      },
+                      child: ClipOval(
                       child: user?.imageUrl == "" || user?.imageUrl == null
-                          ? Center(child: const Icon(Icons.person, size: 150))
+                          ? Image.asset("assets/icon/profile.png")
                           : Image.network(user!.imageUrl,
                               fit: BoxFit.cover, width: double.infinity),
                     ),
+                    )
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    user?.name ?? "",
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 25),
-                  ),
-                  const SizedBox(height: 40),
+                  SizedBox(height: deviceWidth * 0.01),
                   InkWell(
                     onTap: () {
                       if (enabled) {
@@ -107,12 +105,26 @@ class _HomePageState extends State<ProfilePage> {
                     child: Container(
                       width: deviceWidth,
                       child: Text(
-                        onEdit ? "Simpan Data" : "Edit Data",
+                        onEdit ? "Simpan Data" : "Ubah Data",
                         style: const TextStyle(
                             fontSize: 15,
                             color: Color.fromARGB(255, 141, 120, 119)),
                       ),
                     ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: nameController,
+                    enabled: onEdit,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Kolom ini tidak boleh kosong!";
+                      }
+                      return null;
+                    },
+                    keyboardType: TextInputType.name,
+                    decoration: standartInputDecoration(
+                        user?.name ?? "name", Icons.person),
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
@@ -178,10 +190,10 @@ class _HomePageState extends State<ProfilePage> {
                             : "***********",
                         Icons.password),
                   ),
-                  const SizedBox(height: 40),
+                  SizedBox(height: deviceWidth * 0.03),
                   InkWell(
                     onTap: () => logoutUser(),
-                    child: const Row(
+                    child:  Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
@@ -260,6 +272,7 @@ class _HomePageState extends State<ProfilePage> {
         await apiService
             .userUpdate(
           token,
+          nameController.text,
           emailController.text,
           passwordController.text,
           null, // assuming imageUrl is not being updated
@@ -273,6 +286,7 @@ class _HomePageState extends State<ProfilePage> {
           Fluttertoast.showToast(msg: value.toString());
 
           loadUserFromDatabase();
+          setState(() {});
         });
       } else {
         Fluttertoast.showToast(msg: "Token invalid, please log in");
@@ -281,4 +295,10 @@ class _HomePageState extends State<ProfilePage> {
       Fluttertoast.showToast(msg: "Failed to update: $e");
     }
   }
+  
+  void editProfilePicture() {
+    openGallery();
+  }
+  
+  void openGallery() {}
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
 import 'package:jahit_baju/model/cart.dart';
 import 'package:jahit_baju/model/favorite.dart';
@@ -15,9 +16,10 @@ import 'package:jahit_baju/service/remote/response/order_response.dart';
 import 'package:logger/web.dart';
 
 class ApiService {
-  final String baseUrl = "http://192.168.1.155:3000/api/";
+  final String baseUrl = "http://192.168.1.40:3000/api/";
   TokenStorage tokenStorage = TokenStorage();
   Logger logger = Logger();
+
 
   Future<LoginResponse> userLogin(String email, String password) async {
     final url = Uri.parse("${baseUrl}users/login");
@@ -100,7 +102,7 @@ class ApiService {
     }
   }
 
-  Future<String?> userUpdate(String token, String? email, String? password,
+  Future<String?> userUpdate(String token,String? name, String? email, String? password,
       String? imageUrl, String? address, String? phoneNumber) async {
     final url = Uri.parse("${baseUrl}users/current");
 
@@ -109,6 +111,9 @@ class ApiService {
       Map<String, dynamic> body = {};
 
       // Add fields only if they are not null or empty
+      if (name != null && name.isNotEmpty) {
+        body['name'] = name;
+      }
       if (email != null && email.isNotEmpty) {
         body['email'] = email;
       }

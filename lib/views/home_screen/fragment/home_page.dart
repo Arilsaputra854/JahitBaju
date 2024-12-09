@@ -1,3 +1,4 @@
+import 'package:animated_snack_bar/animated_snack_bar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -25,9 +26,12 @@ class _HomePageState extends State<HomePage> {
 
   List? tags;
 
+  var deviceWidth ;
+
   @override
   Widget build(BuildContext context) {
-    var deviceWidth = MediaQuery.of(context).size.width;
+    deviceWidth = MediaQuery.of(context).size.width;
+
 
     return RefreshIndicator(
         child: ChangeNotifierProvider(
@@ -38,7 +42,7 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Container(
                     color: Colors.black,
-                    height: 300,
+                    height: deviceWidth * 0.5,
                     width: deviceWidth,
                     child: Image.asset(
                       alignment: const Alignment(1, -0.3),
@@ -50,13 +54,6 @@ class _HomePageState extends State<HomePage> {
                     return FutureBuilder(
                         future: viewModel.getListProducts(),
                         builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                                
-                              }
-                          if (snapshot.hasError && viewModel.errorMsg != null) {
-                            
-                          }
                           // Menampilkan data atau place holder
                           List<Product>? products = snapshot.data;
 
@@ -75,46 +72,44 @@ class _HomePageState extends State<HomePage> {
                               .toSet()
                               .toList();
                           return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               tagsWidget(),
-                              const SizedBox(
-                                height: 10,
-                              ),
                               Container(
                                 margin:
                                     const EdgeInsets.symmetric(horizontal: 10),
-                                child: const Column(
+                                child:  Column(
                                   children: [
                                     Text(
                                       "Siap Pakai",
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 25),
+                                          fontSize: deviceWidth * 0.05)
                                     ),
                                   ],
                                 ),
                               ),
                               widgetListRTW(),
-                              const SizedBox(
-                                height: 10,
+                              SizedBox(
+                                height: deviceWidth * 0.02,
                               ),
                               Container(
                                 margin:
                                     const EdgeInsets.symmetric(horizontal: 10),
-                                child: const Column(
+                                child: Column(
                                   children: [
                                     Text(
                                       "Custom Produk",
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 25),
+                                          fontSize: deviceWidth * 0.05),
                                     ),
                                   ],
                                 ),
                               ),
                               widgetListCustom(),
-                              const SizedBox(
-                                height: 40,
+                              SizedBox(
+                                height: deviceWidth * 0.02,
                               ),
                             ],
                           );
@@ -137,16 +132,16 @@ class _HomePageState extends State<HomePage> {
     return tags != null
         ? tags!.isNotEmpty
             ? Container(
-                margin: const EdgeInsets.only(top: 10, bottom: 10),
-                height: 100,
+
+                height: deviceWidth  * 0.2,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: tags?.length,
                   itemBuilder: (context, index) {
                     return Container(
-                      width: 80,
-                      height: 80,
-                      margin: const EdgeInsets.symmetric(horizontal: 10),
+                      width: deviceWidth  * 0.15,
+                      height: deviceWidth  * 0.15,
+                      margin: EdgeInsets.symmetric(horizontal: deviceWidth  * 0.05),
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         color: Color(0xFFFFAAAA),
@@ -156,16 +151,20 @@ class _HomePageState extends State<HomePage> {
                           tags?[index],
                           textAlign: TextAlign.center,
                           style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 15),
+                              fontWeight: FontWeight.bold, fontSize: 12),
                         ),
                       ),
                     );
                   },
                 ),
               )
-            : Container(
-                margin: const EdgeInsets.only(top: 10, bottom: 10),
-                height: 100,
+            : smimmerTag()
+        : smimmerTag();
+  }
+
+  Widget smimmerTag(){
+    return Container(
+                height: deviceWidth  * 0.3,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: 5, // Number of placeholder items
@@ -174,8 +173,8 @@ class _HomePageState extends State<HomePage> {
                       baseColor: Colors.grey[300]!,
                       highlightColor: Colors.grey[100]!,
                       child: Container(
-                        width: 80,
-                        height: 80,
+                      width: deviceWidth  * 0.15,
+                      height: deviceWidth  * 0.15,
                         margin: const EdgeInsets.symmetric(horizontal: 10),
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
@@ -185,36 +184,13 @@ class _HomePageState extends State<HomePage> {
                     );
                   },
                 ),
-              )
-        : Container(
-            margin: const EdgeInsets.only(top: 10, bottom: 10),
-            height: 100,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: 5, // Number of placeholder items
-              itemBuilder: (context, index) {
-                return Shimmer.fromColors(
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
-                  child: Container(
-                    width: 80,
-                    height: 80,
-                    margin: const EdgeInsets.symmetric(horizontal: 10),
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.grey,
-                    ),
-                  ),
-                );
-              },
-            ),
-          );
+              );
   }
 
   widgetListRTW() {
     return Container(
       margin: const EdgeInsets.all(10),
-      height: 200,
+      height: 200 ,
       child: productsRTW != null
           ? productsRTW!.isNotEmpty
               ? ListView.builder(
@@ -236,8 +212,7 @@ class _HomePageState extends State<HomePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
-                                child: SizedBox(
-                                  width: double.infinity,
+                                child: Center(
                                   child: CachedNetworkImage(
                                     imageUrl: productsRTW?[index].imageUrl[0],
                                     placeholder: (context, url) {
@@ -252,23 +227,24 @@ class _HomePageState extends State<HomePage> {
                                     },
                                     fit: BoxFit.cover,
                                   ),
-                                ),
+                                )
                               ),
                               Container(
-                                  margin: const EdgeInsets.all(5),
+                                  margin: EdgeInsets.all(5),
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
+                                        maxLines: 2,
                                         productsRTW?[index].name,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            fontSize: 18),
+                                            fontSize: deviceWidth*0.03),
                                       ),
                                       Text(
                                         convertToRupiah(productsRTW?[index].price),
-                                        style: const TextStyle(fontSize: 15),
+                                        style: TextStyle(fontSize: deviceWidth*0.03),
                                       ),
                                     ],
                                   ))
