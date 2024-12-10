@@ -1,11 +1,13 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:jahit_baju/model/order.dart';
 import 'package:jahit_baju/service/remote/api_service.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
 import 'package:jahit_baju/model/packaging.dart';
 import 'package:jahit_baju/model/shipping.dart';
 import 'package:jahit_baju/model/user.dart';
+import 'package:jahit_baju/service/remote/response/order_response.dart';
 
 class ShippingViewModel extends ChangeNotifier{
   ApiService api = ApiService();
@@ -58,4 +60,18 @@ class ShippingViewModel extends ChangeNotifier{
     }
   }
 
+  Future<Order?> createOrder(Order? order) async {
+  if (order != null) {
+    ApiService apiService = ApiService();
+
+    OrderResponse orderResponse = await apiService.orderCreate(order);
+    
+    if(orderResponse.data is Order){
+      return orderResponse.data;
+    }else if(orderResponse.data is String){      
+      return null;
+    }
+  }
+  return null;
+}
 }

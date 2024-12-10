@@ -16,7 +16,7 @@ import 'package:jahit_baju/service/remote/response/order_response.dart';
 import 'package:logger/web.dart';
 
 class ApiService {
-  final String baseUrl = "http://192.168.1.40:3000/api/";
+  final String baseUrl = "http://192.168.1.155:3000/api/";
   TokenStorage tokenStorage = TokenStorage();
   Logger logger = Logger();
 

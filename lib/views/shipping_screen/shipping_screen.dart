@@ -35,18 +35,19 @@ class _ShippingScreenState extends State<ShippingScreen> {
     deviceWidth = MediaQuery.of(context).size.width;
     deviceHeight = MediaQuery.of(context).size.height;
 
-    return Scaffold(
-        appBar: AppBar(
-          elevation: 0,
-          title: const Text("Delivery",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-          centerTitle: true,
-        ),
-        body: ChangeNotifierProvider(
-            create: (context) => ShippingViewModel(),
-            child: Consumer<ShippingViewModel>(
-                builder: (context, viewModel, child) {
-              return SingleChildScrollView(
+    return ChangeNotifierProvider(
+        create: (context) => ShippingViewModel(),
+        child:
+            Consumer<ShippingViewModel>(builder: (context, viewModel, child) {
+          return Scaffold(
+              appBar: AppBar(
+                elevation: 0,
+                title: const Text("Delivery",
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                centerTitle: true,
+              ),
+              body: SingleChildScrollView(
                   child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -173,12 +174,12 @@ class _ShippingScreenState extends State<ShippingScreen> {
                         );
                       })
                 ],
-              ));
-            })),
-        bottomNavigationBar: _bottomNavBar());
+              )),
+              bottomNavigationBar: _bottomNavBar(viewModel));
+        }));
   }
 
-  _goToPaymentScreen() {
+  _goToPaymentScreen(ShippingViewModel viewModel) {
     if ((deliveryChoosedIndex != -1 && shipping != "") &&
         (packagingChoosedIndex != -1 && packaging != "")) {
       Order order = Order(
@@ -189,14 +190,16 @@ class _ShippingScreenState extends State<ShippingScreen> {
           totalPrice:
               (shipping!.price + widget.cart!.totalPrice + packaging!.price)
                   .toInt(),
-          orderStatus: Order.WAITING_FOR_PAYMENT);
-      createOrder(order).then((orderFromServer) {
+          orderStatus: Order.WAITING_FOR_PAYMENT,
+          paymentUrl: "");
+      viewModel.createOrder(order).then((orderFromServer) {
         if (orderFromServer != null) {
+          print("Data order yang diterima dari server :\n${order.toJson()}");
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
                 builder: (context) => PaymentScreen(order: orderFromServer)),
-            (route) => route.settings.name == "Home", 
+            (route) => route.settings.name == "Home",
           );
         }
       });
@@ -369,7 +372,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
             }));
   }
 
-  Widget _bottomNavBar() {
+  Widget _bottomNavBar(ShippingViewModel viewModel) {
     return Container(
         height: deviceHeight * 0.33,
         padding: const EdgeInsets.all(20),
@@ -387,7 +390,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
                     vertical: 15,
                     horizontal: 30), // Padding agar tombol lebih besar
               ),
-              onPressed: () => _goToPaymentScreen(),
+              onPressed: () => _goToPaymentScreen(viewModel),
               child: const Text(
                 "Bayar",
                 style: TextStyle(
@@ -403,19 +406,4 @@ class _ShippingScreenState extends State<ShippingScreen> {
 
 void goToAddress() {
   Fluttertoast.showToast(msg: "Edit address");
-}
-
-Future<Order?> createOrder(Order? order) async {
-  if (order != null) {
-    ApiService apiService = ApiService();
-
-    OrderResponse orderResponse = await apiService.orderCreate(order);
-    
-    if(orderResponse.data is Order){
-      return orderResponse.data;
-    }else if(orderResponse.data is String){      
-      return null;
-    }
-  }
-  return null;
 }

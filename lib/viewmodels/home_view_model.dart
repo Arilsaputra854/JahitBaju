@@ -20,4 +20,8 @@ class HomeViewModel extends ChangeNotifier {
       return null;
     }
   }
+
+  void refresh(){
+    notifyListeners();
+  }
 }

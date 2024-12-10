@@ -52,6 +52,7 @@ dependencies:
   logger: 
   dropdown_search:
   animated_snack_bar:
+  url_launcher:
 
 flutter_launcher_icons:
   android: "launcher_icon"

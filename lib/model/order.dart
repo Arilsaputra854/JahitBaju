@@ -9,6 +9,8 @@ class Order {
   final String orderStatus;
   final DateTime _lastUpdate; // Properti privat untuk last_update
   final List<OrderItem> items; // Properti biasa untuk daftar item
+  final String? paymentUrl;
+  final DateTime expiredDate;
 
 
   // Status Order
@@ -30,8 +32,11 @@ class Order {
     this.items = const [], // Default kosong jika tidak ada
     DateTime? orderCreated,
     required this.orderStatus,
+    this.paymentUrl,
+    DateTime? expiredDate
   })  : orderCreated = orderCreated ?? DateTime.now(),
-        _lastUpdate = DateTime.now();
+        _lastUpdate = DateTime.now(),expiredDate = expiredDate ?? DateTime.now().add(Duration(hours: 23,minutes: 50));
+    
 
   DateTime get lastUpdate => _lastUpdate;
 
@@ -51,6 +56,10 @@ class Order {
       items: (json['items'] as List<dynamic>)
           .map((itemJson) => OrderItem.fromJson(itemJson))
           .toList(), // Parsing daftar items
+      paymentUrl: json['payment_url'] ?? "",
+      expiredDate: json['expired_date'] != null
+          ? DateTime.parse(json['expired_date'])
+          : null,
     );
   }
 
@@ -66,6 +75,8 @@ class Order {
       'order_status': orderStatus,
       'last_update': _lastUpdate.toIso8601String(),
       'items': items.map((item) => item.toJson()).toList(),
+      'payment_url' : paymentUrl ?? "",
+      'expired_date': expiredDate.toIso8601String(),
     };
   }
 

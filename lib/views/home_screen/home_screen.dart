@@ -7,12 +7,15 @@ import 'package:jahit_baju/model/order.dart';
 import 'package:jahit_baju/model/order_item.dart';
 import 'package:jahit_baju/model/product.dart';
 import 'package:jahit_baju/util/util.dart';
+import 'package:jahit_baju/viewmodels/home_screen_view_model.dart';
 import 'package:jahit_baju/views/cart_screen/cart_screen.dart';
 import 'package:jahit_baju/views/home_screen/fragment/favorite_page.dart';
 import 'package:jahit_baju/views/home_screen/fragment/history_page.dart';
 import 'package:jahit_baju/views/home_screen/fragment/home_page.dart';
 import 'package:jahit_baju/views/home_screen/fragment/profile_page.dart';
 import 'package:jahit_baju/views/home_screen/fragment/search_page.dart';
+import 'package:jahit_baju/views/shipping_screen/shipping_screen.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,9 +27,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _indexPage = 0;
   late int cartItemSize;
-  late TokenStorage 
-    tokenStorage = TokenStorage();
-  late ApiService apiService = ApiService();
 
   final List<Widget> page = [
     HomePage(),
@@ -46,41 +46,55 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     cartItemSize = 0;
-    updateCartItemSize();
   }
 
   @override
-  Widget build(BuildContext context) {
-
-    checkConnection(context);
-
-    return Scaffold(
-        appBar: AppBar(
-          leading: Image.asset(
-            "assets/logo/title_jahit_baju.png",
-          ),
-          leadingWidth: 150,
-          centerTitle: false,
-          backgroundColor: Colors.white,
-          actions: [cartIcon(cartItemSize)],
-        ),
-        body: page[_indexPage],
-        bottomNavigationBar: BottomNavigationBar(
-            onTap: onItemTapped,
-            type: BottomNavigationBarType.fixed,
-            currentIndex: _indexPage,
-            items: [
-              BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-              BottomNavigationBarItem(
-                  icon: Icon(Icons.search), label: "Search"),
-              BottomNavigationBarItem(
-                  icon: Icon(Icons.history), label: "History"),
-              BottomNavigationBarItem(
-                  icon: Icon(Icons.favorite), label: "Favorite"),
-              BottomNavigationBarItem(
-                  icon: Icon(Icons.person), label: "Profile")
-            ]));
+  void didChangeDependencies() {
+    updateCartItemSize();
+    super.didChangeDependencies();
   }
+
+  @override
+Widget build(BuildContext context) {
+  checkConnection(context);
+
+  return Scaffold(
+    appBar: AppBar(
+      leading: Image.asset(
+        "assets/logo/title_jahit_baju.png",
+      ),
+      leadingWidth: 150,
+      centerTitle: false,
+      backgroundColor: Colors.white,
+      actions: [
+        Consumer<HomeScreenViewModel>(
+          builder: (context, viewModel, child) {
+            return FutureBuilder<int>(
+              future: viewModel.getCartItemSize(),
+              builder: (context, snapshot) {                
+                return cartIcon(snapshot.data ?? 0); 
+              },
+            );
+          },
+        ),
+      ],
+    ),
+    body: page[_indexPage],
+    bottomNavigationBar: BottomNavigationBar(
+      onTap: onItemTapped,
+      type: BottomNavigationBarType.fixed,
+      currentIndex: _indexPage,
+      items: [
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+        BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
+        BottomNavigationBarItem(icon: Icon(Icons.history), label: "History"),
+        BottomNavigationBarItem(icon: Icon(Icons.favorite), label: "Favorite"),
+        BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile")
+      ],
+    ),
+  );
+}
+
 
   goToCartScreen() {
     Navigator.push(
@@ -126,16 +140,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ));
   }
 
-  Future<void> updateCartItemSize() async {
-    String? token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
-    if (token != null) {
-      await apiService.cartGet().then((value) {
-        if (value is Cart) {          
-          setState(() {
-            cartItemSize = value.items.length;
-          });
-        }
-      });
-    }
+  void updateCartItemSize() async {
+    cartItemSize = await context.watch<HomeScreenViewModel>().getCartItemSize();
+
+    setState(() {});
   }
 }

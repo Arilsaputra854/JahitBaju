@@ -43,7 +43,10 @@ Future<void> checkConnection(BuildContext context) async {
   }
 }
 
-// Fungsi untuk menampilkan SnackBar
+String customFormatDate(DateTime date){
+  return DateFormat('HH:mm, dd-MM-yyyy').format(date);
+}
+
 void showSnackBar(BuildContext context, String message, {required bool isError}) {
   final snackBar = SnackBar(
     content: Text(message),

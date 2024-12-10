@@ -9,7 +9,9 @@ import 'package:jahit_baju/model/order_item.dart';
 import 'package:jahit_baju/model/product.dart';
 import 'package:jahit_baju/service/remote/response/favorite_response.dart';
 import 'package:jahit_baju/util/util.dart';
+import 'package:jahit_baju/viewmodels/home_view_model.dart';
 import 'package:jahit_baju/views/cart_screen/cart_screen.dart';
+import 'package:provider/provider.dart';
 import 'package:swipe_image_gallery/swipe_image_gallery.dart';
 
 class ProductScreen extends StatefulWidget {
@@ -471,6 +473,9 @@ class _ProductScreenState extends State<ProductScreen> {
     if (_selectedSize != "" && _selectedSize.isNotEmpty) {
       var msg = await apiService.cartAdd(widget.product, 1, _selectedSize);
       Fluttertoast.showToast(msg: msg);
+
+      context.read<HomeViewModel>().refresh();
+
     } else {
       Fluttertoast.showToast(msg: "Silakan pilih ukuran terlebih dahulu");
     }
