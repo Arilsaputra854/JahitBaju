@@ -45,6 +45,7 @@ dependencies:
   intl:
   swipe_image_gallery:
   flutter_svg:
+  flutter_svg_provider:
   flutter_secure_storage:
   cached_network_image:
   shimmer:
@@ -91,9 +92,6 @@ flutter:
     - assets/onboarding/onboarding_2.png
     - assets/onboarding/onboarding_3.png
     - assets/background/bg.png
-    - assets/coat/clutch-coat-badan-depan-kanan.svg
-    - assets/coat/clutch-coat-badan-depan-kiri.svg
-    - assets/coat/clutch-coat-kerah.svg
     - assets/icon/profile.png
 
   # An image asset can refer to one or more resolution-specific "variants", see

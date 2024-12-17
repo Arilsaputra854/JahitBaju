@@ -12,7 +12,9 @@ import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/viewmodels/home_view_model.dart';
 import 'package:jahit_baju/views/cart_screen/cart_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:swipe_image_gallery/swipe_image_gallery.dart';
+import 'package:http/http.dart' as http;
 
 class ProductScreen extends StatefulWidget {
   final Product product;
@@ -26,12 +28,28 @@ class _ProductScreenState extends State<ProductScreen> {
   var _selectedSize = "";
   var deviceWidth;
 
+  var currentSvg = "";
+
+  var updatedSvg;
+
   late bool isFavorited;
   late int favoriteId;
+
+  List<String> svgColor = [];
+  List<String> svgFeatures = [];
+
+  String? currentColor;
+  String? currentFeature;
+
 
   @override
   void initState() {
     isFavorited = false;
+    if(widget.product.type == Product.CUSTOM){
+      svgColor = widget.product.colors!;
+      svgFeatures = widget.product.features!;
+    }
+
     super.initState();
   }
 
@@ -346,20 +364,31 @@ class _ProductScreenState extends State<ProductScreen> {
             height: 400,
             child: Row(
               children: [
-                Column(
-                  children: [
-                    Text("Bagian"),
-                    ElevatedButton(onPressed: () {}, child: Text("Kerah Kiri")),
-                    ElevatedButton(
-                        onPressed: () {}, child: Text("Kerah Kanan")),
-                    ElevatedButton(onPressed: () {}, child: Text("Kiri Depan")),
-                    ElevatedButton(
-                        onPressed: () {}, child: Text("Kanan Depan")),
-                  ],
+                Container(
+                  width: 150,
+                  child: ListView.builder(
+                      itemCount: svgFeatures.length,
+                      itemBuilder: (context, index) {
+                        
+                        return ElevatedButton(
+                            onPressed: currentFeature != svgFeatures[index]
+                                ? () {
+                                    setState(() {
+                                      currentFeature = svgFeatures[index];
+                                    });
+                                  }
+                                : null,
+                            child: Text(
+                                textAlign: TextAlign.center,
+                                svgFeatures[index]
+                                    .toString()
+                                    .replaceAll("-", " ")));
+                      }),
                 ),
-                //customPreview()
+                customPreview(),
               ],
             )),
+        _textureWidget(),
         Container(
             padding: EdgeInsets.all(20),
             child: Column(
@@ -475,7 +504,6 @@ class _ProductScreenState extends State<ProductScreen> {
       Fluttertoast.showToast(msg: msg);
 
       context.read<HomeViewModel>().refresh();
-
     } else {
       Fluttertoast.showToast(msg: "Silakan pilih ukuran terlebih dahulu");
     }
@@ -509,18 +537,15 @@ class _ProductScreenState extends State<ProductScreen> {
       } else {
         favoriteId = response.id!;
 
-        setState(() {
-          
-        });
+        setState(() {});
         Fluttertoast.showToast(msg: "Berhasil menambahkan ke favorit.");
       }
     } else {
-        FavoriteResponse response = await apiService.favoriteDelete(favoriteId);
-        
+      FavoriteResponse response = await apiService.favoriteDelete(favoriteId);
+
       if (response.error) {
         Fluttertoast.showToast(msg: "${response.message}");
       } else {
-
         setState(() {
           isFavorited = false;
         });
@@ -528,35 +553,139 @@ class _ProductScreenState extends State<ProductScreen> {
       }
     }
   }
+
+  _textureWidget() {
+    return svgColor.isNotEmpty
+        ? Container(
+            height: deviceWidth * 0.1,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: svgColor.length,
+              itemBuilder: (context, index) {
+                print(svgColor[index]);
+                return InkWell(
+                    onTap: () {
+                      if (currentFeature != "") {
+                        setState(() {
+                          currentColor = svgColor[index];
+                          updatedSvg = updateFillColorById(currentSvg,
+                              currentFeature!, currentColor!);
+                          currentSvg = updatedSvg;
+                        });
+                      }
+                    },
+                    child: svgColor[index].contains("https")? 
+                    Container(
+                      clipBehavior: Clip.hardEdge,
+                      width: deviceWidth * 0.1,
+                      height: deviceWidth * 0.1,
+                      margin:
+                          EdgeInsets.symmetric(horizontal: deviceWidth * 0.01),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.grey
+                      ),
+                      child: Image.network(svgColor[index],fit: BoxFit.cover,),
+                    ) : Container(
+                      width: deviceWidth * 0.1,
+                      height: deviceWidth * 0.1,
+                      margin:
+                          EdgeInsets.symmetric(horizontal: deviceWidth * 0.01),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(int.parse(
+                            svgColor[index].replaceFirst('#', '0xFF'))),
+                      ),
+                    ));
+              },
+            ),
+          )
+        : smimmerTag();
+  }
+
+  Widget smimmerTag() {
+    return Container(
+      height: deviceWidth * 0.1,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: 5, // Number of placeholder items
+        itemBuilder: (context, index) {
+          return Shimmer.fromColors(
+            baseColor: Colors.grey[300]!,
+            highlightColor: Colors.grey[100]!,
+            child: Container(
+              width: deviceWidth * 0.1,
+              height: deviceWidth * 0.1,
+              margin: const EdgeInsets.symmetric(horizontal: 10),
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.grey,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  customPreview() {
+    //dari server
+    if(currentSvg == ""){
+      return FutureBuilder(
+        future: fetchSvg(widget.product.imageUrl.first),
+        builder: (context, snapshot) {
+          if(snapshot.connectionState == ConnectionState.waiting){
+            return CircularProgressIndicator();
+          }
+          if(snapshot.hasData){
+              currentSvg = snapshot.data!;
+          }
+          return Container(
+              width: 250,
+              height: 400,
+              padding: EdgeInsets.all(10),
+              child: SvgPicture.string(currentSvg));
+        });
+    }
+    //svg update
+    return Container(
+        width: 250,
+        height: 400,
+        padding: EdgeInsets.all(10),
+        child: SvgPicture.string(currentSvg));
+  }
 }
 
-customPreview() {
-  return Container(
-      width: 300,
-      padding: EdgeInsets.all(10),
-      color: Colors.red,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned(
-            left: 20,
-            child: SvgPicture.asset(
-                "assets/coat/clutch-coat-badan-depan-kiri.svg",
-                color: const Color.fromARGB(255, 38, 1, 142)),
-          ),
-          Positioned(
-            child: SvgPicture.asset(
-                "assets/coat/clutch-coat-badan-depan-kanan.svg",
-                color: const Color.fromARGB(255, 10, 49, 188)),
-          ),
-          Positioned(
-            left: 50,
-            top: -40,
-            child: SvgPicture.asset(
-              "assets/coat/clutch-coat-kerah.svg",
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ));
+String updateFillColorById(
+    String svgString, String elementId, String newColor) {
+  final pattern =
+      RegExp(r'<[^>]*id="' + elementId + r'"[^>]*>', multiLine: true);
+  return svgString.replaceAllMapped(
+    pattern,
+    (match) {
+      String element = match.group(0)!;
+
+      if (element.contains('fill=')) {
+        // Jika elemen sudah memiliki atribut `fill`, ubah nilainya
+        element =
+            element.replaceAll(RegExp(r'fill="[^"]*"'), 'fill="$newColor"');
+      } else {
+        // Jika elemen tidak memiliki atribut `fill`, tambahkan atribut `fill`
+        element = element.replaceFirst('>', ' fill="$newColor">');
+      }
+      return element;
+    },
+  );
+}
+
+Future<String> fetchSvg(String url) async {
+  final response = await http.get(Uri.parse(url));
+  if (response.statusCode == 200) {
+    // Jika berhasil, simpan data SVG ke dalam string
+    return response.body;
+  } else {
+    // Handle error jika gagal
+    print('Failed to load SVG');
+    return "";
+  }
 }

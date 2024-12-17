@@ -16,7 +16,7 @@ import 'package:jahit_baju/service/remote/response/order_response.dart';
 import 'package:logger/web.dart';
 
 class ApiService {
-  final String baseUrl = "http://192.168.1.155:3000/api/";
+  final String baseUrl = "http://172.20.10.6:3000/api/";
   TokenStorage tokenStorage = TokenStorage();
   Logger logger = Logger();
 
@@ -38,7 +38,7 @@ class ApiService {
 
       return responseBody;
     } catch (e) {
-      print("Error: $e");
+      ////print("Error: $e");
       return LoginResponse(
           message: "Network error or invalid response", error: true);
     }
@@ -71,7 +71,7 @@ class ApiService {
 
       return message;
     } catch (e) {
-      print("Error: $e");
+      ////print("Error: $e");
       return "Network error or invalid response";
     }
   }
@@ -97,7 +97,7 @@ class ApiService {
       }
       return message;
     } catch (e) {
-      print("Error: ${e}");
+      ////print("Error: ${e}");
       return "Network error or invalid response";
     }
   }
@@ -157,7 +157,7 @@ class ApiService {
 
       return message;
     } catch (e) {
-      print("Error: $e");
+      ////print("Error: $e");
       return "Network error or invalid response";
     }
   }
@@ -185,7 +185,7 @@ class ApiService {
         return message;
       }
     } catch (e) {
-      print("Error: ${e}");
+      ////print("Error: ${e}");
       return "Network error or invalid response";
     }
   }
@@ -221,7 +221,7 @@ class ApiService {
         return message;
       }
     } catch (e) {
-      print("Error: ${e}");
+      ////print("Error: ${e}");
       return "Network error or invalid response";
     }
   }
@@ -247,7 +247,7 @@ class ApiService {
         return message;
       }
     } catch (e) {
-      print("Error: ${e}");
+      ////print("Error: ${e}");
       return "Network error or invalid response";
     }
   }
@@ -276,7 +276,7 @@ class ApiService {
         return message;
       }
     } catch (e) {
-      print("Error: ${e}");
+      ////print("Error: ${e}");
       return "error";
     }
   }
@@ -305,7 +305,7 @@ class ApiService {
         return message;
       }
     } catch (e) {
-      print("Error: ${e}");
+      ////print("Error: ${e}");
       return "error";
     }
   }
@@ -420,7 +420,7 @@ class ApiService {
         return message;
       }
     } catch (e) {
-      print("Error: ${e}");
+      ////print("Error: ${e}");
       return "Network error or invalid response";
     }
   }
@@ -448,7 +448,7 @@ class ApiService {
         return message;
       }
     } catch (e) {
-      print("Error: ${e}");
+      ////print("Error: ${e}");
       return "error";
     }
   }
@@ -479,7 +479,7 @@ class ApiService {
         return message;
       }
     } catch (e) {
-      print("Error: ${e}");
+      ////print("Error: ${e}");
       return "error";
     }
   }
@@ -501,7 +501,7 @@ class ApiService {
 
       return favoriteResponse;
     } catch (e) {
-      print("Error: ${e}");
+      ////print("Error: ${e}");
       return FavoriteResponse(error: true, message: "Network error or invalid response");
     }
   }
@@ -523,7 +523,7 @@ class ApiService {
 
       return favoriteResponse;
     } catch (e) {
-      print("Error: ${e}");
+      ////print("Error: ${e}");
       return FavoriteResponse(error: true, message: "Network error or invalid response");
     }
   }

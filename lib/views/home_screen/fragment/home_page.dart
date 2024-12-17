@@ -334,16 +334,14 @@ class _HomePageState extends State<HomePage> {
                                   child: SvgPicture.network(
                                     productsCustom?[index].imageUrl.first,
                                     placeholderBuilder:
-                                        (BuildContext context) => Container(
-                                      width: 50,
-                                      height: 50,
-                                      child: Expanded(
-                                        child: Container(
-                                          width: double.infinity,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                    ),
+                                        (BuildContext context) =>  Shimmer.fromColors(
+                                          baseColor: Colors.grey[300]!,
+                                          highlightColor: Colors.grey[100]!,
+                                          child: Container(
+                                            width: double.infinity,
+                                            height: double.infinity,
+                                            color: Colors.grey,
+                                          )),
                                     width: 200,
                                     height: 200,
                                   ),

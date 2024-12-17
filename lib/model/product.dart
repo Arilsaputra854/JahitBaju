@@ -16,6 +16,8 @@ class Product {
   final List<String> imageUrl;
   final List<String> tags;
   final List<String> size;
+  final List<String>? colors;
+  final List<String>? features;
 
   Product({
     required this.id,
@@ -30,6 +32,8 @@ class Product {
     required this.imageUrl,
     required this.tags,
     required this.size,
+    this.colors,
+    this.features,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -46,6 +50,8 @@ class Product {
       imageUrl: List<String>.from(json['images_url']), // parsing List<String>
       tags: List<String>.from(json['tags']),           // parsing List<String>
       size: List<String>.from(json['size']), 
+      colors: List<String>.from(json['colors']),           // parsing List<String>
+      features: List<String>.from(json['features']),
     );
   }
 
@@ -63,7 +69,8 @@ class Product {
       'image_url': imageUrl,
       'tags': tags,
       'size': size,
+      'colors': colors,
+      'features': features,
     };
   }
 }
-
