@@ -102,8 +102,12 @@ class _HistoryPageState extends State<HistoryPage> {
                       //if status is fetching data from server
                       return itemCartShimmer();
                     } else {
-                      //if error
-                      return itemCartShimmer();
+                      return Container(
+                          height: deviceHeight*0.5,
+                          child: const Center(
+                            child: Text("Tidak ada history"),
+                          ),
+                        );
                     }
                   },
                 )

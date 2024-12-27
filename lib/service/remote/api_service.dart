@@ -16,7 +16,7 @@ import 'package:jahit_baju/service/remote/response/order_response.dart';
 import 'package:logger/web.dart';
 
 class ApiService {
-  final String baseUrl = "http://172.20.10.6:3000/api/";
+  final String baseUrl = "http://192.168.1.155:3000/api/";
   TokenStorage tokenStorage = TokenStorage();
   Logger logger = Logger();
 
@@ -38,7 +38,7 @@ class ApiService {
 
       return responseBody;
     } catch (e) {
-      ////print("Error: $e");
+      print("Error: $e");
       return LoginResponse(
           message: "Network error or invalid response", error: true);
     }
@@ -71,7 +71,7 @@ class ApiService {
 
       return message;
     } catch (e) {
-      ////print("Error: $e");
+      print("Error: $e");
       return "Network error or invalid response";
     }
   }
@@ -97,7 +97,7 @@ class ApiService {
       }
       return message;
     } catch (e) {
-      ////print("Error: ${e}");
+      print("Error: ${e}");
       return "Network error or invalid response";
     }
   }
@@ -107,10 +107,10 @@ class ApiService {
     final url = Uri.parse("${baseUrl}users/current");
 
     try {
-      // Create a map to hold the updated fields
+       //Create a map to hold the updated fields
       Map<String, dynamic> body = {};
 
-      // Add fields only if they are not null or empty
+       //Add fields only if they are not null or empty
       if (name != null && name.isNotEmpty) {
         body['name'] = name;
       }
@@ -130,12 +130,12 @@ class ApiService {
         body['phone_number'] = phoneNumber;
       }
 
-      // If the body is empty, return a message
+      //If the body is empty, return a message
       if (body.isEmpty) {
         return "No fields to update.";
       }
 
-      // Perform the HTTP PATCH request
+       //Perform the HTTP PATCH request
       final response = await http.patch(
         url,
         body: jsonEncode(body),
@@ -148,7 +148,7 @@ class ApiService {
       var data = jsonDecode(response.body);
       String? message;
 
-      // Check the response status
+      //Check the response status
       if (response.statusCode == 200) {
         message = "Update successful";
       } else {
@@ -157,7 +157,7 @@ class ApiService {
 
       return message;
     } catch (e) {
-      ////print("Error: $e");
+      print("Error: $e");
       return "Network error or invalid response";
     }
   }
@@ -185,7 +185,7 @@ class ApiService {
         return message;
       }
     } catch (e) {
-      ////print("Error: ${e}");
+      print("Error: ${e}");
       return "Network error or invalid response";
     }
   }
@@ -221,7 +221,7 @@ class ApiService {
         return message;
       }
     } catch (e) {
-      ////print("Error: ${e}");
+      print("Error: ${e}");
       return "Network error or invalid response";
     }
   }
@@ -247,7 +247,7 @@ class ApiService {
         return message;
       }
     } catch (e) {
-      ////print("Error: ${e}");
+      print("Error: ${e}");
       return "Network error or invalid response";
     }
   }
@@ -276,7 +276,7 @@ class ApiService {
         return message;
       }
     } catch (e) {
-      ////print("Error: ${e}");
+      print("Error: ${e}");
       return "error";
     }
   }
@@ -305,7 +305,7 @@ class ApiService {
         return message;
       }
     } catch (e) {
-      ////print("Error: ${e}");
+      print("Error: ${e}");
       return "error";
     }
   }
@@ -420,7 +420,7 @@ class ApiService {
         return message;
       }
     } catch (e) {
-      ////print("Error: ${e}");
+      print("Error: ${e}");
       return "Network error or invalid response";
     }
   }
@@ -441,14 +441,14 @@ class ApiService {
         List<Product> products = productsData
             .map<Product>((json) => Product.fromJson(json))
             .toList();
-
         return products;
+        
       } else {
         message = data["message"] ?? "Unknown error occurred";
         return message;
       }
     } catch (e) {
-      ////print("Error: ${e}");
+      print("Error: ${e}");
       return "error";
     }
   }
@@ -479,7 +479,7 @@ class ApiService {
         return message;
       }
     } catch (e) {
-      ////print("Error: ${e}");
+      print("Error: ${e}");
       return "error";
     }
   }
@@ -501,7 +501,7 @@ class ApiService {
 
       return favoriteResponse;
     } catch (e) {
-      ////print("Error: ${e}");
+      print("Error: ${e}");
       return FavoriteResponse(error: true, message: "Network error or invalid response");
     }
   }
@@ -523,7 +523,7 @@ class ApiService {
 
       return favoriteResponse;
     } catch (e) {
-      ////print("Error: ${e}");
+      print("Error: ${e}");
       return FavoriteResponse(error: true, message: "Network error or invalid response");
     }
   }

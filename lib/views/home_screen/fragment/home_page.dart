@@ -141,7 +141,7 @@ class _HomePageState extends State<HomePage> {
                     return Container(
                       width: deviceWidth  * 0.15,
                       height: deviceWidth  * 0.15,
-                      margin: EdgeInsets.symmetric(horizontal: deviceWidth  * 0.05),
+                      margin: EdgeInsets.symmetric(horizontal: deviceWidth  * 0.02),
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         color: Color(0xFFFFAAAA),

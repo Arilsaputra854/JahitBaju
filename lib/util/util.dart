@@ -20,28 +20,28 @@ String convertToRupiah(dynamic value) {
 }
 
 
-Future<void> checkConnection(BuildContext context) async {
-  // Cek status koneksi internet
-  final connectivityResult = await Connectivity().checkConnectivity();
+// Future<void> checkConnection(BuildContext context) async {
+//   // Cek status koneksi internet
+//   final connectivityResult = await Connectivity().checkConnectivity();
 
-  if (connectivityResult == ConnectivityResult.none) {
-    // Jika tidak ada koneksi internet
-    showSnackBar(context, "Kamu sedang offline!", isError: true);
-    return;
-  }
+//   if (connectivityResult == ConnectivityResult.none) {
+//     // Jika tidak ada koneksi internet
+//     showSnackBar(context, "Kamu sedang offline!", isError: true);
+//     return;
+//   }
 
-  // Jika ada koneksi, cek status server
-  try {
-    final response = await http.get(Uri.parse(ApiService().baseUrl)).timeout(Duration(seconds: 5));
+//   // Jika ada koneksi, cek status server
+//   try {
+//     final response = await http.get(Uri.parse(ApiService().baseUrl)).timeout(Duration(seconds: 5));
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-    showSnackBar(context, "Terjadi kesalahan pada server. ${response.statusCode}", isError: true);
-    }
-  } catch (e) {
-    // Timeout atau error lainnya
-    showSnackBar(context, "Terjadi kesalahan pada server.", isError: true);
-  }
-}
+//     if (response.statusCode >= 200 && response.statusCode < 300) {
+//     showSnackBar(context, "Terjadi kesalahan pada server. ${response.statusCode}", isError: true);
+//     }
+//   } catch (e) {
+//     // Timeout atau error lainnya
+//     showSnackBar(context, "Terjadi kesalahan pada server.", isError: true);
+//   }
+// }
 
 String customFormatDate(DateTime date){
   return DateFormat('HH:mm, dd-MM-yyyy').format(date);

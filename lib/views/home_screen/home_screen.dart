@@ -1,12 +1,4 @@
-import 'package:animated_snack_bar/animated_snack_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:jahit_baju/service/remote/api_service.dart';
-import 'package:jahit_baju/helper/secure/token_storage.dart';
-import 'package:jahit_baju/model/cart.dart';
-import 'package:jahit_baju/model/order.dart';
-import 'package:jahit_baju/model/order_item.dart';
-import 'package:jahit_baju/model/product.dart';
-import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/viewmodels/home_screen_view_model.dart';
 import 'package:jahit_baju/views/cart_screen/cart_screen.dart';
 import 'package:jahit_baju/views/home_screen/fragment/favorite_page.dart';
@@ -14,7 +6,6 @@ import 'package:jahit_baju/views/home_screen/fragment/history_page.dart';
 import 'package:jahit_baju/views/home_screen/fragment/home_page.dart';
 import 'package:jahit_baju/views/home_screen/fragment/profile_page.dart';
 import 'package:jahit_baju/views/home_screen/fragment/search_page.dart';
-import 'package:jahit_baju/views/shipping_screen/shipping_screen.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -56,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
 Widget build(BuildContext context) {
-  checkConnection(context);
+  //checkConnection(context);
 
   return Scaffold(
     appBar: AppBar(
@@ -141,7 +132,7 @@ Widget build(BuildContext context) {
   }
 
   void updateCartItemSize() async {
-    cartItemSize = await context.watch<HomeScreenViewModel>().getCartItemSize();
+    //cartItemSize = await context.watch<HomeScreenViewModel>().getCartItemSize();
 
     setState(() {});
   }
