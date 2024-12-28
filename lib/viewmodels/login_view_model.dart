@@ -1,10 +1,6 @@
-import 'dart:convert';
-import 'dart:developer';
-
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:jahit_baju/helper/api/api_service.dart';
+import 'package:jahit_baju/service/remote/api_service.dart';
+import 'package:jahit_baju/helper/secure/token_storage.dart';
 
 class LoginViewModel extends ChangeNotifier {
   ApiService api = ApiService();
@@ -18,6 +14,8 @@ class LoginViewModel extends ChangeNotifier {
   String? get password => _password;
   String? get errorMsg => _errorMsg;
 
+  final TokenStorage _tokenStorage = TokenStorage();
+
   void setEmail(String email) {
     _email = email;
     notifyListeners();
@@ -28,31 +26,31 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<String> Login() async {
+  Future<bool> login() async {
     if (_email == null || !_email!.contains('@')) {
       _errorMsg = 'Email tidak valid!';
       notifyListeners();
-      return "";
+      return false;
     }
 
     if (_password == null || _password!.length < 8) {
       _errorMsg = 'Password harus lebih dari 8 karakter!';
       notifyListeners();
-      return "";
+      return false;
     }
 
-    var status = await api.login(_email!, _password!);
+    var response = await api.userLogin(_email!, _password!);
 
-    print(status);
-    if (status != null && status.startsWith("Email")) {
-      _errorMsg = status; // Tampilkan pesan error
+    if (response.error) {
+      _errorMsg = response.message;
       notifyListeners();
-      return ""; // Kembalikan string kosong jika error
+      return false;
     } else {
-      //TODO
       _errorMsg = null;
+      await _tokenStorage.saveToken(response.token!);
       notifyListeners();
-      return status!;
+
+      return true;
     }
   }
 }

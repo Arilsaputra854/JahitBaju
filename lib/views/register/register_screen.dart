@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:jahit_baju/helper/viewmodels/register_view_model.dart';
+import 'package:jahit_baju/viewmodels/register_view_model.dart';
 import 'package:jahit_baju/views/otp_screen/otp_screen.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
@@ -65,7 +65,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 foregroundColor: Colors.white,
               ),
               backgroundColor: Colors.transparent,
-              body: Consumer<RegisterViewModel>(
+              body: SingleChildScrollView(
+                child: Consumer<RegisterViewModel>(
                   builder: (context, viewModel, child) {
                 return Center(
                   child: SizedBox(
@@ -75,6 +76,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 );
               }),
             ),
+              ),
             if (isLoading)
               LoadingAnimationWidget.staggeredDotsWave(
                   color: Colors.black, size: 50)
@@ -224,7 +226,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               }
                             },
                             child: const Text(
-                              "Login",
+                              "Register",
                               style: TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 20),
                             )),

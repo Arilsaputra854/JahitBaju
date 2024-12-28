@@ -1,9 +1,14 @@
+import 'package:animated_snack_bar/animated_snack_bar.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:jahit_baju/model/order_item.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:jahit_baju/viewmodels/home_view_model.dart';
 import 'package:jahit_baju/model/product.dart';
+import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/views/product_screen/product_screen.dart';
-import 'package:swipe_image_gallery/swipe_image_gallery.dart';
+import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,238 +18,413 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  List<Product>? products;
+
+  List? productsRTW;
+  List? productsCustom;
+  List? allProducts;
+
+  List? tags;
+
+  var deviceWidth ;
+
   @override
   Widget build(BuildContext context) {
-    var deviceWidth = MediaQuery.of(context).size.width;
+    deviceWidth = MediaQuery.of(context).size.width;
 
-    Product product = Product(
-        id: 2,
-        name: "Obi Mangiring Merah-Ulos",
-        tags: [Tag(tag: "terlaris"), Tag(tag: "promo spesial")],
-        description:
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sit amet est eget orci pulvinar volutpat. Proin et elit sit amet felis condimentum convallis. Pellentesque id purus eros. Donec pharetra suscipit velit et convallis. Fusce finibus justo semper, mattis mauris ac, semper urna. Praesent nec turpis eros. Etiam mollis in nisi non accumsan. Aliquam id neque sit amet sem commodo eleifend ut vel tellus. Donec molestie lobortis mi ac pellentesque. Vestibulum posuere condimentum ornare.",
-        price: 375000,
-        stock: 123,
-        favorite: 2,
-        seen: 24,
-        sold: 5,
-        type: Product.READY_TO_WEAR,
-        size: ["XL", "S", "M"],
-        imageUrl: [
-          "https://down-id.img.susercontent.com/file/sg-11134201-22090-oj0c6ox3mxhv4e.webp",
-          "https://down-id.img.susercontent.com/file/sg-11134201-22090-nzt8ypx3mxhv2d.webp",
-          "https://down-id.img.susercontent.com/file/881145e16b11a838019faa3b79310e48.webp"
-        ]);
-    Product product1 = Product(
-        id: 2,
-        name: "Clutch Coat",
-        tags: [Tag(tag: "terlaris"), Tag(tag: "promo spesial")],
-        description:
-            "Kombinasi kain ulos dan bahan polos dengan design seperti mantel berlengan panjang, berkerah half clover lapel collar, oversized body, knee lenght",
-        price: 375000,
-        stock: 123,
-        favorite: 2,
-        seen: 24,
-        sold: 5,
-        type: Product.CUSTOM,
-        size: ["XL", "S", "M", "All Size"],
-        imageUrl: [
-          'https://drive.google.com/uc?export=view&id=1BMCwsRNkecJV171OdYSQ-aV5T4-sBrRf'
-        ]);
 
-    final List<String> tags = List<String>.generate(5, (i) => "Item $i");
-
-    var productsRTW = [product];
-    var productsCustom = [product1];
-
-    return SingleChildScrollView(
-      child: Container(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              color: Colors.black,
-              height: 300,
-              width: deviceWidth,
-              child: Image.asset(
-                alignment: Alignment(1, -0.3),
-                "assets/background/bg.png",
-                fit: BoxFit.cover,
-              ),
-            ),
-            Container(
-                margin: EdgeInsets.only(top: 10, bottom: 10),
-                height: 100,
-                child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: tags.length,
-                    itemBuilder: (context, index) {
-                      return Container(
-                        width: 80,
-                        height: 80,
-                        margin: EdgeInsets.symmetric(horizontal: 10),
-                        decoration: BoxDecoration(
-                            shape: BoxShape.circle, color: Color(0xFFFFAAAA)),
-                        child: Center(
-                          child: Text(
-                            tags[index],
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 15),
-                          ),
-                        ),
-                      );
-                    })),
-            SizedBox(
-              height: 10,
-            ),
-            Container(
-              margin: EdgeInsets.symmetric(horizontal: 10),
+    return RefreshIndicator(
+        child: ChangeNotifierProvider(
+            create: (context) => HomeViewModel(),
+            child: SingleChildScrollView(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "Siap Pakai",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+                  Container(
+                    color: Colors.black,
+                    height: deviceWidth * 0.5,
+                    width: deviceWidth,
+                    child: Image.asset(
+                      alignment: const Alignment(1, -0.3),
+                      "assets/background/bg.png",
+                      fit: BoxFit.cover,
+                    ),
                   ),
+                  Consumer<HomeViewModel>(builder: (context, viewModel, child) {
+                    return FutureBuilder(
+                        future: viewModel.getListProducts(),
+                        builder: (context, snapshot) {
+                          // Menampilkan data atau place holder
+                          List<Product>? products = snapshot.data;
+
+                          productsRTW = products
+                              ?.where((product) =>
+                                  product.type == Product.READY_TO_WEAR)
+                              .toList();
+                          productsCustom = products
+                              ?.where(
+                                  (product) => product.type == Product.CUSTOM)
+                              .toList();
+                          allProducts = [...?productsRTW, ...?productsCustom];
+
+                          tags = allProducts
+                              ?.expand((product) => product.tags)
+                              .toSet()
+                              .toList();
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              tagsWidget(),
+                              Container(
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                child:  Column(
+                                  children: [
+                                    Text(
+                                      "Siap Pakai",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: deviceWidth * 0.05)
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              widgetListRTW(),
+                              SizedBox(
+                                height: deviceWidth * 0.02,
+                              ),
+                              Container(
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      "Custom Produk",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: deviceWidth * 0.05),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              widgetListCustom(),
+                              SizedBox(
+                                height: deviceWidth * 0.02,
+                              ),
+                            ],
+                          );
+                        });
+                  }),
                 ],
               ),
-            ),
-            Container(
-                margin: EdgeInsets.all(10),
-                height: 200,
-                child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: productsRTW.length,
-                    itemBuilder: (context, index) {
-                      return InkWell(
-                          onTap: () {
-                            goToProductScreen(productsRTW[index]);
-                          },
-                          child: Container(
-                            width: 150,
-                            height: 200,
-                            margin: EdgeInsets.symmetric(horizontal: 5),
-                            decoration: BoxDecoration(
-                                color: Colors.white,
-                                border: Border.all(width: 1)),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    width: double.infinity,
-                                    child: Image.network(
-                                      productsRTW[index].imageUrl[0],
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                    margin: EdgeInsets.all(5),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          productsRTW[index].name,
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18),
-                                        ),
-                                        Text(
-                                          "IDR ${productsRTW[index].price}",
-                                          style: TextStyle(fontSize: 15),
-                                        ),
-                                      ],
-                                    ))
-                              ],
-                            ),
-                          ));
-                    })),
-            SizedBox(
-              height: 10,
-            ),
-            Container(
-              margin: EdgeInsets.symmetric(horizontal: 10),
-              child: Column(
-                children: [
-                  Text(
-                    "Custom Produk",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-                margin: EdgeInsets.all(10),
-                height: 250,
-                child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: productsCustom.length,
-                    itemBuilder: (context, index) {
-                      return InkWell(
-                          onTap: () {
-                            goToProductScreen(productsCustom[index]);
-                          },
-                          child: Container(
-                            width: 150,
-                            margin: EdgeInsets.symmetric(horizontal: 5),
-                            decoration: BoxDecoration(
-                                color: Colors.white,
-                                border: Border.all(width: 1)),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    width: double.infinity,
-                                    padding: EdgeInsets.all(5),
-                                    child: SvgPicture.network(
-                                      productsCustom[index].imageUrl.first,
-                                      placeholderBuilder:
-                                          (BuildContext context) =>
-                                              Container(
-                                                width: 50,
-                                                height: 50,
-                                                child: 
-                                              CircularProgressIndicator(),),
-                                      width: 200,
-                                      height: 200,
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                    margin: EdgeInsets.all(5),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          productsCustom[index].name,
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18),
-                                        ),
-                                        Text(
-                                          "IDR ${productsCustom[index].price}",
-                                          style: TextStyle(fontSize: 15),
-                                        ),
-                                      ],
-                                    ))
-                              ],
-                            ),
-                          ));
-                    })),
-            SizedBox(
-              height: 40,
-            ),
-          ],
-        ),
-      ),
-    );
+            )),
+        onRefresh: () async {
+          setState(() {});
+        });
   }
 
   void goToProductScreen(Product item) {
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => ProductScreen(item)));
+  }
+
+  tagsWidget() {
+    return tags != null
+        ? tags!.isNotEmpty
+            ? Container(
+
+                height: deviceWidth  * 0.2,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: tags?.length,
+                  itemBuilder: (context, index) {
+                    return Container(
+                      width: deviceWidth  * 0.15,
+                      height: deviceWidth  * 0.15,
+                      margin: EdgeInsets.symmetric(horizontal: deviceWidth  * 0.02),
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFFFFAAAA),
+                      ),
+                      child: Center(
+                        child: Text(
+                          tags?[index],
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 12),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              )
+            : smimmerTag()
+        : smimmerTag();
+  }
+
+  Widget smimmerTag(){
+    return Container(
+                height: deviceWidth  * 0.3,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: 5, // Number of placeholder items
+                  itemBuilder: (context, index) {
+                    return Shimmer.fromColors(
+                      baseColor: Colors.grey[300]!,
+                      highlightColor: Colors.grey[100]!,
+                      child: Container(
+                      width: deviceWidth  * 0.15,
+                      height: deviceWidth  * 0.15,
+                        margin: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              );
+  }
+
+  widgetListRTW() {
+    return Container(
+      margin: const EdgeInsets.all(10),
+      height: 200 ,
+      child: productsRTW != null
+          ? productsRTW!.isNotEmpty
+              ? ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: productsRTW?.length,
+                  itemBuilder: (context, index) {
+                    return InkWell(
+                        onTap: () {
+                          goToProductScreen(productsRTW?[index]);
+                        },
+                        child: Container(
+                          width: 150,
+                          height: 200,
+                          margin: const EdgeInsets.symmetric(horizontal: 5),
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(width: 1)),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Center(
+                                  child: CachedNetworkImage(
+                                    imageUrl: productsRTW?[index].imageUrl[0],
+                                    placeholder: (context, url) {
+                                      return Shimmer.fromColors(
+                                          baseColor: Colors.grey[300]!,
+                                          highlightColor: Colors.grey[100]!,
+                                          child: Container(
+                                            width: double.infinity,
+                                            height: double.infinity,
+                                            color: Colors.grey,
+                                          ));
+                                    },
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              ),
+                              Container(
+                                  margin: EdgeInsets.all(5),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        maxLines: 2,
+                                        productsRTW?[index].name,
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: deviceWidth*0.03),
+                                      ),
+                                      Text(
+                                        convertToRupiah(productsRTW?[index].price),
+                                        style: TextStyle(fontSize: deviceWidth*0.03),
+                                      ),
+                                    ],
+                                  ))
+                            ],
+                          ),
+                        ));
+                  })
+              : const Center(child: Text("Tidak ada produk"))
+          : ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: 5, // Jumlah item shimmer
+              itemBuilder: (context, index) {
+                return Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Container(
+                    width: 150,
+                    height: 200,
+                    margin: const EdgeInsets.symmetric(horizontal: 5),
+                    decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(8)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Container(
+                            width: double.infinity,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.all(5),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 100,
+                                height: 15,
+                                color: Colors.grey[400],
+                              ),
+                              SizedBox(height: 5),
+                              Container(
+                                width: 70,
+                                height: 10,
+                                color: Colors.grey[400],
+                              ),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+    );
+  }
+
+  widgetListCustom() {
+    return Container(
+      margin: const EdgeInsets.all(10),
+      height: 250,
+      child: productsCustom != null
+          ? productsCustom!.isNotEmpty
+              ? ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: productsCustom?.length,
+                  itemBuilder: (context, index) {
+                    return InkWell(
+                        onTap: () {
+                          goToProductScreen(productsCustom?[index]);
+                        },
+                        child: Container(
+                          width: 150,
+                          margin: const EdgeInsets.symmetric(horizontal: 5),
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(width: 1)),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(5),
+                                  child: SvgPicture.network(
+                                    productsCustom?[index].imageUrl.first,
+                                    placeholderBuilder:
+                                        (BuildContext context) =>  Shimmer.fromColors(
+                                          baseColor: Colors.grey[300]!,
+                                          highlightColor: Colors.grey[100]!,
+                                          child: Container(
+                                            width: double.infinity,
+                                            height: double.infinity,
+                                            color: Colors.grey,
+                                          )),
+                                    width: 200,
+                                    height: 200,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                  margin: const EdgeInsets.all(5),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        productsCustom?[index].name,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18),
+                                      ),
+                                      Text(
+                                        convertToRupiah(productsCustom?[index].price),
+                                        style: const TextStyle(fontSize: 15),
+                                      ),
+                                    ],
+                                  ))
+                            ],
+                          ),
+                        ));
+                  })
+              : const Center(child: Text("Tidak ada produk"))
+          : ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: 5, // Jumlah item shimmer
+              itemBuilder: (context, index) {
+                return Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Container(
+                    width: 150,
+                    height: 200,
+                    margin: const EdgeInsets.symmetric(horizontal: 5),
+                    decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(8)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Container(
+                            width: double.infinity,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.all(5),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 100,
+                                height: 15,
+                                color: Colors.grey[400],
+                              ),
+                              SizedBox(height: 5),
+                              Container(
+                                width: 70,
+                                height: 10,
+                                color: Colors.grey[400],
+                              ),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+    );
+  }
+  
+  void showSnackBar(String text) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(text),
+      duration: Duration(days: 365))
+    );
   }
 }

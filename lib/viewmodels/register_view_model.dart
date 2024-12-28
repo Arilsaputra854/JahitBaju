@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:jahit_baju/helper/api/api_service.dart';
+import 'package:jahit_baju/service/remote/api_service.dart';
 import 'package:jahit_baju/model/user.dart';
 
 class RegisterViewModel extends ChangeNotifier {
@@ -67,7 +67,7 @@ class RegisterViewModel extends ChangeNotifier {
       return;
     }
 
-    var data = await api.register(_name!, _email!, _phoneNumber!, _password!);
+    var data = await api.userRegister(_name!, _email!, _phoneNumber!, _password!);
 
     if (data != null) {
       //if register successfully

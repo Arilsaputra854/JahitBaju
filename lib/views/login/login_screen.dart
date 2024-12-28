@@ -1,9 +1,10 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:jahit_baju/helper/viewmodels/login_view_model.dart';
-import 'package:jahit_baju/helper/viewmodels/register_view_model.dart';
+import 'package:jahit_baju/viewmodels/login_view_model.dart';
+import 'package:jahit_baju/viewmodels/register_view_model.dart';
 import 'package:jahit_baju/views/forgot_password/forgot_password.dart';
+import 'package:jahit_baju/views/home_screen/home_screen.dart';
 import 'package:jahit_baju/views/register/register_screen.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
@@ -158,17 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               backgroundColor: Colors.white),
                           onPressed: () async {
                             if (formKey.currentState!.validate()) {
-                              setState(() {
-                                isLoading = true;
-                              });
-                              await viewModel.Login();
-                              if (viewModel.errorMsg != null) {
-                                Fluttertoast.showToast(
-                                    msg: viewModel.errorMsg.toString());
-                              }
-                              setState(() {
-                                isLoading = false;
-                              });
+                              login(viewModel);
                             }
                           },
                           child: const Text(
@@ -236,5 +227,31 @@ class _LoginScreenState extends State<LoginScreen> {
   goToRegisterScreen() {
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => RegisterScreen()));
+  }
+
+  void goToHomeScreen() {
+    Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => HomeScreen()),
+        (Route<dynamic> route) => false);
+  }
+
+  Future<void> login(LoginViewModel viewModel) async {
+    setState(() {
+      isLoading = true;
+    });
+    await viewModel.login().then((isSuccess) {
+      if (viewModel.errorMsg != null) {
+        Fluttertoast.showToast(msg: viewModel.errorMsg.toString());
+      }
+      if (isSuccess) {
+        Fluttertoast.showToast(msg: "Login berhasil!");
+
+        goToHomeScreen();
+      }
+      setState(() {
+        isLoading = false;
+      });
+    });
   }
 }

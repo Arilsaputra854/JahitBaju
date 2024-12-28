@@ -1,10 +1,16 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:jahit_baju/service/remote/api_service.dart';
+import 'package:jahit_baju/helper/app_color.dart';
 import 'package:jahit_baju/model/order.dart';
-import 'package:jahit_baju/model/order_item.dart';
 import 'package:jahit_baju/model/product.dart';
-import 'package:jahit_baju/views/product_screen/product_screen.dart';
+import 'package:jahit_baju/service/remote/response/order_response.dart';
+import 'package:jahit_baju/util/util.dart';
+import 'package:jahit_baju/views/payment_screen/payment_screen.dart';
+import 'package:shimmer/shimmer.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -14,347 +20,406 @@ class HistoryPage extends StatefulWidget {
 }
 
 class _HistoryPageState extends State<HistoryPage> {
-  var deviceWidth;
+  var deviceWidth, deviceHeight;
+  List<Order?> orders = [];
+
   @override
   Widget build(BuildContext context) {
-    Product product = Product(      
-        id: 2,
-        name: "Obi Mangiring Merah-Ulos",
-        tags: [Tag(tag: "terlaris"), Tag(tag: "promo spesial")],
-        description:
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sit amet est eget orci pulvinar volutpat. Proin et elit sit amet felis condimentum convallis. Pellentesque id purus eros. Donec pharetra suscipit velit et convallis. Fusce finibus justo semper, mattis mauris ac, semper urna. Praesent nec turpis eros. Etiam mollis in nisi non accumsan. Aliquam id neque sit amet sem commodo eleifend ut vel tellus. Donec molestie lobortis mi ac pellentesque. Vestibulum posuere condimentum ornare.",
-        price: 375000,
-        stock: 123,
-        favorite: 2,
-        seen: 24,
-        sold: 5,
-        type: Product.CUSTOM,
-        size: [
-          "XL",
-          "S",
-          "M"
-        ],
-        imageUrl: [
-          "https://down-id.img.susercontent.com/file/sg-11134201-22090-oj0c6ox3mxhv4e.webp",
-          "https://down-id.img.susercontent.com/file/sg-11134201-22090-nzt8ypx3mxhv2d.webp",
-          "https://down-id.img.susercontent.com/file/881145e16b11a838019faa3b79310e48.webp"
-        ]);
-Product product2 = Product(      
-        id: 2,
-        name: "Obi Mangiring Merah-Ulos",
-        tags: [Tag(tag: "terlaris"), Tag(tag: "promo spesial")],
-        description:
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sit amet est eget orci pulvinar volutpat. Proin et elit sit amet felis condimentum convallis. Pellentesque id purus eros. Donec pharetra suscipit velit et convallis. Fusce finibus justo semper, mattis mauris ac, semper urna. Praesent nec turpis eros. Etiam mollis in nisi non accumsan. Aliquam id neque sit amet sem commodo eleifend ut vel tellus. Donec molestie lobortis mi ac pellentesque. Vestibulum posuere condimentum ornare.",
-        price: 375000,
-        stock: 123,
-        favorite: 2,
-        seen: 24,
-        sold: 5,
-        type: Product.READY_TO_WEAR,
-        size: [
-          "XL",
-          "S",
-          "M"
-        ],
-        imageUrl: [
-          "https://down-id.img.susercontent.com/file/sg-11134201-22090-oj0c6ox3mxhv4e.webp",
-          "https://down-id.img.susercontent.com/file/sg-11134201-22090-nzt8ypx3mxhv2d.webp",
-          "https://down-id.img.susercontent.com/file/881145e16b11a838019faa3b79310e48.webp"
-        ]);
-
-
-    // Contoh order dengan tanggal yang berbeda
-    Order order1 = Order(
-        id: 1,
-        buyerId: 1,
-        orderDate: DateTime(2024, 11, 7, 10, 0),
-        totalPrice: 25000,
-        items: [
-          OrderItem(
-              id: 1,
-              orderId: 1,
-              product: product,
-              quantity: 1,
-              status: Order.PROCESS,
-              priceAtPurchase: product.price),
-          OrderItem(
-              id: 2,
-              orderId: 2,
-              product: product2,
-              quantity: 1,
-              status: Order.PROCESS,
-              priceAtPurchase: product2.price),
-          OrderItem(
-              id: 3,
-              orderId: 3,
-              product: product2,
-              quantity: 1,
-              status: Order.COMPLETED,
-              priceAtPurchase: product2.price)
-        ]);
-    Order order2 = Order(
-        id: 2,
-        buyerId: 1,
-        orderDate: DateTime(2024, 11, 8, 12, 0),
-        totalPrice: 15000,
-        items: [
-          OrderItem(
-              id: 2,
-              orderId: 2,
-              product: product2,
-              quantity: 1,
-              status: Order.PROCESS,
-              priceAtPurchase: product2.price)
-        ]);
-
-    // Daftar order diurutkan berdasarkan tanggal
-
-    List<Order> dummy = [order1, order2];
-
-    List<Order> orders = dummy;
-
     deviceWidth = MediaQuery.of(context).size.width;
-    var deviceHeight = MediaQuery.of(context).size.height;
+    deviceHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              width: deviceWidth,
-              margin: EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Siap Pakai",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
-                  ),
-                  SizedBox(height: 10),
-                  _getOrderItemsWithDate(orders, Product.READY_TO_WEAR)
-                          .isNotEmpty
-                      ? Container(
-                          child: ListView.builder(
-                          physics: NeverScrollableScrollPhysics(),
-                          shrinkWrap: true,
-                          itemCount: _getOrderItemsWithDate(
-                                  orders, Product.READY_TO_WEAR)
-                              .length,
-                          itemBuilder: (context, index) {
-                            final item = _getOrderItemsWithDate(
-                                orders, Product.READY_TO_WEAR)[index];
-
-                            if (item is String) {
-                              // Jika item adalah String, tampilkan sebagai tanggal
-                              return Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 8.0),
-                                child: Text(
-                                  item,
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16),
-                                ),
-                              );
-                            } else if (item is OrderItem) {
-                              // Jika item adalah OrderItem, tampilkan detail produk
-                              return _buildOrderItem(item);
-                            }
-                            return Container();
-                          },
-                        ))
-                      : Container(
-                          height: deviceHeight * 0.2,
-                          child: Center(
-                            child: Text("Tidak ada data"),
-                          ),
-                        ),
-                  SizedBox(height: 10),
-                  Text(
-                    "Custom Produk",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
-                  ),
-                  SizedBox(height: 10),
-                  _getOrderItemsWithDate(orders, Product.CUSTOM).isNotEmpty
-                      ? Container(
-                          child: ListView.builder(
-                          physics: NeverScrollableScrollPhysics(),
-                          shrinkWrap: true,
-                          itemCount:
-                              _getOrderItemsWithDate(orders, Product.CUSTOM)
-                                  .length,
-                          itemBuilder: (context, index) {
-                            final item = _getOrderItemsWithDate(
-                                orders, Product.CUSTOM)[index];
-
-                            if (item is String) {
-                              // Jika item adalah String, tampilkan sebagai tanggal
-                              return Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 8.0),
-                                child: Text(
-                                  item,
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16),
-                                ),
-                              );
-                            } else if (item is OrderItem) {
-                              // Jika item adalah OrderItem, tampilkan detail produk
-                              return _buildOrderItem(item);
-                            }
-                            return Container();
-                          },
-                        ))
-                      : Container(
-                          height: deviceHeight * 0.2,
-                          child: Center(
-                            child: Text("Tidak ada data"),
-                          ),
-                        ),
-                  SizedBox(height: 10),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOrderItem(dynamic item) {
-    if (item is String) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Text(
-          item,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-      );
-    } else if (item is OrderItem) {
-      return Container(
-          height: 200,
-          width: deviceWidth,
-          margin: EdgeInsets.symmetric(vertical: 5),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8)
-          ),
-          child: InkWell(
-            onTap: (){
-              goToProductScreen(item.product);
-            },
-            child: Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
+      backgroundColor: Colors.white,
+        body: RefreshIndicator(
+      child: Container(
+            width: deviceWidth,
+            margin: EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                 
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.only(topLeft: Radius.circular(8),bottomLeft: Radius.circular(8)),
-                    child: AspectRatio(
-                    aspectRatio: 4 / 5,
-                    child: item.product.imageUrl.isNotEmpty
-                        ? Image.network(
-                            item.product.imageUrl.first,
-                            fit: BoxFit.cover,
-                          )
-                        : Image.asset(
-                            "assets/background/bg.png",
-                            fit: BoxFit.cover,
-                          ),
-                  ),
-                  )
+                Text(
+                  "History",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
                 ),
-                Expanded(
-                  child: Container(
-                    margin: EdgeInsets.all(10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.product.name,
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 20),
-                            ),
-                            Text(
-                              item.product.description,
-                              maxLines: 4,
-                              overflow: TextOverflow.ellipsis,
-                              softWrap: true,
-                              style: TextStyle(fontSize: 15),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              item.status,
-                              style: TextStyle(
-                                  fontSize: 15, fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              'Rp ${item.product.price}',
-                              style: TextStyle(fontSize: 15),
-                            ),
-                          ],
-                        )
-                      ],
-                    ),
-                  ),
+                SizedBox(height: 5),
+                FutureBuilder(
+                  future: getOrder(),
+                  builder: (context, snapshot) {
+                    //if fetch success
+                    if (snapshot.hasData) {
+                      orders = snapshot.data!;
+                      Map<String, List<Order?>> groupedOrders =
+                          sortOrderWithDate(orders);
+                      //if data exists
+                      if (orders.isNotEmpty) {
+                        return Expanded(child: ListView.builder(
+                          itemCount: groupedOrders.keys.length,
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          itemBuilder: (context, dateIndex) {
+                            String dateKey =
+                                groupedOrders.keys.elementAt(dateIndex);
+                            List<Order?> ordersByDate = groupedOrders[dateKey]!;
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 2.0),
+                                  child: Text(
+                                    DateFormat('EEEE, dd MMMM yyyy')
+                                        .format(DateTime.parse(dateKey)),
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.normal,
+                                        fontSize: 16),
+                                  ),
+                                ),
+                                ListView.builder(
+                                  itemCount: ordersByDate.length,
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemBuilder: (context, orderIndex) {
+                                    Order? order = ordersByDate[orderIndex];
+                                    return _buildCartItem(order!);
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        ));
+                      } else {
+                        //if data is empty
+                        return Container(
+                          height: deviceHeight*0.5,
+                          child: const Center(
+                            child: Text("Tidak ada history"),
+                          ),
+                        );
+                      }
+                      
+                    } else if (snapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      //if status is fetching data from server
+                      return itemCartShimmer();
+                    } else {
+                      return Container(
+                          height: deviceHeight*0.5,
+                          child: const Center(
+                            child: Text("Tidak ada history"),
+                          ),
+                        );
+                    }
+                  },
                 )
               ],
             ),
-          ))
-          );
-    }
-    return Container();
+          ),
+      onRefresh: () async {
+        setState(() {});
+      },
+    ));
   }
 
-  List<dynamic> _getOrderItemsWithDate(List<Order> orders, int type) {
-    orders.sort((a, b) => b.orderDate.compareTo(a.orderDate));
-
-    List<dynamic> itemsWithDates = [];
-    DateTime? lastDate;
+  Map<String, List<Order?>> sortOrderWithDate(List<Order?> orders) {
+    Map<String, List<Order?>> sortedOrders = {};
 
     for (var order in orders) {
-      var itemOfType =
-          order.items.where((item) => item.product.type == type).toList();
+      if (order != null) {
+        String dateKey = DateFormat('yyyy-MM-dd').format(order.orderCreated);
 
-      if (itemOfType.isNotEmpty) {
-        if (lastDate == null || _isDifferentDate(lastDate, order.orderDate)) {
-          itemsWithDates.add(_formatDate(order.orderDate));
+        if (!sortedOrders.containsKey(dateKey)) {
+          sortedOrders[dateKey] = [];
         }
-
-        itemsWithDates.addAll(itemOfType);
-        lastDate = order.orderDate;
+        sortedOrders[dateKey]!.add(order);
       }
     }
 
-    return itemsWithDates;
+    return sortedOrders;
   }
 
-  bool _isDifferentDate(DateTime date1, DateTime date2) {
-    return date1.year != date2.year ||
-        date1.month != date2.month ||
-        date1.day != date2.day;
+  Widget itemCartShimmer() {
+    return ListView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      itemCount: 1, // Jumlah item shimmer
+      itemBuilder: (context, index) {
+        return Shimmer.fromColors(
+          baseColor: Colors.grey[300]!,
+          highlightColor: Colors.grey[100]!,
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 150,
+                      height: 15,
+                      color: Colors.grey[400],
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      width: 100,
+                      height: 12,
+                      color: Colors.grey[400],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
-  String _formatDate(DateTime date) {
-    String formattedDate =
-        DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(date);
-    return formattedDate.toString();
+  Widget _buildCartItem(Order order) {
+    return Container(
+        width: deviceWidth,
+        margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8), color: Colors.white),
+        child: InkWell(
+            onTap: () {
+              if (order.orderStatus == Order.WAITING_FOR_PAYMENT) {
+                _goToPaymentScreen(order);
+              }
+            },
+            child: Card(
+                color: Colors.white,
+                elevation: 10,
+                shape: RoundedRectangleBorder(
+                  side: BorderSide(width: 2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "ID: ${order.id}",
+                              style: const TextStyle(
+                                  fontSize: 8, fontWeight: FontWeight.bold),
+                            ),
+                            order.orderStatus == Order.WAITING_FOR_PAYMENT ? InkWell(                              
+                                onTap: () => _deleteOrder(order.id),
+                                child: Text(
+                                  "Cancel",
+                                  style: const TextStyle(
+                                    color: AppColor.primary,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold),
+                                )) : Container()
+                          ],
+                        )),
+                    ListView.builder(
+                        itemCount: order.items.length,
+                        shrinkWrap: true,
+                        itemBuilder: (context, index) {
+                          return FutureBuilder<Product>(
+                              future: getProduct(order.items[index].productId),
+                              builder: (context, snapshot) {
+                                if (snapshot.hasData) {
+                                  Product product = snapshot.data!;
+                                  return Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                          height: deviceWidth * 0.3,
+                                          padding: const EdgeInsets.all(5),
+                                          color: Colors.white,
+                                          child: ClipRRect(
+                                              borderRadius:
+                                                  const BorderRadius.only(
+                                                      topLeft:
+                                                          Radius.circular(8),
+                                                      bottomLeft:
+                                                          Radius.circular(8)),
+                                              child: AspectRatio(
+                                                  aspectRatio: 4 / 5,
+                                                  child:
+                                                      product.type ==
+                                                              Product
+                                                                  .READY_TO_WEAR
+                                                          ? CachedNetworkImage(
+                                                              imageUrl: product
+                                                                  .imageUrl
+                                                                  .first,
+                                                              fit: BoxFit.cover,
+                                                              placeholder:
+                                                                  (context,
+                                                                      url) {
+                                                                return Shimmer
+                                                                    .fromColors(
+                                                                        baseColor:
+                                                                            Colors.grey[
+                                                                                300]!,
+                                                                        highlightColor:
+                                                                            Colors.grey[
+                                                                                100]!,
+                                                                        child:
+                                                                            Container(
+                                                                          width:
+                                                                              double.infinity,
+                                                                          height:
+                                                                              double.infinity,
+                                                                          color:
+                                                                              Colors.grey,
+                                                                        ));
+                                                              },
+                                                            )
+                                                          : SvgPicture.network(
+                                                              product.imageUrl
+                                                                  .first,
+                                                              placeholderBuilder:
+                                                                  (context) {
+                                                                return Shimmer
+                                                                    .fromColors(
+                                                                        baseColor:
+                                                                            Colors.grey[
+                                                                                300]!,
+                                                                        highlightColor:
+                                                                            Colors.grey[
+                                                                                100]!,
+                                                                        child:
+                                                                            Container(
+                                                                          width:
+                                                                              double.infinity,
+                                                                          height:
+                                                                              double.infinity,
+                                                                          color:
+                                                                              Colors.grey,
+                                                                        ));
+                                                              },
+                                                            )))),
+                                      Expanded(
+                                        child: Container(
+                                          color: Colors.white,
+                                          margin: const EdgeInsets.all(10),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    product.name,
+                                                    style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 16),
+                                                  ),
+                                                  Text(
+                                                    convertToRupiah(
+                                                        product.price),
+                                                    style: const TextStyle(
+                                                        fontSize: 15),
+                                                  ),
+                                                  Text(
+                                                    '${order.items[index].size}',
+                                                    style: const TextStyle(
+                                                        fontSize: 15),
+                                                  )
+                                                ],
+                                              ),
+                                              Container(
+                                                  padding:
+                                                      const EdgeInsets.all(3),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      Text(
+                                                        "${order.items[index].quantity} pcs",
+                                                        style: const TextStyle(
+                                                            fontSize: 12,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
+                                                      ),
+                                                      Text(
+                                                        "${order.orderStatus}",
+                                                        style: const TextStyle(
+                                                            fontSize: 12,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
+                                                      )
+                                                    ],
+                                                  ))
+                                            ],
+                                          ),
+                                        ),
+                                      )
+                                    ],
+                                  );
+                                } else {
+                                  return Container();
+                                }
+                              });
+                        })
+                  ],
+                ))));
   }
-  
-  void goToProductScreen(Product item) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => ProductScreen(item)));
+
+  Future<List<Order?>> getOrder() async {
+    ApiService apiService = ApiService();
+
+    OrderResponse orders = await apiService.orderGet();
+    
+    if (orders.data is List<Order>) {
+      return orders.data;
+    } else {
+      return [];
+    }
+  }
+
+  Future<Product> getProduct(String productId) async {
+    ApiService apiService = ApiService();
+    Product product = await apiService.productsGetById(productId);
+    return product;
+  }
+
+  void _goToPaymentScreen(order) {
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => PaymentScreen(order: order)));
+  }
+
+
+  _deleteOrder(String? id)async{
+    ApiService apiService = ApiService();
+    OrderResponse response = await apiService.orderDelete(id);
+    if(response.error){
+      Fluttertoast.showToast(msg: response.message!);
+    }else{      
+      Fluttertoast.showToast(msg: response.message!);
+      setState(() {
+        
+      });
+    }
+    
   }
 }
