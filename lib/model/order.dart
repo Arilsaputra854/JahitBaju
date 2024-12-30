@@ -1,10 +1,14 @@
+import 'package:jahit_baju/model/product.dart';
+
 class Order {
   final String? id;
-  final String buyerId;
   final String shippingId;
   final String packagingId;
-  final String cartId;
+  final String? cartId;
+  final Product? product;
   final int totalPrice;
+  final int? quantity;
+  final String? size;
   final DateTime orderCreated;
   final String orderStatus;
   final DateTime _lastUpdate; // Properti privat untuk last_update
@@ -24,10 +28,12 @@ class Order {
   // Constructor
   Order({
     this.id,
-    required this.buyerId,
     required this.shippingId,
     required this.packagingId,
-    required this.cartId,
+    this.cartId,
+    this.product,
+    this.size,
+    this.quantity,
     required this.totalPrice,
     this.items = const [], // Default kosong jika tidak ada
     DateTime? orderCreated,
@@ -44,7 +50,6 @@ class Order {
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(
       id: json['id'],
-      buyerId: json['buyer_id'] ?? "",
       shippingId: json['shipping_id'] ?? "",
       packagingId: json['packaging_id'] ?? "",
       cartId: json['cart_id'] ?? "",
@@ -66,7 +71,6 @@ class Order {
   Map<String, dynamic> toJson() {
     return {
       if (id != null) 'id': id,
-      'buyer_id': buyerId,
       'shipping_id': shippingId,
       'packaging_id': packagingId,
       'cart_id': cartId,

@@ -233,7 +233,7 @@ class _CartScreenState extends State<CartScreen> {
   goToShippingScreen(Cart? cart) {
     if (cart != null) {
       Navigator.push(context,
-          MaterialPageRoute(builder: (context) => ShippingScreen(cart: cart)));
+          MaterialPageRoute(builder: (context) => ShippingScreen(cart: cart,)));
     } else {
       Fluttertoast.showToast(
           msg: "Tidak ada produk, silakan belanja terlebih dahulu.");

@@ -16,13 +16,14 @@ class HomeScreenViewModel extends ChangeNotifier {
   String? token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
   int value = 0;
+  
 
-  if (token != null) {
-    var response = await apiService.cartGet(); // Tunggu hasilnya
-    if (response is Cart) {
-      value = response.items.length;
-    }
-  }
+  // if (token != null) {
+  //   var response = await apiService.cartGet(); // Tunggu hasilnya
+  //   if (response is Cart) {
+  //     value = response.items.length;
+  //   }
+  // }
 
   notifyListeners();
   return value;

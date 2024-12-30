@@ -13,7 +13,7 @@ class LoginResponse {
     return LoginResponse(
       error: json['error'] ?? false,
       message: json['message'],
-      token: json['data']["token"],
+      token: json['data'] != null ? json['data']["token"] : "",
     );
   }
 }

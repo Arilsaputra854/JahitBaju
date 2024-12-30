@@ -13,13 +13,16 @@ import 'package:jahit_baju/model/user.dart';
 import 'package:jahit_baju/service/remote/response/favorite_response.dart';
 import 'package:jahit_baju/service/remote/response/login_response.dart';
 import 'package:jahit_baju/service/remote/response/order_response.dart';
+import 'package:jahit_baju/service/remote/response/size_guide_response.dart';
 import 'package:logger/web.dart';
+
+import 'response/term_condition_response.dart';
+import 'response/user_response.dart';
 
 class ApiService {
   final String baseUrl = "http://192.168.1.155:3000/api/";
   TokenStorage tokenStorage = TokenStorage();
   Logger logger = Logger();
-
 
   Future<LoginResponse> userLogin(String email, String password) async {
     final url = Uri.parse("${baseUrl}users/login");
@@ -38,7 +41,7 @@ class ApiService {
 
       return responseBody;
     } catch (e) {
-      print("Error: $e");
+      logger.e("User Login : $e");
       return LoginResponse(
           message: "Network error or invalid response", error: true);
     }
@@ -71,7 +74,7 @@ class ApiService {
 
       return message;
     } catch (e) {
-      print("Error: $e");
+      logger.e("User Register : $e");
       return "Network error or invalid response";
     }
   }
@@ -97,20 +100,22 @@ class ApiService {
       }
       return message;
     } catch (e) {
-      print("Error: ${e}");
+      logger.e("User Get : $e");
       return "Network error or invalid response";
     }
   }
 
-  Future<String?> userUpdate(String token,String? name, String? email, String? password,
+  Future<UserResponse> userUpdate(String? name, String? email, String? password,
       String? imageUrl, String? address, String? phoneNumber) async {
     final url = Uri.parse("${baseUrl}users/current");
 
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+
     try {
-       //Create a map to hold the updated fields
+      //Create a map to hold the updated fields
       Map<String, dynamic> body = {};
 
-       //Add fields only if they are not null or empty
+      //Add fields only if they are not null or empty
       if (name != null && name.isNotEmpty) {
         body['name'] = name;
       }
@@ -132,10 +137,10 @@ class ApiService {
 
       //If the body is empty, return a message
       if (body.isEmpty) {
-        return "No fields to update.";
+        return UserResponse(message: "Field is empty", error: true);
       }
 
-       //Perform the HTTP PATCH request
+      //Perform the HTTP PATCH request
       final response = await http.patch(
         url,
         body: jsonEncode(body),
@@ -146,23 +151,103 @@ class ApiService {
       );
 
       var data = jsonDecode(response.body);
-      String? message;
+      UserResponse responseBody = UserResponse.fromJson(data);
 
-      //Check the response status
-      if (response.statusCode == 200) {
-        message = "Update successful";
-      } else {
-        message = data["message"] ?? "Unknown error occurred";
-      }
-
-      return message;
+      return responseBody;
     } catch (e) {
-      print("Error: $e");
-      return "Network error or invalid response";
+      logger.e("User Update : $e");
+      return UserResponse(
+          message: "Network error or invalid response", error: true);
     }
   }
 
-  Future<void> userVerifyAccount(int OtpCode) async {}
+  Future<LoginResponse> userEmailVerify(String otpCode) async {
+    final url = Uri.parse("${baseUrl}users/current/verify-email");
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+    try {
+      final response = await http.post(
+        url,
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': '${token}'
+        },
+        body: jsonEncode(<String, String>{
+          'otp': otpCode,
+        }),
+      );
+
+      var data = jsonDecode(response.body);
+      LoginResponse responseBody = LoginResponse.fromJson(data);
+
+      return responseBody;
+    } catch (e) {
+      logger.e("User Email Verify : $e");
+
+      return LoginResponse(
+          message: "Network error or invalid response", error: true);
+    }
+  }
+
+  Future<LoginResponse> userRequestOtp() async {
+    final url = Uri.parse("${baseUrl}users/current/request-otp/");
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+    try {
+      final response = await http.post(
+        url,
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': '${token}'
+        },
+      );
+
+      var data = jsonDecode(response.body);
+      LoginResponse responseBody = LoginResponse.fromJson(data);
+
+      return responseBody;
+    } catch (e) {
+      logger.e("User Request OTP : $e");
+
+      return LoginResponse(
+          message: "Network error or invalid response", error: true);
+    }
+  }
+
+
+  Future<OrderResponse> buyNow(
+      Order order) async {
+    final url = Uri.parse("${baseUrl}order");
+
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+
+    try {
+      final response = await http.post(
+        url,
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': '${token}'
+        },
+        body: jsonEncode(<String, dynamic>{
+          'product_id': order.product!.id,
+          'quantity': order.quantity,
+          'total_price': order.totalPrice,
+          'size': order.size,
+          'order_status' : order.orderStatus,
+          'shipping_id' : order.shippingId,
+          'packaging_id' : order.packagingId
+        }),
+      );
+
+      var data = jsonDecode(response.body);
+      OrderResponse orderResponse = OrderResponse.fromJson(data);
+      logger.d("Order now : ${data}");
+      return OrderResponse.fromJson(data);
+    } catch (e) {
+      logger.e("Order now : $e");
+      return OrderResponse(error: true,message: "Network error or invalid response");
+    }
+  }
+
+
 
   Future<dynamic> cartGet() async {
     final url = Uri.parse("${baseUrl}cart");
@@ -185,7 +270,7 @@ class ApiService {
         return message;
       }
     } catch (e) {
-      print("Error: ${e}");
+      logger.e("Cart Get : $e");
       return "Network error or invalid response";
     }
   }
@@ -221,7 +306,7 @@ class ApiService {
         return message;
       }
     } catch (e) {
-      print("Error: ${e}");
+      logger.e("Cart Add : $e");
       return "Network error or invalid response";
     }
   }
@@ -247,7 +332,7 @@ class ApiService {
         return message;
       }
     } catch (e) {
-      print("Error: ${e}");
+      logger.e("Item Cart Delete : $e");
       return "Network error or invalid response";
     }
   }
@@ -276,7 +361,7 @@ class ApiService {
         return message;
       }
     } catch (e) {
-      print("Error: ${e}");
+      logger.e("Shipping Get : $e");
       return "error";
     }
   }
@@ -305,7 +390,7 @@ class ApiService {
         return message;
       }
     } catch (e) {
-      print("Error: ${e}");
+      logger.e("Packaging Get : $e");
       return "error";
     }
   }
@@ -323,7 +408,6 @@ class ApiService {
           'Authorization': '${token}'
         },
         body: jsonEncode(<String, dynamic>{
-          'buyer_id': order.buyerId,
           'shipping_id': order.shippingId,
           'packaging_id': order.packagingId,
           'cart_id': order.cartId,
@@ -334,8 +418,8 @@ class ApiService {
 
       var data = jsonDecode(response.body);
       OrderResponse orderResponse = OrderResponse.fromJson(data);
-      
-      if (response.statusCode != 201) {          
+
+      if (response.statusCode != 201) {
         orderResponse.message = data["message"] ?? "Unknown error occurred";
         logger.e("Create Order: ${orderResponse.message}");
       }
@@ -345,7 +429,8 @@ class ApiService {
       return orderResponse;
     } catch (e) {
       logger.e("Create Order: ${e}");
-      return OrderResponse(error: true, message: "Network error or invalid response");
+      return OrderResponse(
+          error: true, message: "Network error or invalid response");
     }
   }
 
@@ -361,7 +446,6 @@ class ApiService {
       var data = jsonDecode(response.body);
       OrderResponse orderResponse = OrderResponse.fromJson(data);
 
-
       if (response.statusCode == 200) {
         List<Order> orders = Order.listFromJson(orderResponse.data);
         orderResponse.data = orders;
@@ -373,8 +457,9 @@ class ApiService {
       return orderResponse;
     } catch (e) {
       logger.e("Get Order: ${e}");
-      return OrderResponse(error: true, message: "Network error or invalid response");    
-      }
+      return OrderResponse(
+          error: true, message: "Network error or invalid response");
+    }
   }
 
   Future<OrderResponse> orderDelete(var orderId) async {
@@ -393,7 +478,8 @@ class ApiService {
       return orderResponse;
     } catch (e) {
       logger.e("Delete Order: ${e}");
-      return OrderResponse(error: true, message: "Network error or invalid response");
+      return OrderResponse(
+          error: true, message: "Network error or invalid response");
     }
   }
 
@@ -442,7 +528,6 @@ class ApiService {
             .map<Product>((json) => Product.fromJson(json))
             .toList();
         return products;
-        
       } else {
         message = data["message"] ?? "Unknown error occurred";
         return message;
@@ -453,7 +538,6 @@ class ApiService {
     }
   }
 
-
   Future<dynamic> favoriteGet() async {
     final url = Uri.parse("${baseUrl}favorite");
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
@@ -461,7 +545,7 @@ class ApiService {
     try {
       final response = await http.get(url, headers: <String, String>{
         'Content-Type': 'application/json',
-      'Authorization': '${token}'
+        'Authorization': '${token}'
       });
 
       var data = jsonDecode(response.body);
@@ -487,12 +571,12 @@ class ApiService {
   Future<FavoriteResponse> favoriteDelete(int id) async {
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
     final url = Uri.parse("${baseUrl}favorite");
-    final response = await http.delete(url, headers: <String, String>{
-      'Content-Type': 'application/json',
-      'Authorization': '${token}'
-    }, body: jsonEncode(<String, dynamic>{
-      "id" : id
-    }));
+    final response = await http.delete(url,
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': '${token}'
+        },
+        body: jsonEncode(<String, dynamic>{"id": id}));
 
     try {
       var data = jsonDecode(response.body);
@@ -502,19 +586,20 @@ class ApiService {
       return favoriteResponse;
     } catch (e) {
       print("Error: ${e}");
-      return FavoriteResponse(error: true, message: "Network error or invalid response");
+      return FavoriteResponse(
+          error: true, message: "Network error or invalid response");
     }
   }
 
   Future<FavoriteResponse> favoriteAdd(Favorite favorite) async {
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
     final url = Uri.parse("${baseUrl}favorite");
-    final response = await http.post(url, headers: <String, String>{
-      'Content-Type': 'application/json',
-      'Authorization': '${token}'
-    }, body: jsonEncode(<String, dynamic>{
-        "product_id" : favorite.productId
-    }));
+    final response = await http.post(url,
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': '${token}'
+        },
+        body: jsonEncode(<String, dynamic>{"product_id": favorite.productId}));
 
     try {
       var data = jsonDecode(response.body);
@@ -524,9 +609,42 @@ class ApiService {
       return favoriteResponse;
     } catch (e) {
       print("Error: ${e}");
-      return FavoriteResponse(error: true, message: "Network error or invalid response");
+      return FavoriteResponse(
+          error: true, message: "Network error or invalid response");
     }
   }
 
+  Future<dynamic> termCondition() async {
+    final url = Uri.parse("${baseUrl}term-condition");
+    final response = await http.get(url,
+        headers: <String, String>{'Content-Type': 'application/json'});
 
+    try {
+      var data = jsonDecode(response.body);
+      print(data);
+      TermConditionResponse termConditionResponse =
+          TermConditionResponse.fromJson(data);
+
+      return termConditionResponse;
+    } catch (e) {
+      logger.e("Term Condition : $e");
+      return "Network error or invalid response";
+    }
+  }
+
+  Future<dynamic> sizeGuide() async {
+    final url = Uri.parse("${baseUrl}size-guide");
+    final response = await http.get(url,
+        headers: <String, String>{'Content-Type': 'application/json'});
+
+    try {
+      var data = jsonDecode(response.body);
+      SizeGuideResponse sizeGuideResponse = SizeGuideResponse.fromJson(data);
+
+      return sizeGuideResponse;
+    } catch (e) {
+      logger.e("Size Guide : $e");
+      return "Network error or invalid response";
+    }
+  }
 }

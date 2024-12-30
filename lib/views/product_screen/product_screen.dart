@@ -12,10 +12,12 @@ import 'package:jahit_baju/model/order.dart';
 import 'package:jahit_baju/model/order_item.dart';
 import 'package:jahit_baju/model/product.dart';
 import 'package:jahit_baju/service/remote/response/favorite_response.dart';
+import 'package:jahit_baju/service/remote/response/size_guide_response.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/viewmodels/home_view_model.dart';
 import 'package:jahit_baju/views/cart_screen/cart_screen.dart';
 import 'package:jahit_baju/views/product_screen/design_confirm_page.dart';
+import 'package:jahit_baju/views/shipping_screen/shipping_screen.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
@@ -47,6 +49,8 @@ class _ProductScreenState extends State<ProductScreen> {
   List<String> svgColor = [];
   List<String> svgFeatures = [];
 
+  Map<String, String> currentFeatureColor={};
+
   late String htmlContent;
 
   String? currentColor;
@@ -57,6 +61,7 @@ class _ProductScreenState extends State<ProductScreen> {
   @override
   void initState() {
     isFavorited = false;
+
     if (widget.product.type == Product.CUSTOM) {
       _controller = WebViewController();
       _controller.enableZoom(false);
@@ -135,7 +140,9 @@ class _ProductScreenState extends State<ProductScreen> {
                           backgroundColor: Colors.red,
                           padding: EdgeInsets.symmetric(vertical: 15),
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          buyNow();
+                        },
                         child: Text(
                           "Beli Sekarang",
                           style: TextStyle(
@@ -157,11 +164,11 @@ class _ProductScreenState extends State<ProductScreen> {
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8)),
-                      backgroundColor:  Colors.red, 
+                      backgroundColor: Colors.red,
                       padding:
                           EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                     ),
-                    onPressed:  () {
+                    onPressed: () {
                       goToDesignConfirmation(htmlContent);
                     },
                     child: Text(
@@ -309,12 +316,7 @@ class _ProductScreenState extends State<ProductScreen> {
               SizedBox(
                 height: 10,
               ),
-              Text(
-                widget.product.description,
-                style: TextStyle(
-                  fontSize: 15,
-                ),
-              ),
+              sizeGuideWidget(),
               SizedBox(
                 height: 20,
               ),
@@ -366,20 +368,20 @@ class _ProductScreenState extends State<ProductScreen> {
                       ),
                     ),
                     FutureBuilder(
-                      future: getFavoriteStatus(),
-                      builder: (context, snapshot) {
-                        return IconButton(
-                            onPressed: () {
-                              addProductFavorite(widget.product);
-                            },
-                            icon: IconButton(
-                                onPressed: () {
-                                  addProductFavorite(widget.product);
-                                },
-                                icon: isFavorited
-                                    ? Icon(Icons.favorite)
-                                    : Icon(Icons.favorite_border)));
-                      })
+                        future: getFavoriteStatus(),
+                        builder: (context, snapshot) {
+                          return IconButton(
+                              onPressed: () {
+                                addProductFavorite(widget.product);
+                              },
+                              icon: IconButton(
+                                  onPressed: () {
+                                    addProductFavorite(widget.product);
+                                  },
+                                  icon: isFavorited
+                                      ? Icon(Icons.favorite)
+                                      : Icon(Icons.favorite_border)));
+                        })
                   ],
                 ),
                 SizedBox(
@@ -412,12 +414,7 @@ class _ProductScreenState extends State<ProductScreen> {
                 SizedBox(
                   height: 10,
                 ),
-                Text(
-                  widget.product.description,
-                  style: TextStyle(
-                    fontSize: 15,
-                  ),
-                ),
+                sizeGuideWidget(),
                 SizedBox(
                   height: 20,
                 ),
@@ -500,8 +497,8 @@ class _ProductScreenState extends State<ProductScreen> {
   _textureWidget() {
     return svgColor.isNotEmpty
         ? Container(
-          padding: EdgeInsets.all(2),
-          color: Colors.white,
+            padding: EdgeInsets.all(2),
+            color: Colors.white,
             height: deviceWidth * 0.1,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
@@ -509,41 +506,44 @@ class _ProductScreenState extends State<ProductScreen> {
               itemBuilder: (context, index) {
                 return InkWell(
                     onTap: () async {
-                      
                       try {
                         if (currentFeature != "") {
-                        setState(() {
-                          // Mengubah warna atau texture sesuai kondisi
-                          currentColor = svgColor[index];
-                        });
+                          setState(() {
+                            // Mengubah warna atau texture sesuai kondisi
+                            currentColor = svgColor[index];
+                          });
 
-                        if (svgColor[index].contains("https")) {
-                          print("Texture apply");
+                          if (svgColor[index].contains("https")) {
+                            
+                            
+                            print("Texture apply");
 
-                          // Ambil dan konversi gambar ke Base64
-                          String? base64Image =
-                              await fetchAndConvertToBase64(currentColor!);
+                            // Ambil dan konversi gambar ke Base64
+                            String? base64Image =
+                                await fetchAndConvertToBase64(currentColor!);
 
-                          if (base64Image != null) {
-                            updatedSvg = addPatternToSvg(
-                                currentSvg, base64Image, currentFeature!);
+                            if (base64Image != null) {
+                              updatedSvg = addPatternToSvg(
+                                  currentSvg, base64Image, currentFeature!);
+                            }
+                          } else {
+                            print("Color apply");
 
+                            // Jika tidak ada URL gambar, lakukan perubahan warna biasa
+                            updatedSvg = updateFillColorByIdWithColor(
+                                currentSvg, currentFeature!, currentColor!);
                           }
-                        } else {
-                          print("Color apply");
 
-                          // Jika tidak ada URL gambar, lakukan perubahan warna biasa
-                          updatedSvg = updateFillColorByIdWithColor(
-                              currentSvg, currentFeature!, currentColor!);
+                          // Setelah selesai, update currentSvg
+                          setState(() {
+                            currentFeatureColor[currentFeature!] = currentColor!;
+                            currentSvg = updatedSvg;
+                          });
                         }
-
-                        // Setelah selesai, update currentSvg
-                        setState(() {
-                          currentSvg = updatedSvg;
-                        });
-                      }
                       } catch (e) {
-                        Fluttertoast.showToast(msg: "Silakan pilih bagian yang mau di masukkan warna atau ulos.");
+                        Fluttertoast.showToast(
+                            msg:
+                                "Silakan pilih bagian yang mau di masukkan warna atau ulos.");
                       }
                     },
                     child: svgColor[index].contains("https")
@@ -555,8 +555,11 @@ class _ProductScreenState extends State<ProductScreen> {
                                 horizontal: deviceWidth * 0.01),
                             decoration: BoxDecoration(
                                 shape: BoxShape.circle, color: Colors.white),
-                            child: CachedNetworkImage(imageUrl:svgColor[index],
-                            placeholder: (context, url) => Padding(padding: EdgeInsets.all(5),child:CircularProgressIndicator()),
+                            child: CachedNetworkImage(
+                              imageUrl: svgColor[index],
+                              placeholder: (context, url) => Padding(
+                                  padding: EdgeInsets.all(5),
+                                  child: CircularProgressIndicator()),
                               fit: BoxFit.cover,
                             ),
                           )
@@ -679,7 +682,7 @@ class _ProductScreenState extends State<ProductScreen> {
             }
 
             return Container(
-                  width: deviceWidth * 0.65,
+                width: deviceWidth * 0.65,
                 height: 400,
                 padding: EdgeInsets.all(10),
                 child: WebViewWidget(
@@ -721,13 +724,13 @@ class _ProductScreenState extends State<ProductScreen> {
     _controller.loadHtmlString(htmlContent);
     //svg update
     return Container(
-                  width: deviceWidth * 0.65,
-                height: 400,
-                padding: EdgeInsets.all(10),
-                child: WebViewWidget(
-                  controller: _controller,
-                  gestureRecognizers: Set(),
-                ));
+        width: deviceWidth * 0.65,
+        height: 400,
+        padding: EdgeInsets.all(10),
+        child: WebViewWidget(
+          controller: _controller,
+          gestureRecognizers: Set(),
+        ));
   }
 
   Future<String?> fetchAndConvertToBase64(String imageUrl) async {
@@ -751,96 +754,159 @@ class _ProductScreenState extends State<ProductScreen> {
       return null;
     }
   }
-  
+
   _featureWidget() {
     return Container(
-          padding: EdgeInsets.all(5),
-                  width: deviceWidth * 0.35,
-                  child: ListView.builder(
-                      itemCount: svgFeatures.length,
-                      itemBuilder: (context, index) {
-                        return Padding(padding: EdgeInsets.all(2),child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.zero,
-    ),
-  ),
-
-                            onPressed: currentFeature != svgFeatures[index]
-                                ? () {
-                                    setState(() {
-                                      currentFeature = svgFeatures[index];
-                                    });
-                                  }
-                                : null,
-                            child: Text(
-                                textAlign: TextAlign.center,
-                                svgFeatures[index]
-                                    .toString()
-                                    .replaceAll("-", " "))),);
-                      }),
-                );
+      padding: EdgeInsets.all(5),
+      width: deviceWidth * 0.35,
+      child: ListView.builder(
+          itemCount: svgFeatures.length,
+          itemBuilder: (context, index) {
+            return Padding(
+              padding: EdgeInsets.all(2),
+              child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.zero,
+                    ),
+                  ),
+                  onPressed: currentFeature != svgFeatures[index]
+                      ? () {
+                          setState(() {
+                            currentFeature = svgFeatures[index];
+                          });
+                        }
+                      : null,
+                  child: Text(
+                      textAlign: TextAlign.center,
+                      svgFeatures[index].toString().replaceAll("-", " "))),
+            );
+          }),
+    );
   }
-  
+
   _sizeWidget() {
     return Container(
-                margin: EdgeInsets.only(top: 10, bottom: 10),
-                height: 60,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: widget.product.size.length,
-                  itemBuilder: (context, index) {
-                    final size = widget.product.size[index];
-                    final isSelected = _selectedSize == size;
+      margin: EdgeInsets.only(top: 10, bottom: 10),
+      height: 60,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: widget.product.size.length,
+        itemBuilder: (context, index) {
+          final size = widget.product.size[index];
+          final isSelected = _selectedSize == size;
 
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedSize = size; // Update ukuran yang dipilih
-                        });
-                      },
-                      child: Container(
-                        padding: EdgeInsets.all(5),
-                        width: 50,
-                        height: 50,
-                        margin: EdgeInsets.symmetric(horizontal: 6),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: isSelected ? Colors.red : Color(0xFFFFAAAA),
-                          border: isSelected
-                              ? Border.all(color: Colors.black, width: 2)
-                              : null,
-                        ),
-                        child: Center(
-                          child: Text(
-                            textAlign: TextAlign.center,
-                            size,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: isSelected ? Colors.white : Colors.black,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedSize = size; // Update ukuran yang dipilih
+              });
+            },
+            child: Container(
+              padding: EdgeInsets.all(5),
+              width: 50,
+              height: 50,
+              margin: EdgeInsets.symmetric(horizontal: 6),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected ? Colors.red : Color(0xFFFFAAAA),
+                border: isSelected
+                    ? Border.all(color: Colors.black, width: 2)
+                    : null,
+              ),
+              child: Center(
+                child: Text(
+                  textAlign: TextAlign.center,
+                  size,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: isSelected ? Colors.white : Colors.black,
+                  ),
                 ),
-              );
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
+
   void goToDesignConfirmation(String htmlContent) {
-    if(currentSvg.contains("none")){
-      Fluttertoast.showToast(msg: "Silakan kosumisasi desain kamu hingga selesai.");
-      
+    if (currentSvg.contains("none")) {
+      Fluttertoast.showToast(
+          msg: "Silakan kosumisasi desain kamu hingga selesai.");
+          return;
     }
-    if (_selectedSize == "" && _selectedSize.isEmpty) {          
+    if (_selectedSize == "" && _selectedSize.isEmpty) {
       Fluttertoast.showToast(msg: "Silakan pilih ukuran terlebih dahulu.");
+      return;
     }
 
-    Navigator.push(context, MaterialPageRoute(builder: (context)=>DesignConfirmPage(htmlContent, currentSvg)));
+    if(widget.product == null){
+      Fluttertoast.showToast(msg: "Terjadi kesalahan, silakan coba lagi.");
+      return;
+    }
+
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => DesignConfirmPage(htmlContent, currentFeatureColor, widget.product,_selectedSize)));
   }
+
+  Future<String> getSizeGuide() async {
+    ApiService apiService = ApiService();
+    SizeGuideResponse response = await apiService.sizeGuide();
+
+    if (response.error) {
+      return "Terjadi Kesalahan";
+    } else {
+      return response.data!;
+    }
+  }
+
+  sizeGuideWidget() {
+    return FutureBuilder(
+        future: getSizeGuide(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {            
+            return CachedNetworkImage(imageUrl: snapshot.data!);
+          }
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        });
+  }
+  
+  void buyNow() {
+
+    if (_selectedSize == "" && _selectedSize.isEmpty) {
+      Fluttertoast.showToast(msg: "Silakan pilih ukuran terlebih dahulu.");
+      return;
+    }
+
+    if(widget.product == null){
+      Fluttertoast.showToast(msg: "Terjadi kesalahan, silakan coba lagi.");
+      return;
+    }
+    
+    goToShippingScreen(context, widget.product, _selectedSize);
+  }
+
 }
 
+
+
+
+  goToShippingScreen(BuildContext context, Product? product,String size) {
+    if (product != null) {
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => ShippingScreen(cart: null, product:product,size: size,)));
+    } else {
+      Fluttertoast.showToast(
+          msg: "Tidak ada produk, silakan belanja terlebih dahulu.");
+    }
+  }
 
 String updateFillColorByIdWithPattern(
     String svgString, String elementId, String patternId) {
@@ -855,10 +921,7 @@ String updateFillColorByIdWithPattern(
         // Jika elemen sudah memiliki atribut `fill`, ubah nilainya dengan URL pattern
         element = element.replaceAll(
             RegExp(r'fill="[^"]*"'), 'fill="url(#$patternId)"');
-      } else {
-        // // Jika elemen tidak memiliki atribut `fill`, tambahkan atribut fill dengan URL pattern
-        // element = element.replaceFirst('>', ' fill="url(#$patternId)">');
-      }
+      } 
       return element;
     },
   );

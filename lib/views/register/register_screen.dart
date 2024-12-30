@@ -6,6 +6,8 @@ import 'package:jahit_baju/views/otp_screen/otp_screen.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
 
+import '../term_condition_screen/term_condition_screen.dart';
+
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -20,6 +22,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   bool init = false;
   bool isLoading = false;
+
+  bool agreeTerm = false;
 
   @override
   void initState() {
@@ -67,16 +71,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
               backgroundColor: Colors.transparent,
               body: SingleChildScrollView(
                 child: Consumer<RegisterViewModel>(
-                  builder: (context, viewModel, child) {
-                return Center(
-                  child: SizedBox(
-                    width: deviceWidth * 0.8,
-                    child: registerForm(),
-                  ),
-                );
-              }),
-            ),
+                    builder: (context, viewModel, child) {
+                  return Center(
+                    child: SizedBox(
+                      width: deviceWidth * 0.8,
+                      child: registerForm(),
+                    ),
+                  );
+                }),
               ),
+            ),
             if (isLoading)
               LoadingAnimationWidget.staggeredDotsWave(
                   color: Colors.black, size: 50)
@@ -176,25 +180,44 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   Column(
                     children: [
-                      RichText(
-                          text: TextSpan(children: [
-                        TextSpan(
-                            text: "By signing up, you‘re agree to our ",
-                            style: TextStyle(fontSize: 12, color: Colors.white),
-                            children: [
-                              TextSpan(
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      decoration: TextDecoration.underline,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold),
-                                  recognizer: TapGestureRecognizer()
-                                    ..onTap = () {
-                                      Fluttertoast.showToast(msg: "msg");
-                                    },
-                                  text: "Term and Condition and Privacy Policy")
-                            ]),
-                      ])),
+                      Row(
+                        children: [
+                          Checkbox(
+                              side: BorderSide(
+                                color: Colors
+                                    .white, // Ganti dengan warna outline yang diinginkan
+                                width: 2.0, // Lebar outline
+                              ),
+                              value: agreeTerm,
+                              onChanged: (value) {
+                                setState(() {
+                                  agreeTerm = value!;
+                                });
+                              }),
+                          Expanded(
+                              child: RichText(
+                                  text: TextSpan(children: [
+                            TextSpan(
+                                text: "By signing up, you‘re agree to our ",
+                                style: TextStyle(
+                                    fontSize: 12, color: Colors.white),
+                                children: [
+                                  TextSpan(
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          decoration: TextDecoration.underline,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold),
+                                      recognizer: TapGestureRecognizer()
+                                        ..onTap = () {
+                                          goToTermAndConditionScreen();
+                                        },
+                                      text:
+                                          "Term and Condition and Privacy Policy")
+                                ]),
+                          ])))
+                        ],
+                      ),
                       const SizedBox(
                         height: 5,
                       ),
@@ -204,27 +227,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             style: ElevatedButton.styleFrom(
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(5)),
-                                backgroundColor: Colors.white),
-                            onPressed: () async {
-                              if (formKey.currentState!.validate()) {
-                                setState(() {
-                                  isLoading = true;
-                                });
+                                backgroundColor: Colors.white,
+                                disabledBackgroundColor: Colors.grey),
+                            onPressed: agreeTerm
+                                ? () async {
+                                    if (formKey.currentState!.validate()) {
+                                      setState(() {
+                                        isLoading = true;
+                                      });
 
-                                await viewModel.register();
-                                if (viewModel.message != null) {
-                                  if (viewModel.message == "Register Success!") {
-                                    goToOtpPage(viewModel.email);
+                                      await viewModel.register();
+                                      if (viewModel.message != null) {
+                                        if (viewModel.message ==
+                                            "Register Success!") {
+                                          Navigator.pop(context);
+                                        }
+                                        Fluttertoast.showToast(
+                                            msg: viewModel.message.toString());
+                                      }
+
+                                      setState(() {
+                                        isLoading = false;
+                                      });
+                                    }
                                   }
-                                  Fluttertoast.showToast(
-                                      msg: viewModel.message.toString());
-                                }
-
-                                setState(() {
-                                  isLoading = false;
-                                });
-                              }
-                            },
+                                : null,
                             child: const Text(
                               "Register",
                               style: TextStyle(
@@ -281,8 +308,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
             borderRadius: BorderRadius.all(Radius.circular(10))));
   }
 
-  void goToOtpPage(String? email) {
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => OtpScreen(email!, OtpScreen.REGISTER)));
+  void goToTermAndConditionScreen() {
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => TermConditionScreen()));
   }
 }

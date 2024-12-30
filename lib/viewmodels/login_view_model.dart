@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jahit_baju/model/user.dart';
 import 'package:jahit_baju/service/remote/api_service.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
 
@@ -52,5 +53,14 @@ class LoginViewModel extends ChangeNotifier {
 
       return true;
     }
+  }
+
+  Future<bool> emailVerified() async {
+    var token = await _tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+    if (token != null) {
+      User user = await api.userGet(token);
+      return user.emailVerified;
+    }
+    return false;
   }
 }

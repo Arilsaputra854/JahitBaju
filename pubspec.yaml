@@ -58,6 +58,7 @@ dependencies:
   flutter_html:
   webview_flutter:
   xml: ^6.2.2
+  shared_preferences: ^2.0.15  
 
 icons_launcher:
   image_path: "assets/logo/jahit_baju_logo.png"

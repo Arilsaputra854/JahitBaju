@@ -14,7 +14,7 @@ class OrderResponse {
     return OrderResponse(
       error: json['error'] ?? false,
       message: json['message'] ?? "",     
-      data: json['data'] ?? ""     
+      data: json['data']   ?? ""     
     );
   }
 }

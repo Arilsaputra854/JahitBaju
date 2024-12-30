@@ -5,6 +5,7 @@ import 'package:jahit_baju/viewmodels/login_view_model.dart';
 import 'package:jahit_baju/viewmodels/register_view_model.dart';
 import 'package:jahit_baju/views/forgot_password/forgot_password.dart';
 import 'package:jahit_baju/views/home_screen/home_screen.dart';
+import 'package:jahit_baju/views/otp_screen/otp_screen.dart';
 import 'package:jahit_baju/views/register/register_screen.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
@@ -240,18 +241,32 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       isLoading = true;
     });
-    await viewModel.login().then((isSuccess) {
+    await viewModel.login().then((isSuccess) async {
       if (viewModel.errorMsg != null) {
         Fluttertoast.showToast(msg: viewModel.errorMsg.toString());
       }
       if (isSuccess) {
-        Fluttertoast.showToast(msg: "Login berhasil!");
+        await viewModel.emailVerified().then((isVerified){
+          
+          if(isVerified){
+            Fluttertoast.showToast(msg: "Login berhasil!");
 
-        goToHomeScreen();
+            goToHomeScreen();
+          }else{
+            goTogoToOtpPage(viewModel.email);
+            Fluttertoast.showToast(msg: "Email belum terverifikasi!");
+          }
+        });
       }
       setState(() {
         isLoading = false;
       });
     });
   }
+
+void goTogoToOtpPage(String? email) {
+   Navigator.push(
+        context, MaterialPageRoute(builder: (context) => OtpScreen(email!, OtpScreen.REGISTER)));
+}
+
 }

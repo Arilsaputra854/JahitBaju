@@ -72,6 +72,7 @@ Widget build(BuildContext context) {
     ),
     body: page[_indexPage],
     bottomNavigationBar: BottomNavigationBar(
+      backgroundColor: Colors.white,
       onTap: onItemTapped,
       type: BottomNavigationBarType.fixed,
       currentIndex: _indexPage,
@@ -132,7 +133,6 @@ Widget build(BuildContext context) {
   }
 
   void updateCartItemSize() async {
-    //cartItemSize = await context.watch<HomeScreenViewModel>().getCartItemSize();
 
     setState(() {});
   }

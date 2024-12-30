@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:jahit_baju/service/remote/api_service.dart';
+import 'package:jahit_baju/service/remote/response/login_response.dart';
+import 'package:jahit_baju/views/home_screen/home_screen.dart';
 import 'package:jahit_baju/views/login/login_screen.dart';
 import 'package:jahit_baju/views/reset_password/reset_password.dart';
 
@@ -22,6 +25,11 @@ class _ResetPasswordState extends State<OtpScreen> {
 
   bool init = false;
   bool isOtpValid = false;
+  bool requestOTP = true;
+
+  int currentOtp = 0;
+
+  ApiService apiService = ApiService();
 
   @override
   void initState() {
@@ -67,15 +75,15 @@ class _ResetPasswordState extends State<OtpScreen> {
             body: Center(
               child: SizedBox(
                 width: deviceWidth * 0.8,
-                height: deviceHeight * 0.5,
-                child: forgotPasswordForm(),
+                height: deviceHeight * 0.8,
+                child: _otpWidget(),
               ),
             ))
       ],
     );
   }
 
-  forgotPasswordForm() {
+  _otpWidget() {
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -96,29 +104,34 @@ class _ResetPasswordState extends State<OtpScreen> {
                 color: Colors.white),
           ),
           const SizedBox(
-            height: 30,
+            height: 20,
           ),
           OtpTextField(
             numberOfFields: 4,
             fieldWidth: 60,
-            margin: EdgeInsets.symmetric(horizontal: 10),
             showFieldAsBox: true,
             fillColor: Colors.white,
             focusedBorderColor: Color(0xFFBB5E44),
             filled: true,
             textStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-            onSubmit: (value) {
-              setState(() {
-                if (int.parse(value) == 0000) {
-                  isOtpValid = true;
-                } else {
-                  isOtpValid = false;
-                }
-              });
+            onSubmit: (value) async {
+              currentOtp = int.parse(value);
             },
           ),
           const SizedBox(
-            height: 30,
+            height: 15,
+          ),
+          Center(
+            child: Text(
+              "00:00",
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.normal,
+                  color: Colors.white),
+            ),
+          ),
+          const SizedBox(
+            height: 20,
           ),
           Column(
             children: [
@@ -129,28 +142,38 @@ class _ResetPasswordState extends State<OtpScreen> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5)),
                         backgroundColor: Colors.white),
-                    onPressed: () {
-                      if (!isOtpValid) {
-                        Fluttertoast.showToast(
-                            msg: "OTP yang kamu masukkan tidak valid!");
-                      } else {
-                        if (widget.type == OtpScreen.REGISTER) {
-                          Fluttertoast.showToast(msg: "Account Verified!");
-                          Future.delayed(Duration(seconds: 2), () {
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => LoginScreen()),
-                                  (route) => false,
-                            );
-                          });
-                        } else {
-                          goToResetPasswordScreen();
-                        }
-                      }
-                    },
-                    child: const Text(
-                      "Kirim Kode",
+                    onPressed: requestOTP
+                        ? () async {
+                            var response = await apiService.userRequestOtp();
+                            Fluttertoast.showToast(msg: response.message!);
+                            if (!response.error) {
+                              setState(() {
+                                requestOTP = false;
+                              });
+
+                              Fluttertoast.showToast(
+                                  msg: "Verifikasi email berhasil!");
+                            } else {
+                              Fluttertoast.showToast(msg: response.message!);
+                            }
+
+                          }
+                        : () async {
+                            LoginResponse response = await apiService
+                                .userEmailVerify(currentOtp.toString());
+
+                                if(response.error){
+
+                                   Fluttertoast.showToast(msg: response.message!);
+                                }else{
+
+                            Fluttertoast.showToast(
+                                msg: "Verifikasi email berhasil!");
+                                goToHomeScreen();
+                                }
+                          },
+                    child: Text(
+                      requestOTP ? "Minta Kode" : "Aktivasi",
                       style:
                           TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                     )),
@@ -165,5 +188,11 @@ class _ResetPasswordState extends State<OtpScreen> {
   goToResetPasswordScreen() {
     Navigator.pushReplacement(
         context, MaterialPageRoute(builder: (context) => ResetPassword()));
+  }
+  void goToHomeScreen() {
+    Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => HomeScreen()),
+        (Route<dynamic> route) => false);
   }
 }

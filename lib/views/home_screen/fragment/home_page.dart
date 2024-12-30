@@ -3,6 +3,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:jahit_baju/helper/app_color.dart';
+import 'package:jahit_baju/helper/preferences.dart';
 import 'package:jahit_baju/viewmodels/home_view_model.dart';
 import 'package:jahit_baju/model/product.dart';
 import 'package:jahit_baju/util/util.dart';
@@ -26,15 +28,29 @@ class _HomePageState extends State<HomePage> {
 
   List? tags;
 
+  bool accessCustom = false;
+
   var deviceWidth ;
+
+  
+  
 
   @override
   Widget build(BuildContext context) {
+
+    loadAccessCustom().then((value){
+      if(value == null){
+        accessCustom = false;
+      }else{
+        accessCustom = value!;
+      }
+    });
+
     deviceWidth = MediaQuery.of(context).size.width;
 
-
-    return RefreshIndicator(
-        child: ChangeNotifierProvider(
+    return Scaffold(
+      backgroundColor: Colors.white,body: RefreshIndicator(
+        child: Stack(children: [ChangeNotifierProvider(
             create: (context) => HomeViewModel(),
             child: SingleChildScrollView(
               child: Column(
@@ -117,10 +133,10 @@ class _HomePageState extends State<HomePage> {
                   }),
                 ],
               ),
-            )),
-        onRefresh: () async {
+            )),],),
+        onRefresh: () async {          
           setState(() {});
-        });
+        }),);
   }
 
   void goToProductScreen(Product item) {
@@ -315,8 +331,10 @@ class _HomePageState extends State<HomePage> {
                   itemCount: productsCustom?.length,
                   itemBuilder: (context, index) {
                     return InkWell(
-                        onTap: () {
+                        onTap: accessCustom ?() {
                           goToProductScreen(productsCustom?[index]);
+                        } : (){
+                          customSurvey(context);
                         },
                         child: Container(
                           width: 150,
@@ -324,7 +342,8 @@ class _HomePageState extends State<HomePage> {
                           decoration: BoxDecoration(
                               color: Colors.white,
                               border: Border.all(width: 1)),
-                          child: Column(
+                          child: Stack(
+                            children: [ Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
@@ -366,7 +385,8 @@ class _HomePageState extends State<HomePage> {
                                     ],
                                   ))
                             ],
-                          ),
+                          ),accessCustom? SizedBox() : Center(child: Icon(Icons.lock, color: AppColor.primary,size: 100,),),],
+                          )
                         ));
                   })
               : const Center(child: Text("Tidak ada produk"))
@@ -427,4 +447,147 @@ class _HomePageState extends State<HomePage> {
       duration: Duration(days: 365))
     );
   }
+
+
+void customSurvey(BuildContext context) {
+  String field1Answer = '';
+  String field2Answer = '';
+  String sourceAnswer = ''; 
+
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Survei Aplikasi'),
+        content: StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Apakah kamu tahu kain ulos?'),
+                    Row(
+                      children: [
+                        Radio<String>(
+                          value: 'Ya',
+                          groupValue: field1Answer,
+                          onChanged: (value) {
+                            setState(() {
+                              field1Answer = value!;
+                            });
+                          },
+                        ),
+                        const Text('Ya'),
+                        Radio<String>(
+                          value: 'Tidak',
+                          groupValue: field1Answer,
+                          onChanged: (value) {
+                            setState(() {
+                              field1Answer = value!;
+                            });
+                          },
+                        ),
+                        const Text('Tidak'),
+                      ],
+                    ),
+                  ],
+                ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Apakah pernah membeli atau memiliki kain ulos?'),
+                    Row(
+                      children: [
+                        Radio<String>(
+                          value: 'Pernah',
+                          groupValue: field2Answer,
+                          onChanged: (value) {
+                            setState(() {
+                              field2Answer = value!;
+                            });
+                          },
+                        ),
+                        const Text('Pernah'),
+                        Radio<String>(
+                          value: 'Tidak Pernah',
+                          groupValue: field2Answer,
+                          onChanged: (value) {
+                            setState(() {
+                              field2Answer = value!;
+                            });
+                          },
+                        ),
+                        const Text('Tidak Pernah'),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                const Text('Darimana kamu tahu JahitBaju?'),
+                Row(
+                  children: [
+                    Radio<String>(
+                      value: 'Teman',
+                      groupValue: sourceAnswer,
+                      onChanged: (value) {
+                        setState(() {
+                          sourceAnswer = value!;
+                        });
+                      },
+                    ),
+                    const Text('Teman'),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Radio<String>(
+                      value: 'Sosial Media',
+                      groupValue: sourceAnswer,
+                      onChanged: (value) {
+                        setState(() {
+                          sourceAnswer = value!;
+                        });
+                      },
+                    ),
+                    const Text('Sosial Media'),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Radio<String>(
+                      value: 'Website',
+                      groupValue: sourceAnswer,
+                      onChanged: (value) {
+                        setState(() {
+                          sourceAnswer = value!;
+                        });
+                      },
+                    ),
+                    const Text('Website'),
+                  ],
+                ),
+              ],
+            );
+          },
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              if(sourceAnswer != "" && field1Answer != "" && field2Answer != ""){
+                  saveAccessCustom(true).then((value)=>Navigator.of(context).pop());
+                  setState(() {
+                    
+                  });
+              }
+            },
+            child: const Text('Kirim'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 }
