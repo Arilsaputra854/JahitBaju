@@ -108,8 +108,8 @@ class _CartScreenState extends State<CartScreen> {
                                             ));
                                       },
                                     )
-                                  : SvgPicture.network(
-                                      item.imageUrl.first,
+                                  : SvgPicture.string(
+                                      cartItem.customDesign!,
                                       placeholderBuilder: (context) {
                                         return Shimmer.fromColors(
                                             baseColor: Colors.grey[300]!,
@@ -268,7 +268,6 @@ class _CartScreenState extends State<CartScreen> {
                         future: viewModel.getCartItems(
                             cart?.items, Product.READY_TO_WEAR),
                         builder: (context, snapshot) {
-                          print(snapshot.data);
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
                             return itemCartShimmer();

@@ -76,7 +76,7 @@ class _ResetPasswordState extends State<OtpScreen> {
               child: SizedBox(
                 width: deviceWidth * 0.8,
                 height: deviceHeight * 0.8,
-                child: _otpWidget(),
+                child: SingleChildScrollView(child: _otpWidget(),),
               ),
             ))
       ],
@@ -85,7 +85,7 @@ class _ResetPasswordState extends State<OtpScreen> {
 
   _otpWidget() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -108,7 +108,7 @@ class _ResetPasswordState extends State<OtpScreen> {
           ),
           OtpTextField(
             numberOfFields: 4,
-            fieldWidth: 60,
+            fieldWidth: deviceWidth* 0.15,
             showFieldAsBox: true,
             fillColor: Colors.white,
             focusedBorderColor: Color(0xFFBB5E44),
@@ -121,15 +121,7 @@ class _ResetPasswordState extends State<OtpScreen> {
           const SizedBox(
             height: 15,
           ),
-          Center(
-            child: Text(
-              "00:00",
-              style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.normal,
-                  color: Colors.white),
-            ),
-          ),
+          countdown(),
           const SizedBox(
             height: 20,
           ),
@@ -145,14 +137,13 @@ class _ResetPasswordState extends State<OtpScreen> {
                     onPressed: requestOTP
                         ? () async {
                             var response = await apiService.userRequestOtp();
-                            Fluttertoast.showToast(msg: response.message!);
-                            if (!response.error) {
+                            Fluttertoast.showToast(msg: "${response.message!}");
+                            if (response.toString().isNotEmpty) {
                               setState(() {
                                 requestOTP = false;
                               });
-
-                              Fluttertoast.showToast(
-                                  msg: "Verifikasi email berhasil!");
+                            
+                              
                             } else {
                               Fluttertoast.showToast(msg: response.message!);
                             }
@@ -194,5 +185,17 @@ class _ResetPasswordState extends State<OtpScreen> {
         context,
         MaterialPageRoute(builder: (context) => HomeScreen()),
         (Route<dynamic> route) => false);
+  }
+  
+  countdown() {
+    return Center(
+            child: Text(
+              "00:00",
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.normal,
+                  color: Colors.white),
+            ),
+          );
   }
 }

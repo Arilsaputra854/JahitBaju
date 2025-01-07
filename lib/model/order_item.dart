@@ -7,6 +7,7 @@ class OrderItem {
   final String status;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? customDesign;
 
   OrderItem({
     required this.id,
@@ -17,6 +18,7 @@ class OrderItem {
     this.status = 'pending',
     required this.createdAt,
     required this.updatedAt,
+    this.customDesign
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class OrderItem {
       status: json['status'] ?? 'pending',
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),
+      customDesign: json['custom_design']
     );
   }
 
@@ -42,6 +45,7 @@ class OrderItem {
       'status': status,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
+      'custom_design' : customDesign
     };
   }
 }

@@ -412,7 +412,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
 
   Widget _bottomNavBar(ShippingViewModel viewModel) {
     return Container(
-        height: deviceHeight * 0.33,
+        height: deviceHeight * 0.38,
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

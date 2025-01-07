@@ -49,7 +49,7 @@ class _ProductScreenState extends State<ProductScreen> {
   List<String> svgColor = [];
   List<String> svgFeatures = [];
 
-  Map<String, String> currentFeatureColor={};
+  Map<String, String> currentFeatureColor = {};
 
   late String htmlContent;
 
@@ -57,6 +57,8 @@ class _ProductScreenState extends State<ProductScreen> {
   String? currentFeature;
 
   Logger log = Logger();
+
+  bool purchaseLoading = false;
 
   @override
   void initState() {
@@ -103,9 +105,10 @@ class _ProductScreenState extends State<ProductScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           backgroundColor: Colors.white,
+                          disabledBackgroundColor: Colors.grey,                          
                           padding: EdgeInsets.symmetric(vertical: 15),
                         ),
-                        onPressed: () => addToCart(),
+                        onPressed: purchaseLoading ? null:  () => addToCart(),
                         child: Wrap(
                           alignment: WrapAlignment.center,
                           crossAxisAlignment: WrapCrossAlignment.center,
@@ -113,16 +116,16 @@ class _ProductScreenState extends State<ProductScreen> {
                           children: [
                             Icon(
                               Icons.shopping_bag,
-                              color: Colors.black,
+                              color: purchaseLoading?const Color.fromARGB(255, 95, 92, 92) :Colors.black,
                             ),
                             Text(
                               "Tambah ke Keranjang",
                               style: TextStyle(
-                                color: Colors.black,
+                                color: purchaseLoading?const Color.fromARGB(255, 95, 92, 92) :Colors.black,
                                 fontWeight: FontWeight.bold,
                               ),
                               softWrap:
-                                  true, // Agar teks membungkus jika tidak cukup ruang
+                                  true, 
                               textAlign: TextAlign.center,
                             ),
                           ],
@@ -137,16 +140,16 @@ class _ProductScreenState extends State<ProductScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          backgroundColor: Colors.red,
+                          backgroundColor: purchaseLoading? Colors.grey : Colors.red,
                           padding: EdgeInsets.symmetric(vertical: 15),
                         ),
                         onPressed: () {
-                          buyNow();
+                          buyNow(context, _selectedSize, widget.product);
                         },
                         child: Text(
                           "Beli Sekarang",
                           style: TextStyle(
-                            color: Colors.white,
+                            color: purchaseLoading?const Color.fromARGB(255, 95, 92, 92) :Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
                           softWrap:
@@ -165,16 +168,17 @@ class _ProductScreenState extends State<ProductScreen> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8)),
                       backgroundColor: Colors.red,
+                      disabledBackgroundColor: Colors.grey,
                       padding:
                           EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                     ),
-                    onPressed: () {
+                    onPressed: currentSvg.contains("none")? null :  () {
                       goToDesignConfirmation(htmlContent);
                     },
                     child: Text(
                       "Selanjutnya",
                       style: TextStyle(
-                        color: Colors.white,
+                        color: currentSvg.contains("none")? Colors.black:Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
                     ))));
@@ -437,13 +441,17 @@ class _ProductScreenState extends State<ProductScreen> {
   }
 
   addToCart() async {
+    setState(() {
+      purchaseLoading = true;
+    });
     ApiService apiService = ApiService();
 
     if (_selectedSize != "" && _selectedSize.isNotEmpty) {
-      var msg = await apiService.cartAdd(widget.product, 1, _selectedSize);
+      var msg = await apiService.cartAdd(widget.product, 1, _selectedSize, null);
+      setState(() {
+        purchaseLoading = false;
+      });
       Fluttertoast.showToast(msg: msg);
-
-      context.read<HomeViewModel>().refresh();
     } else {
       Fluttertoast.showToast(msg: "Silakan pilih ukuran terlebih dahulu");
     }
@@ -514,8 +522,6 @@ class _ProductScreenState extends State<ProductScreen> {
                           });
 
                           if (svgColor[index].contains("https")) {
-                            
-                            
                             print("Texture apply");
 
                             // Ambil dan konversi gambar ke Base64
@@ -536,7 +542,8 @@ class _ProductScreenState extends State<ProductScreen> {
 
                           // Setelah selesai, update currentSvg
                           setState(() {
-                            currentFeatureColor[currentFeature!] = currentColor!;
+                            currentFeatureColor[currentFeature!] =
+                                currentColor!;
                             currentSvg = updatedSvg;
                           });
                         }
@@ -836,14 +843,14 @@ class _ProductScreenState extends State<ProductScreen> {
     if (currentSvg.contains("none")) {
       Fluttertoast.showToast(
           msg: "Silakan kosumisasi desain kamu hingga selesai.");
-          return;
+      return;
     }
     if (_selectedSize == "" && _selectedSize.isEmpty) {
       Fluttertoast.showToast(msg: "Silakan pilih ukuran terlebih dahulu.");
       return;
     }
 
-    if(widget.product == null){
+    if (widget.product == null) {
       Fluttertoast.showToast(msg: "Terjadi kesalahan, silakan coba lagi.");
       return;
     }
@@ -851,7 +858,8 @@ class _ProductScreenState extends State<ProductScreen> {
     Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) => DesignConfirmPage(htmlContent, currentFeatureColor, widget.product,_selectedSize)));
+            builder: (context) => DesignConfirmPage(currentSvg,htmlContent,
+                currentFeatureColor, widget.product, _selectedSize)));
   }
 
   Future<String> getSizeGuide() async {
@@ -869,7 +877,7 @@ class _ProductScreenState extends State<ProductScreen> {
     return FutureBuilder(
         future: getSizeGuide(),
         builder: (context, snapshot) {
-          if (snapshot.hasData) {            
+          if (snapshot.hasData) {
             return CachedNetworkImage(imageUrl: snapshot.data!);
           }
           return Center(
@@ -877,36 +885,37 @@ class _ProductScreenState extends State<ProductScreen> {
           );
         });
   }
-  
-  void buyNow() {
-
-    if (_selectedSize == "" && _selectedSize.isEmpty) {
-      Fluttertoast.showToast(msg: "Silakan pilih ukuran terlebih dahulu.");
-      return;
-    }
-
-    if(widget.product == null){
-      Fluttertoast.showToast(msg: "Terjadi kesalahan, silakan coba lagi.");
-      return;
-    }
-    
-    goToShippingScreen(context, widget.product, _selectedSize);
-  }
-
 }
 
-
-
-
-  goToShippingScreen(BuildContext context, Product? product,String size) {
-    if (product != null) {
-      Navigator.push(context,
-          MaterialPageRoute(builder: (context) => ShippingScreen(cart: null, product:product,size: size,)));
-    } else {
-      Fluttertoast.showToast(
-          msg: "Tidak ada produk, silakan belanja terlebih dahulu.");
-    }
+void buyNow(BuildContext context, String size, Product? product) {
+  if (size == "" && size.isEmpty) {
+    Fluttertoast.showToast(msg: "Silakan pilih ukuran terlebih dahulu.");
+    return;
   }
+
+  if (product == null) {
+    Fluttertoast.showToast(msg: "Terjadi kesalahan, silakan coba lagi.");
+    return;
+  }
+
+  goToShippingScreen(context, product, size);
+}
+
+void goToShippingScreen(BuildContext context, Product? product, String size) {
+  if (product != null) {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ShippingScreen(
+                  cart: null,
+                  product: product,
+                  size: size,
+                )));
+  } else {
+    Fluttertoast.showToast(
+        msg: "Tidak ada produk, silakan belanja terlebih dahulu.");
+  }
+}
 
 String updateFillColorByIdWithPattern(
     String svgString, String elementId, String patternId) {
@@ -921,7 +930,7 @@ String updateFillColorByIdWithPattern(
         // Jika elemen sudah memiliki atribut `fill`, ubah nilainya dengan URL pattern
         element = element.replaceAll(
             RegExp(r'fill="[^"]*"'), 'fill="url(#$patternId)"');
-      } 
+      }
       return element;
     },
   );

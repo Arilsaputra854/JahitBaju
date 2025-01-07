@@ -71,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 return Center(
                   child: SizedBox(
                     width: deviceWidth * 0.8,
-                    height: deviceHeight * 0.5,
+                    height: deviceHeight * 0.8,
                     child: loginForm(),
                   ),
                 );
@@ -220,7 +220,7 @@ class _LoginScreenState extends State<LoginScreen> {
             borderRadius: BorderRadius.all(Radius.circular(10))));
   }
 
-  goToForgotPassword() {
+  goToForgotPassword() {    
     Navigator.push(context,
         MaterialPageRoute(builder: (context) => ForgotPasswordScreen()));
   }

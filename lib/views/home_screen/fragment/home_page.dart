@@ -519,7 +519,7 @@ void customSurvey(BuildContext context) {
                             });
                           },
                         ),
-                        const Text('Tidak Pernah'),
+                        const Expanded(child: Text('Tidak Pernah')),
                       ],
                     ),
                   ],

@@ -13,8 +13,7 @@ class ForgotPasswordScreen extends StatefulWidget {
   State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
-  bool _isPasswordVisible = false;
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {  
   var deviceWidth, deviceHeight;
   var formKey = GlobalKey<FormState>();
 
@@ -62,16 +61,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 foregroundColor: Colors.white,
               ),
               backgroundColor: Colors.transparent,
-              body: Consumer<ForgotPasswordViewModel>(
+              body: SingleChildScrollView(child: Consumer<ForgotPasswordViewModel>(
                   builder: (context, viewModel, child) {
                 return Center(
                   child: SizedBox(
                     width: deviceWidth * 0.8,
-                    height: deviceHeight * 0.5,
                     child: forgotPasswordForm(),
                   ),
                 );
-              }),
+              }),)
             )
           ],
         ));

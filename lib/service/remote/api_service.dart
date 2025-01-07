@@ -20,7 +20,10 @@ import 'response/term_condition_response.dart';
 import 'response/user_response.dart';
 
 class ApiService {
-  final String baseUrl = "http://192.168.1.155:3000/api/";
+  // final String baseUrl =
+  //     "https://jahit-baju-backend-936228436122.asia-east1.run.app/api/";
+  final String baseUrl =
+      "http://192.168.1.155:3000/api/";
   TokenStorage tokenStorage = TokenStorage();
   Logger logger = Logger();
 
@@ -37,13 +40,13 @@ class ApiService {
       );
 
       var data = jsonDecode(response.body);
+      logger.d("User Login : $data");
       LoginResponse responseBody = LoginResponse.fromJson(data);
 
       return responseBody;
     } catch (e) {
       logger.e("User Login : $e");
-      return LoginResponse(
-          message: "Network error or invalid response", error: true);
+      return LoginResponse(message: "Network error : $e", error: true);
     }
   }
 
@@ -66,6 +69,8 @@ class ApiService {
       var data = jsonDecode(response.body);
       dynamic message;
 
+      logger.d("User Register : $data");
+
       if (response.statusCode == 200) {
         message = User.fromJson(data["data"]);
       } else {
@@ -75,7 +80,7 @@ class ApiService {
       return message;
     } catch (e) {
       logger.e("User Register : $e");
-      return "Network error or invalid response";
+      return "Network error : $e";
     }
   }
 
@@ -88,6 +93,9 @@ class ApiService {
 
     try {
       var data = jsonDecode(response.body);
+
+      logger.d("User Get : $data");
+
       dynamic message;
       if (response.statusCode == 200) {
         var userData = data["data"];
@@ -101,7 +109,7 @@ class ApiService {
       return message;
     } catch (e) {
       logger.e("User Get : $e");
-      return "Network error or invalid response";
+      return "Network error : $e";
     }
   }
 
@@ -112,10 +120,10 @@ class ApiService {
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
     try {
-      //Create a map to hold the updated fields
+      
       Map<String, dynamic> body = {};
 
-      //Add fields only if they are not null or empty
+      
       if (name != null && name.isNotEmpty) {
         body['name'] = name;
       }
@@ -140,7 +148,7 @@ class ApiService {
         return UserResponse(message: "Field is empty", error: true);
       }
 
-      //Perform the HTTP PATCH request
+      
       final response = await http.patch(
         url,
         body: jsonEncode(body),
@@ -150,14 +158,17 @@ class ApiService {
         },
       );
 
+
       var data = jsonDecode(response.body);
+      
+      logger.d("User Update : $data");
+
       UserResponse responseBody = UserResponse.fromJson(data);
 
       return responseBody;
     } catch (e) {
       logger.e("User Update : $e");
-      return UserResponse(
-          message: "Network error or invalid response", error: true);
+      return UserResponse(message: "Network error : $e", error: true);
     }
   }
 
@@ -177,20 +188,23 @@ class ApiService {
       );
 
       var data = jsonDecode(response.body);
+
+      logger.d("User Email Verify : $data");
+
       LoginResponse responseBody = LoginResponse.fromJson(data);
 
       return responseBody;
     } catch (e) {
       logger.e("User Email Verify : $e");
 
-      return LoginResponse(
-          message: "Network error or invalid response", error: true);
+      return LoginResponse(message: "Network error : $e", error: true);
     }
   }
 
   Future<LoginResponse> userRequestOtp() async {
     final url = Uri.parse("${baseUrl}users/current/request-otp/");
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+
     try {
       final response = await http.post(
         url,
@@ -201,20 +215,18 @@ class ApiService {
       );
 
       var data = jsonDecode(response.body);
-      LoginResponse responseBody = LoginResponse.fromJson(data);
+      logger.d("User Request OTP : ${data}");
 
+      LoginResponse responseBody = LoginResponse.fromJson(data);
       return responseBody;
     } catch (e) {
       logger.e("User Request OTP : $e");
 
-      return LoginResponse(
-          message: "Network error or invalid response", error: true);
+      return LoginResponse(message: "Network error : $e", error: true);
     }
   }
 
-
-  Future<OrderResponse> buyNow(
-      Order order) async {
+  Future<OrderResponse> buyNow(Order order) async {
     final url = Uri.parse("${baseUrl}order");
 
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
@@ -231,23 +243,22 @@ class ApiService {
           'quantity': order.quantity,
           'total_price': order.totalPrice,
           'size': order.size,
-          'order_status' : order.orderStatus,
-          'shipping_id' : order.shippingId,
-          'packaging_id' : order.packagingId
+          'order_status': order.orderStatus,
+          'shipping_id': order.shippingId,
+          'packaging_id': order.packagingId
         }),
       );
 
       var data = jsonDecode(response.body);
+      logger.d("Order now : ${data}");
       OrderResponse orderResponse = OrderResponse.fromJson(data);
       logger.d("Order now : ${data}");
       return OrderResponse.fromJson(data);
     } catch (e) {
       logger.e("Order now : $e");
-      return OrderResponse(error: true,message: "Network error or invalid response");
+      return OrderResponse(error: true, message: "Network error : $e");
     }
   }
-
-
 
   Future<dynamic> cartGet() async {
     final url = Uri.parse("${baseUrl}cart");
@@ -261,6 +272,8 @@ class ApiService {
       });
 
       var data = jsonDecode(response.body);
+      logger.d("Cart Get : ${data}");
+
       dynamic message;
       if (response.statusCode == 200) {
         Cart cartData = Cart.fromJson(data["data"]);
@@ -271,12 +284,12 @@ class ApiService {
       }
     } catch (e) {
       logger.e("Cart Get : $e");
-      return "Network error or invalid response";
+      return "Network error : $e";
     }
   }
 
   Future<dynamic> cartAdd(
-      Product product, int quantity, String selectedSize) async {
+    Product product, int quantity, String selectedSize, String? customDesignSvg) async {
     final url = Uri.parse("${baseUrl}cart");
 
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
@@ -292,11 +305,14 @@ class ApiService {
           'productId': product.id,
           'quantity': quantity,
           'price': product.price,
-          'size': selectedSize
+          'size': selectedSize,
+          'custom_design' : customDesignSvg
         }),
       );
 
       var data = jsonDecode(response.body);
+      logger.d("Cart Add : ${data}");
+
       dynamic message;
       if (response.statusCode == 200) {
         message = data["message"];
@@ -307,7 +323,7 @@ class ApiService {
       }
     } catch (e) {
       logger.e("Cart Add : $e");
-      return "Network error or invalid response";
+      return "Network error : $e";
     }
   }
 
@@ -323,6 +339,8 @@ class ApiService {
       });
 
       var data = jsonDecode(response.body);
+      logger.d("Item Cart Delete : ${data}");
+
       dynamic message;
       if (response.statusCode == 200) {
         message = data["message"];
@@ -333,7 +351,7 @@ class ApiService {
       }
     } catch (e) {
       logger.e("Item Cart Delete : $e");
-      return "Network error or invalid response";
+      return "Network error : $e";
     }
   }
 
@@ -346,6 +364,8 @@ class ApiService {
       });
 
       var data = jsonDecode(response.body);
+      logger.d("Shipping Get : ${data}");
+
       dynamic message;
 
       if (response.statusCode == 200) {
@@ -375,6 +395,7 @@ class ApiService {
       });
 
       var data = jsonDecode(response.body);
+      logger.d("Packaging Get : ${data}");
       dynamic message;
 
       if (response.statusCode == 200) {
@@ -417,20 +438,21 @@ class ApiService {
       );
 
       var data = jsonDecode(response.body);
+      logger.d("Create Order : ${data}");
+
       OrderResponse orderResponse = OrderResponse.fromJson(data);
 
       if (response.statusCode != 201) {
         orderResponse.message = data["message"] ?? "Unknown error occurred";
         logger.e("Create Order: ${orderResponse.message}");
       }
-      logger.i("Create Order: ${orderResponse.data}");
+
       orderResponse.data = Order.fromJson(orderResponse.data);
 
       return orderResponse;
     } catch (e) {
       logger.e("Create Order: ${e}");
-      return OrderResponse(
-          error: true, message: "Network error or invalid response");
+      return OrderResponse(error: true, message: "Network error : $e");
     }
   }
 
@@ -444,6 +466,9 @@ class ApiService {
 
     try {
       var data = jsonDecode(response.body);
+      
+      logger.d("Get Order : ${data}");
+
       OrderResponse orderResponse = OrderResponse.fromJson(data);
 
       if (response.statusCode == 200) {
@@ -453,12 +478,11 @@ class ApiService {
         orderResponse.message = data["message"] ?? "Unknown error occurred";
         logger.e("Get Order: ${orderResponse.message}");
       }
-      logger.i("Get Order: ${orderResponse.data}");
+      
       return orderResponse;
     } catch (e) {
       logger.e("Get Order: ${e}");
-      return OrderResponse(
-          error: true, message: "Network error or invalid response");
+      return OrderResponse(error: true, message: "Network error : $e");
     }
   }
 
@@ -472,14 +496,15 @@ class ApiService {
 
     try {
       var data = jsonDecode(response.body);
-      OrderResponse orderResponse = OrderResponse.fromJson(data);
 
-      logger.i("Delete Order: ${orderResponse.message}");
+      logger.d("Delete Order : ${data}");
+
+      OrderResponse orderResponse = OrderResponse.fromJson(data);
+      
       return orderResponse;
     } catch (e) {
       logger.e("Delete Order: ${e}");
-      return OrderResponse(
-          error: true, message: "Network error or invalid response");
+      return OrderResponse(error: true, message: "Network error : $e");
     }
   }
 
@@ -494,6 +519,9 @@ class ApiService {
       });
 
       var data = jsonDecode(response.body);
+
+      logger.d("Get Product by ID : ${data}");
+
       dynamic message;
       if (response.statusCode == 200) {
         var productData = data["data"];
@@ -506,34 +534,37 @@ class ApiService {
         return message;
       }
     } catch (e) {
-      print("Error: ${e}");
-      return "Network error or invalid response";
+      logger.e("Get Product by ID : ${e}");
+      return "Network error : $e";
     }
   }
 
   Future<dynamic> productsGet() async {
     final url = Uri.parse("${baseUrl}products");
+    final response = await http.get(url, headers: <String, String>{
+      'Content-Type': 'application/json',
+    });
 
+    var data = jsonDecode(response.body);
+
+    logger.d("Get Product : ${data}");
+
+    dynamic message;
     try {
-      final response = await http.get(url, headers: <String, String>{
-        'Content-Type': 'application/json',
-      });
-
-      var data = jsonDecode(response.body);
-      dynamic message;
       if (response.statusCode == 200) {
         var productsData = data["data"] as List;
 
-        List<Product> products = productsData
-            .map<Product>((json) => Product.fromJson(json))
-            .toList();
+        List<Product> products = productsData.map<Product>((json) {
+          return Product.fromJson(json);
+        }).toList();
+
         return products;
       } else {
         message = data["message"] ?? "Unknown error occurred";
         return message;
       }
     } catch (e) {
-      print("Error: ${e}");
+      logger.e("Get Product : ${e}");
       return "error";
     }
   }
@@ -549,6 +580,10 @@ class ApiService {
       });
 
       var data = jsonDecode(response.body);
+
+
+      logger.d("Get Favorite : ${data}");
+
       dynamic message;
       if (response.statusCode == 200) {
         var favoriteData = data["data"] as List;
@@ -563,7 +598,8 @@ class ApiService {
         return message;
       }
     } catch (e) {
-      print("Error: ${e}");
+      
+      logger.e("Get Favorite : ${e}");
       return "error";
     }
   }
@@ -581,13 +617,14 @@ class ApiService {
     try {
       var data = jsonDecode(response.body);
 
+      logger.d("Delete Favorite : ${data}");
+
       FavoriteResponse favoriteResponse = FavoriteResponse.fromJson(data);
 
       return favoriteResponse;
     } catch (e) {
-      print("Error: ${e}");
-      return FavoriteResponse(
-          error: true, message: "Network error or invalid response");
+      logger.e("Delete Favorite : $e");
+      return FavoriteResponse(error: true, message: "Network error : $e");
     }
   }
 
@@ -604,13 +641,14 @@ class ApiService {
     try {
       var data = jsonDecode(response.body);
 
+      logger.d("Add Favorite : ${data}");
+
       FavoriteResponse favoriteResponse = FavoriteResponse.fromJson(data);
 
       return favoriteResponse;
     } catch (e) {
-      print("Error: ${e}");
-      return FavoriteResponse(
-          error: true, message: "Network error or invalid response");
+      logger.e("Add Favorite : $e");
+      return FavoriteResponse(error: true, message: "Network error : $e");
     }
   }
 
@@ -621,14 +659,15 @@ class ApiService {
 
     try {
       var data = jsonDecode(response.body);
-      print(data);
+      
+      logger.d("Term Condition : ${data}");
       TermConditionResponse termConditionResponse =
           TermConditionResponse.fromJson(data);
 
       return termConditionResponse;
     } catch (e) {
       logger.e("Term Condition : $e");
-      return "Network error or invalid response";
+      return "Network error : $e";
     }
   }
 
@@ -639,12 +678,13 @@ class ApiService {
 
     try {
       var data = jsonDecode(response.body);
+      logger.d("Size Guide : ${data}");
       SizeGuideResponse sizeGuideResponse = SizeGuideResponse.fromJson(data);
 
       return sizeGuideResponse;
     } catch (e) {
       logger.e("Size Guide : $e");
-      return "Network error or invalid response";
+      return "Network error : $e";
     }
   }
 }

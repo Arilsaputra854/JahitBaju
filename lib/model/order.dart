@@ -98,6 +98,7 @@ class OrderItem {
   final int quantity;
   final String size;
   final int price;
+  final String? customDesign;
 
   // Constructor
   OrderItem({
@@ -107,6 +108,7 @@ class OrderItem {
     required this.quantity,
     required this.size,
     required this.price,
+    this.customDesign
   });
 
   // Factory method untuk membuat OrderItem dari JSON
@@ -118,6 +120,7 @@ class OrderItem {
       quantity: json['quantity']?? "",
       size: json['size']?? "",
       price: json['price']?? "",
+      customDesign: json['custom_design']
     );
   }
 
@@ -130,6 +133,7 @@ class OrderItem {
       'quantity': quantity,
       'size': size,
       'price': price,
+      'custom_design' : customDesign
     };
   }
 }

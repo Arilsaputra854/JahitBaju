@@ -9,8 +9,7 @@ class SearchViewModel extends ChangeNotifier {
 
   String? get errorMsg =>_errorMsg;
 
-  Future<dynamic> getListProducts() async {
-    ApiService apiService = ApiService();
+  Future<dynamic> getListProducts() async {    
     var data = await apiService.productsGet();
     if (data is List<Product>) {
       return data;
@@ -19,5 +18,9 @@ class SearchViewModel extends ChangeNotifier {
     }else{
       return null;
     }
+  }
+
+  bool sendSurvei() {
+    return true;
   }
 }

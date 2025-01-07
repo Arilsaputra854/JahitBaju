@@ -44,6 +44,7 @@ class CartItem {
   final String size;
   final int quantity;
   final double price;
+  final String? customDesign;
 
   CartItem({
     required this.id,
@@ -52,6 +53,7 @@ class CartItem {
     required this.size,
     required this.quantity,
     required this.price,
+    this.customDesign
   });
 
   // Dari JSON ke objek CartItem
@@ -63,6 +65,7 @@ class CartItem {
       size: json['size'],
       quantity: json['quantity'],
       price: json['price'].toDouble(),
+      customDesign: json['custom_design']
     );
   }
 
@@ -75,6 +78,7 @@ class CartItem {
       'size': size,
       'quantity': quantity,
       'price': price,
+      'custom_design' : customDesign
     };
   }
 }

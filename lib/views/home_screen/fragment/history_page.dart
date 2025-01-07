@@ -236,6 +236,7 @@ class _HistoryPageState extends State<HistoryPage> {
                           return FutureBuilder<Product>(
                               future: getProduct(order.items[index].productId),
                               builder: (context, snapshot) {
+
                                 if (snapshot.hasData) {
                                   Product product = snapshot.data!;
                                   return Row(
@@ -286,7 +287,29 @@ class _HistoryPageState extends State<HistoryPage> {
                                                                         ));
                                                               },
                                                             )
-                                                          : SvgPicture.network(
+                                                          : order.items[index].customDesign != null ? SvgPicture.string(
+                                                              order.items[index].customDesign!,
+                                                              placeholderBuilder:
+                                                                  (context) {
+                                                                return Shimmer
+                                                                    .fromColors(
+                                                                        baseColor:
+                                                                            Colors.grey[
+                                                                                300]!,
+                                                                        highlightColor:
+                                                                            Colors.grey[
+                                                                                100]!,
+                                                                        child:
+                                                                            Container(
+                                                                          width:
+                                                                              double.infinity,
+                                                                          height:
+                                                                              double.infinity,
+                                                                          color:
+                                                                              Colors.grey,
+                                                                        ));
+                                                              },
+                                                            ) : SvgPicture.network(
                                                               product.imageUrl
                                                                   .first,
                                                               placeholderBuilder:

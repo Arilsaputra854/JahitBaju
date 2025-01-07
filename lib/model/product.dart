@@ -17,7 +17,7 @@ class Product {
   final List<String> tags;
   final List<String> size;
   final List<String>? colors;
-  final List<String>? features;
+  final List<String>? features;  
 
   Product({
     required this.id,
@@ -38,20 +38,20 @@ class Product {
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      id: json['id'],
-      name: json['name'],
-      description: json['description'],
-      price: (json['price'] as num).toDouble(),
-      stock: json['stock'],
-      sold: json['sold'],
-      seen: json['seen'],
-      favorite: json['favorite'],
-      type: json['type'],
-      imageUrl: List<String>.from(json['images_url']), // parsing List<String>
-      tags: List<String>.from(json['tags']),           // parsing List<String>
-      size: List<String>.from(json['size']), 
-      colors: List<String>.from(json['colors']),           // parsing List<String>
-      features: List<String>.from(json['features']),
+      id: json['id'] ?? "",
+      name: json['name'] ?? "",
+      description: json['description'] ?? "",
+      price: (json['price'] as num).toDouble() ?? 0.00,
+      stock: json['stock'] ?? "",
+      sold: json['sold'] ?? 0,
+      seen: json['seen'] ?? 0,
+      favorite: json['favorite'] ?? 0,
+      type: json['type'] ?? 1,
+      imageUrl: List<String>.from(json['images_url']) ?? [], // parsing List<String>
+      tags: List<String>.from(json['tags'])?? [],           // parsing List<String>
+      size: List<String>.from(json['size'])?? [], 
+      colors: json['colors'] != null ? List<String>.from(json['colors']) : [],           // parsing List<String>
+      features: json['features'] != null ? List<String>.from(json['features']): [],
     );
   }
 

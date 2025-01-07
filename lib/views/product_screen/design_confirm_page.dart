@@ -1,9 +1,11 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/model/product.dart';
 import 'package:jahit_baju/service/remote/api_service.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/viewmodels/home_view_model.dart';
+import 'package:jahit_baju/views/shipping_screen/shipping_screen.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -14,8 +16,9 @@ class DesignConfirmPage extends StatefulWidget {
   final Map<String, String> currentFeatureColor;
   final Product product;
   final String size;
+  final String customDesignSvg;
 
-  const DesignConfirmPage(
+  const DesignConfirmPage(this.customDesignSvg,
       this.html, this.currentFeatureColor, this.product, this.size,
       {super.key});
 
@@ -27,10 +30,11 @@ class _DesignConfirmPageState extends State<DesignConfirmPage> {
   late WebViewController _controller;
   late double deviceWidth;
   late Logger log;
+  ApiService apiService = ApiService();
 
   @override
   void initState() {
-    super.initState();
+    super.initState();    
     log = Logger();
     _controller = WebViewController();
     _controller.enableZoom(false);
@@ -100,7 +104,7 @@ class _DesignConfirmPageState extends State<DesignConfirmPage> {
                     backgroundColor: Colors.red,
                     padding: EdgeInsets.symmetric(vertical: 15),
                   ),
-                  onPressed: () {},
+                  onPressed: () =>buyNow(context, widget.size, widget.product),
                   child: Text(
                     "Beli Sekarang",
                     style: TextStyle(
@@ -191,12 +195,10 @@ class _DesignConfirmPageState extends State<DesignConfirmPage> {
   }
 
 
-  void addToCart() async {
-    ApiService apiService = ApiService();
-
-    var msg = await apiService.cartAdd(widget.product, 1, widget.size);
+  void addToCart() async {        
+    var msg = await apiService.cartAdd(widget.product, 1, widget.size, widget.customDesignSvg);
     Fluttertoast.showToast(msg: msg);
-    context.read<HomeViewModel>().refresh();
+    
   }
 
   Widget _textureWidget() {
@@ -213,7 +215,23 @@ class _DesignConfirmPageState extends State<DesignConfirmPage> {
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: deviceWidth * 0.03),
             ),
+            color.contains("https")?
             Container(
+              clipBehavior: Clip.hardEdge,
+              width: deviceWidth * 0.08,
+              height: deviceWidth * 0.08,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.grey, 
+              ),
+              child:CachedNetworkImage(
+                              imageUrl: color,
+                              placeholder: (context, url) => Padding(
+                                  padding: EdgeInsets.all(5),
+                                  child: CircularProgressIndicator()),
+                              fit: BoxFit.cover,
+                            ),
+            ) : Container(
               clipBehavior: Clip.hardEdge,
               width: deviceWidth * 0.08,
               height: deviceWidth * 0.08,
@@ -227,5 +245,37 @@ class _DesignConfirmPageState extends State<DesignConfirmPage> {
         }).toList(),
       ),
     );
+  }
+}
+
+
+void buyNow(BuildContext context, String size, Product? product) {
+  if (size == "" && size.isEmpty) {
+    Fluttertoast.showToast(msg: "Silakan pilih ukuran terlebih dahulu.");
+    return;
+  }
+
+  if (product == null) {
+    Fluttertoast.showToast(msg: "Terjadi kesalahan, silakan coba lagi.");
+    return;
+  }
+
+  goToShippingScreen(context, product, size);
+}
+
+
+void goToShippingScreen(BuildContext context, Product? product, String size) {
+  if (product != null) {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ShippingScreen(
+                  cart: null,
+                  product: product,
+                  size: size,
+                )));
+  } else {
+    Fluttertoast.showToast(
+        msg: "Tidak ada produk, silakan belanja terlebih dahulu.");
   }
 }

@@ -3,6 +3,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/helper/app_color.dart';
 import 'package:jahit_baju/helper/preferences.dart';
 import 'package:jahit_baju/model/product.dart';
@@ -139,7 +140,7 @@ class _SearchPageState extends State<SearchPage> {
                               ),
                         Container(
                           margin: const EdgeInsets.symmetric(horizontal: 10),
-                          child: widgetListCustom(),
+                          child: widgetListCustom(viewModel),
                         )
                       ],
                     ));
@@ -241,11 +242,11 @@ class _SearchPageState extends State<SearchPage> {
                             ),
                           ));
                     })
-                : const SizedBox(height: 100,child: Center(child: Text("Tidak ada produk Ready to wear"),))
-            : const SizedBox(height: 100,child: Center(child: Text("Tidak ada produk Ready to wear"),)));
+                : const SizedBox(height: 100,child: Center(child: Text("Tidak ada produk Siap Pakai"),))
+            : const SizedBox(height: 100,child: Center(child: Text("Tidak ada produk Siap pakai"),)));
   }
 
-  widgetListCustom() {
+  widgetListCustom(SearchViewModel viewmodel) {
     return Container(
         margin: const EdgeInsets.all(10),
         child: filteredCustom != null
@@ -262,7 +263,7 @@ class _SearchPageState extends State<SearchPage> {
                                   goToProductScreen(filteredCustom![index]);
                                 }
                               : () {
-                                  customSurvey(context);
+                                  customSurvey(context, viewmodel);
                                 },
                           child: Container(
                               width: 150,
@@ -341,7 +342,7 @@ class _SearchPageState extends State<SearchPage> {
             : const SizedBox(height: 100,child: Center(child: Text("Tidak ada produk Custom"),)));
   }
 
-  void customSurvey(BuildContext context) {
+  void customSurvey(BuildContext context, SearchViewModel viewmodel){
     String field1Answer = '';
     String field2Answer = '';
     String sourceAnswer = '';
@@ -471,8 +472,14 @@ class _SearchPageState extends State<SearchPage> {
                 if (sourceAnswer != "" &&
                     field1Answer != "" &&
                     field2Answer != "") {
-                  saveAccessCustom(true)
-                      .then((value) => Navigator.of(context).pop());
+                      var success = viewmodel.sendSurvei();
+                     if(success){
+                          saveAccessCustom(true)
+                          .then((value) => Navigator.of(context).pop());
+                        }else{
+                          Fluttertoast.showToast(msg: "Terjadi kesalahan, coba lagi.");
+                        }
+                  
                   setState(() {});
                 }
               },
@@ -484,8 +491,9 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 }
+
 Widget productShimmer(){
-  return GridView.builder(
+  return Padding(padding: EdgeInsets.all(10),child:GridView.builder(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2,mainAxisSpacing: 10),
               itemCount: 10, // Jumlah item shimmer
                 shrinkWrap: true,
@@ -533,5 +541,5 @@ Widget productShimmer(){
                   ),
                 );
               },
-            );
+            ));
 }

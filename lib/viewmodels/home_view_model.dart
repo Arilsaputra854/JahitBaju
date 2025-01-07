@@ -12,6 +12,7 @@ class HomeViewModel extends ChangeNotifier {
   Future<dynamic> getListProducts() async {
     ApiService apiService = ApiService();
     var data = await apiService.productsGet();
+    print("Data: ${data}");
     if (data is List<Product>) {
       return data;
     } else if (data is String) {
