@@ -5,6 +5,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/helper/app_color.dart';
 import 'package:jahit_baju/helper/preferences.dart';
+import 'package:jahit_baju/service/remote/api_service.dart';
+import 'package:jahit_baju/service/remote/response/survei_response.dart';
 import 'package:jahit_baju/viewmodels/home_view_model.dart';
 import 'package:jahit_baju/model/product.dart';
 import 'package:jahit_baju/util/util.dart';
@@ -576,7 +578,19 @@ void customSurvey(BuildContext context) {
           ElevatedButton(
             onPressed: () {
               if(sourceAnswer != "" && field1Answer != "" && field2Answer != ""){
-                  saveAccessCustom(true).then((value)=>Navigator.of(context).pop());
+                  sentSurveiData(sourceAnswer, field1Answer, field2Answer).then((isSuccess){
+
+                     if(isSuccess){
+
+                     saveAccessCustom(true).then((value){
+                      
+                      Fluttertoast.showToast(msg: "Survei berhasil disimpan.");
+                      Navigator.of(context).pop();});
+                     }else{
+                      Fluttertoast.showToast(msg: "Terjadi kesalahan, coba lagi.");
+                     }
+                  });
+
                   setState(() {
                     
                   });
@@ -590,4 +604,15 @@ void customSurvey(BuildContext context) {
   );
 }
 
+}
+
+Future<bool> sentSurveiData(String sourceAnswer, String field1answer, String field2answer)async {
+    ApiService apiService = ApiService();
+
+    SurveiResponse response =  await apiService.sendSurveiData(sourceAnswer, field1answer, field2answer);
+    if(response.error){
+      return false;
+    }else{
+      return true;
+    }
 }

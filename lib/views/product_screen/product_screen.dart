@@ -42,6 +42,7 @@ class _ProductScreenState extends State<ProductScreen> {
   var currentSvg = "";
 
   var updatedSvg;
+  var rendering = false;
 
   late bool isFavorited;
   late int favoriteId;
@@ -517,12 +518,12 @@ class _ProductScreenState extends State<ProductScreen> {
                       try {
                         if (currentFeature != "") {
                           setState(() {
+                            rendering = true;
                             // Mengubah warna atau texture sesuai kondisi
                             currentColor = svgColor[index];
                           });
 
-                          if (svgColor[index].contains("https")) {
-                            print("Texture apply");
+                          if (svgColor[index].contains("https")) {                            
 
                             // Ambil dan konversi gambar ke Base64
                             String? base64Image =
@@ -532,8 +533,7 @@ class _ProductScreenState extends State<ProductScreen> {
                               updatedSvg = addPatternToSvg(
                                   currentSvg, base64Image, currentFeature!);
                             }
-                          } else {
-                            print("Color apply");
+                          } else {                            
 
                             // Jika tidak ada URL gambar, lakukan perubahan warna biasa
                             updatedSvg = updateFillColorByIdWithColor(
@@ -542,6 +542,7 @@ class _ProductScreenState extends State<ProductScreen> {
 
                           // Setelah selesai, update currentSvg
                           setState(() {
+                            rendering = false;
                             currentFeatureColor[currentFeature!] =
                                 currentColor!;
                             currentSvg = updatedSvg;
@@ -653,7 +654,9 @@ class _ProductScreenState extends State<ProductScreen> {
           future: fetchSvg(widget.product.imageUrl.first),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return CircularProgressIndicator();
+              return Container(
+                width: deviceWidth * 0.65,
+                height: 400, child: Center(child: CircularProgressIndicator(),));
             }
             if (snapshot.hasData) {
               currentSvg = snapshot.data!;
@@ -695,7 +698,7 @@ class _ProductScreenState extends State<ProductScreen> {
                 child: WebViewWidget(
                   controller: _controller,
                   gestureRecognizers: Set(),
-                ));
+                ),);
           });
     }
 
@@ -734,10 +737,15 @@ class _ProductScreenState extends State<ProductScreen> {
         width: deviceWidth * 0.65,
         height: 400,
         padding: EdgeInsets.all(10),
-        child: WebViewWidget(
-          controller: _controller,
-          gestureRecognizers: Set(),
-        ));
+        child: Stack(
+                  children: [
+                    WebViewWidget(
+                  controller: _controller,
+                  gestureRecognizers: Set(),
+                ),
+                  rendering ? Center(child: CircularProgressIndicator(),) : SizedBox()
+                  ],
+                ));
   }
 
   Future<String?> fetchAndConvertToBase64(String imageUrl) async {

@@ -30,6 +30,8 @@ class _DesignConfirmPageState extends State<DesignConfirmPage> {
   late WebViewController _controller;
   late double deviceWidth;
   late Logger log;
+
+  bool purchaseLoading = false;
   ApiService apiService = ApiService();
 
   @override
@@ -67,28 +69,28 @@ class _DesignConfirmPageState extends State<DesignConfirmPage> {
                     backgroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(vertical: 15),
                   ),
-                  onPressed: () {
-                    addToCart();
-                  },
+                  onPressed:purchaseLoading ? null: () =>
+                    addToCart()
+                  ,
                   child: Wrap(
                     alignment: WrapAlignment.center,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     spacing: 5, // Jarak antara ikon dan teks
                     children: [
                       Icon(
-                        Icons.shopping_bag,
-                        color: Colors.black,
-                      ),
-                      Text(
-                        "Tambah ke Keranjang",
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        softWrap:
-                            true, // Agar teks membungkus jika tidak cukup ruang
-                        textAlign: TextAlign.center,
-                      ),
+                              Icons.shopping_bag,
+                              color: purchaseLoading?const Color.fromARGB(255, 95, 92, 92) :Colors.black,
+                            ),
+                            Text(
+                              "Tambah ke Keranjang",
+                              style: TextStyle(
+                                color: purchaseLoading?const Color.fromARGB(255, 95, 92, 92) :Colors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              softWrap:
+                                  true, 
+                              textAlign: TextAlign.center,
+                            ),
                     ],
                   ),
                 ),
@@ -101,14 +103,14 @@ class _DesignConfirmPageState extends State<DesignConfirmPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    backgroundColor: Colors.red,
+                    backgroundColor: purchaseLoading? Colors.grey : Colors.red,
                     padding: EdgeInsets.symmetric(vertical: 15),
                   ),
-                  onPressed: () =>buyNow(context, widget.size, widget.product),
+                  onPressed:purchaseLoading ? null: () =>buyNow(context, widget.size, widget.product),
                   child: Text(
                     "Beli Sekarang",
                     style: TextStyle(
-                      color: Colors.white,
+                      color: purchaseLoading?const Color.fromARGB(255, 95, 92, 92) :Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
                     softWrap: true, // Agar teks membungkus jika terlalu panjang
@@ -196,9 +198,19 @@ class _DesignConfirmPageState extends State<DesignConfirmPage> {
 
 
   void addToCart() async {        
+    setState(() {
+      purchaseLoading = true;
+    });
+
     var msg = await apiService.cartAdd(widget.product, 1, widget.size, widget.customDesignSvg);
     Fluttertoast.showToast(msg: msg);
+    setState(() {
+      purchaseLoading = true;
+    });
     
+    setState(() {
+      purchaseLoading = false;
+    });
   }
 
   Widget _textureWidget() {

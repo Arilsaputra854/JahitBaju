@@ -140,7 +140,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             }
                           },
                           child: const Text(
-                            "Kirim Kode",
+                            "Selanjutnya",
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 20),
                           )),

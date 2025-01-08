@@ -6,7 +6,8 @@ import 'package:jahit_baju/views/login/login_screen.dart';
 import 'package:provider/provider.dart';
 
 class ResetPassword extends StatefulWidget {
-  const ResetPassword({super.key});
+  final String token;
+  const ResetPassword(this.token, {super.key});
 
   @override
   State<ResetPassword> createState() => _ResetPasswordState();
@@ -36,6 +37,7 @@ class _ResetPasswordState extends State<ResetPassword> {
 
   @override
   Widget build(BuildContext context) {
+
     deviceWidth = MediaQuery.of(context).size.width;
     deviceHeight = MediaQuery.of(context).size.height;
 
@@ -135,16 +137,18 @@ class _ResetPasswordState extends State<ResetPassword> {
                             backgroundColor: Colors.white),
                         onPressed: () {
                           if (formKey.currentState!.validate()) {
-                            viewModel.changePassword();
+                            viewModel.changePassword(widget.token);
                             if (viewModel.errorMsg != null) {
                               Fluttertoast.showToast(
                                   msg: viewModel.errorMsg.toString());
+                            }else{
+                              Fluttertoast.showToast(msg:"Password berhasil diganti!");
+                              goToLoginScreen();
                             }
-                            goToLoginScreen();
                           }
                         },
                         child: const Text(
-                          "Login",
+                          "Ganti Password",
                           style: TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 20),
                         )),

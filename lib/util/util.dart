@@ -5,6 +5,7 @@ import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:jahit_baju/service/remote/api_service.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 String convertToRupiah(dynamic value) {
   String converted = "";
@@ -19,6 +20,43 @@ String convertToRupiah(dynamic value) {
   return converted;
 }
 
+Widget svgViewer(String svg){  
+  WebViewController controller =WebViewController();  
+  var htmlContent = '''
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+              <meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=1, user-scalable=0">
+              <style>
+                body {
+                  margin: 0;
+                  padding: 0;
+                  overflow: hidden; /* Disable scrolling */
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  height: 100vh;
+                }
+                svg {
+                  max-width: 100%;
+                  max-height: 100%;
+                  display: block;
+                  margin: auto;
+                }
+              </style>
+            </head>
+            <body>
+              $svg
+            </body>
+            </html>
+            ''';
+    controller.loadHtmlString(htmlContent);
+          
+    return WebViewWidget(      
+                  controller: controller,
+                  gestureRecognizers: Set(),
+                );
+}
 
 // Future<void> checkConnection(BuildContext context) async {
 //   // Cek status koneksi internet

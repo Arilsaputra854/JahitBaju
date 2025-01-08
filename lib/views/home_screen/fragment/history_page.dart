@@ -287,29 +287,8 @@ class _HistoryPageState extends State<HistoryPage> {
                                                                         ));
                                                               },
                                                             )
-                                                          : order.items[index].customDesign != null ? SvgPicture.string(
-                                                              order.items[index].customDesign!,
-                                                              placeholderBuilder:
-                                                                  (context) {
-                                                                return Shimmer
-                                                                    .fromColors(
-                                                                        baseColor:
-                                                                            Colors.grey[
-                                                                                300]!,
-                                                                        highlightColor:
-                                                                            Colors.grey[
-                                                                                100]!,
-                                                                        child:
-                                                                            Container(
-                                                                          width:
-                                                                              double.infinity,
-                                                                          height:
-                                                                              double.infinity,
-                                                                          color:
-                                                                              Colors.grey,
-                                                                        ));
-                                                              },
-                                                            ) : SvgPicture.network(
+                                                          : order.items[index].customDesign != null ?
+                                                          svgViewer(order.items[index].customDesign!): SvgPicture.network(
                                                               product.imageUrl
                                                                   .first,
                                                               placeholderBuilder:

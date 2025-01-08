@@ -13,7 +13,9 @@ import 'package:jahit_baju/model/user.dart';
 import 'package:jahit_baju/service/remote/response/favorite_response.dart';
 import 'package:jahit_baju/service/remote/response/login_response.dart';
 import 'package:jahit_baju/service/remote/response/order_response.dart';
+import 'package:jahit_baju/service/remote/response/otp_response.dart';
 import 'package:jahit_baju/service/remote/response/size_guide_response.dart';
+import 'package:jahit_baju/service/remote/response/survei_response.dart';
 import 'package:logger/web.dart';
 
 import 'response/term_condition_response.dart';
@@ -23,7 +25,7 @@ class ApiService {
   // final String baseUrl =
   //     "https://jahit-baju-backend-936228436122.asia-east1.run.app/api/";
   final String baseUrl =
-      "http://192.168.1.155:3000/api/";
+      "http://192.168.1.13:3000/api/";
   TokenStorage tokenStorage = TokenStorage();
   Logger logger = Logger();
 
@@ -114,10 +116,13 @@ class ApiService {
   }
 
   Future<UserResponse> userUpdate(String? name, String? email, String? password,
-      String? imageUrl, String? address, String? phoneNumber) async {
+      String? imageUrl, String? address, String? phoneNumber, {String? resetToken}) async {
     final url = Uri.parse("${baseUrl}users/current");
 
-    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+    String? token = resetToken ?? await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+
+    
+    logger.d("Token: ${token}");
 
     try {
       
@@ -201,7 +206,7 @@ class ApiService {
     }
   }
 
-  Future<LoginResponse> userRequestOtp() async {
+  Future<OtpResponse> userRequestOtp() async {
     final url = Uri.parse("${baseUrl}users/current/request-otp/");
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
@@ -217,14 +222,70 @@ class ApiService {
       var data = jsonDecode(response.body);
       logger.d("User Request OTP : ${data}");
 
-      LoginResponse responseBody = LoginResponse.fromJson(data);
+      OtpResponse responseBody = OtpResponse.fromJson(data);
       return responseBody;
     } catch (e) {
       logger.e("User Request OTP : $e");
 
+      return OtpResponse(message: "Network error : $e", error: true);
+    }
+  }
+
+
+  Future<OtpResponse> userResetEmailVerify(String email, String otp) async {
+    final url = Uri.parse("${baseUrl}users/verify-reset-otp");    
+    try {
+      final response = await http.post(
+        url,
+        headers: <String, String>{
+          'Content-Type': 'application/json',          
+        },
+        body: jsonEncode(<String, String>{
+          'email': email,
+          'otp': otp,
+        }),
+      );
+
+      var data = jsonDecode(response.body);
+
+      logger.d("User Reset Email Verify : $data");
+
+      OtpResponse responseBody = OtpResponse.fromJson(data);
+
+      return responseBody;
+    } catch (e) {
+      logger.e("User Reset Email Verify : $e");
+
+      return OtpResponse(message: "Network error : $e", error: true);
+    }
+  }
+
+  Future<LoginResponse> userResetRequestOtp(String email) async {
+    final url = Uri.parse("${baseUrl}users/request-reset-otp");
+    
+    try {
+      final response = await http.post(
+        url,
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(<String,String>{
+          'email': email,
+        }
+      ));
+
+      var data = jsonDecode(response.body);
+      logger.d("User Reset Request OTP : ${data}");
+
+      LoginResponse responseBody = LoginResponse.fromJson(data);
+      return responseBody;
+    } catch (e) {
+      logger.e("User Reset Request OTP : $e");
+
       return LoginResponse(message: "Network error : $e", error: true);
     }
   }
+
 
   Future<OrderResponse> buyNow(Order order) async {
     final url = Uri.parse("${baseUrl}order");
@@ -687,4 +748,37 @@ class ApiService {
       return "Network error : $e";
     }
   }
+
+
+  Future<SurveiResponse> sendSurveiData(String question1, String question2, String question3) async {
+    final url = Uri.parse("${baseUrl}survei-custom");
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+    
+    try {
+      final response = await http.post(
+        url,
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': '${token}'
+        },
+        body: jsonEncode(<String,String>{
+          'question_1': question1,
+          'question_2': question2,
+          'question_3': question3,
+        }
+      ));
+
+      var data = jsonDecode(response.body);
+      logger.d("Send User Data : ${data}");
+
+      SurveiResponse responseBody = SurveiResponse.fromJson(data);
+      return responseBody;
+    } catch (e) {
+      logger.e("Send User Data : $e");
+
+      return SurveiResponse(message: "Network error : $e", error: true);
+    }
+  }
+
+
 }

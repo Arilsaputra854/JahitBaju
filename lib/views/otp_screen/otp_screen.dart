@@ -1,8 +1,11 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/service/remote/api_service.dart';
 import 'package:jahit_baju/service/remote/response/login_response.dart';
+import 'package:jahit_baju/service/remote/response/otp_response.dart';
 import 'package:jahit_baju/views/home_screen/home_screen.dart';
 import 'package:jahit_baju/views/login/login_screen.dart';
 import 'package:jahit_baju/views/reset_password/reset_password.dart';
@@ -76,7 +79,9 @@ class _ResetPasswordState extends State<OtpScreen> {
               child: SizedBox(
                 width: deviceWidth * 0.8,
                 height: deviceHeight * 0.8,
-                child: SingleChildScrollView(child: _otpWidget(),),
+                child: SingleChildScrollView(
+                  child: _otpWidget(),
+                ),
               ),
             ))
       ],
@@ -108,7 +113,7 @@ class _ResetPasswordState extends State<OtpScreen> {
           ),
           OtpTextField(
             numberOfFields: 4,
-            fieldWidth: deviceWidth* 0.15,
+            fieldWidth: deviceWidth * 0.15,
             showFieldAsBox: true,
             fillColor: Colors.white,
             focusedBorderColor: Color(0xFFBB5E44),
@@ -136,32 +141,72 @@ class _ResetPasswordState extends State<OtpScreen> {
                         backgroundColor: Colors.white),
                     onPressed: requestOTP
                         ? () async {
-                            var response = await apiService.userRequestOtp();
-                            Fluttertoast.showToast(msg: "${response.message!}");
-                            if (response.toString().isNotEmpty) {
-                              setState(() {
-                                requestOTP = false;
-                              });
-                            
-                              
-                            } else {
-                              Fluttertoast.showToast(msg: response.message!);
+                            if (widget.type == OtpScreen.RESET_PASSWORD) {
+                              var response = await apiService
+                                  .userResetRequestOtp(widget.email);
+                              Fluttertoast.showToast(
+                                  msg: "${response.message!}");
+                              if (response.toString().isNotEmpty) {
+                                setState(() {
+                                  requestOTP = false;
+                                });
+                              } else {
+                                Fluttertoast.showToast(msg: response.message!);
+                              }
+                            } else if (widget.type == OtpScreen.REGISTER) {
+                              OtpResponse response =
+                                  await apiService.userRequestOtp();
+                              Fluttertoast.showToast(
+                                  msg: "${response.message!}");
+                              if (response.error != null) {
+                                Fluttertoast.showToast(msg: response.message!);
+                                if (response.error!) {
+                                  setState(() {
+                                    requestOTP = true;
+                                  });
+                                } else {
+                                  setState(() {
+                                    requestOTP = false;
+                                  });
+                                }
+                              } else {
+                                Fluttertoast.showToast(msg: response.message!);
+                              }
                             }
-
                           }
                         : () async {
-                            LoginResponse response = await apiService
-                                .userEmailVerify(currentOtp.toString());
+                            if (widget.type == OtpScreen.RESET_PASSWORD) {
+                              OtpResponse response =
+                                  await apiService.userResetEmailVerify(
+                                      widget.email, currentOtp.toString());
 
-                                if(response.error){
-
-                                   Fluttertoast.showToast(msg: response.message!);
-                                }else{
-
-                            Fluttertoast.showToast(
-                                msg: "Verifikasi email berhasil!");
-                                goToHomeScreen();
+                              if (response.error != null) {
+                                if (response.error!) {
+                                  Fluttertoast.showToast(
+                                      msg: response.message!);
+                                } else {
+                                  if (response.token != null) {
+                                    goToResetPasswordScreen(response.token!);
+                                    Fluttertoast.showToast(
+                                        msg: "Verifikasi email berhasil!");
+                                  }
                                 }
+                              }else{
+                                Fluttertoast.showToast(
+                                        msg: "Terjadi kesalahan!");
+                              }
+                            } else if (widget.type == OtpScreen.REGISTER) {
+                              LoginResponse response = await apiService
+                                  .userEmailVerify(currentOtp.toString());
+
+                              if (response.error) {
+                                Fluttertoast.showToast(msg: response.message!);
+                              } else {
+                                Fluttertoast.showToast(
+                                    msg: "Verifikasi email berhasil!");
+                                goToHomeScreen();
+                              }
+                            }
                           },
                     child: Text(
                       requestOTP ? "Minta Kode" : "Aktivasi",
@@ -176,26 +221,25 @@ class _ResetPasswordState extends State<OtpScreen> {
     );
   }
 
-  goToResetPasswordScreen() {
+  goToResetPasswordScreen(String token) {
     Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (context) => ResetPassword()));
+        context, MaterialPageRoute(builder: (context) => ResetPassword(token)));
   }
+
   void goToHomeScreen() {
     Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => HomeScreen()),
         (Route<dynamic> route) => false);
   }
-  
+
   countdown() {
     return Center(
-            child: Text(
-              "00:00",
-              style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.normal,
-                  color: Colors.white),
-            ),
-          );
+      child: Text(
+        "00:00",
+        style: TextStyle(
+            fontSize: 20, fontWeight: FontWeight.normal, color: Colors.white),
+      ),
+    );
   }
 }
