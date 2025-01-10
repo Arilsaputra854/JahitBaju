@@ -443,8 +443,8 @@ class _ProductScreenState extends State<ProductScreen> {
 
   addToCart() async {
     setState(() {
-      purchaseLoading = true;
-    });
+        purchaseLoading = true;
+      });
     ApiService apiService = ApiService();
 
     if (_selectedSize != "" && _selectedSize.isNotEmpty) {
@@ -454,6 +454,7 @@ class _ProductScreenState extends State<ProductScreen> {
       });
       Fluttertoast.showToast(msg: msg);
     } else {
+      
       Fluttertoast.showToast(msg: "Silakan pilih ukuran terlebih dahulu");
     }
   }
@@ -814,6 +815,7 @@ class _ProductScreenState extends State<ProductScreen> {
           return GestureDetector(
             onTap: () {
               setState(() {
+                purchaseLoading = false;
                 _selectedSize = size; // Update ukuran yang dipilih
               });
             },

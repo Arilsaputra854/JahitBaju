@@ -12,6 +12,8 @@ import 'package:jahit_baju/views/cart_screen/cart_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../home_screen/home_screen.dart';
+
 class PaymentScreen extends StatefulWidget {
   Order? order;
   PaymentScreen({required this.order, super.key});
@@ -153,7 +155,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Widget paymentSuccess() {
 
     Future.delayed(Duration(seconds: 2),() {
-      Navigator.pop(context);
+        Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => HomeScreen()),
+        (route) => false, // Menghapus semua aktivitas sebelumnya
+      );
       context.read<HomeViewModel>().refresh();  
     },);
 

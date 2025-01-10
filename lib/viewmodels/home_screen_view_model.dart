@@ -9,25 +9,27 @@ class HomeScreenViewModel extends ChangeNotifier {
   late TokenStorage tokenStorage = TokenStorage();
 
   String? _errorMsg;
-
   String? get errorMsg => _errorMsg;
+  int _cartSize = 0;
+  int get cartSize => _cartSize;
 
-  Future<int> getCartItemSize() async {
-  String? token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
-  int value = 0;
-  
+  Future<void> getCartItemSize() async {
+    String? token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
-  // if (token != null) {
-  //   var response = await apiService.cartGet(); // Tunggu hasilnya
-  //   if (response is Cart) {
-  //     value = response.items.length;
-  //   }
-  // }
+    int value = 0;
 
-  notifyListeners();
-  return value;
-}
+    if (token != null) {
+      var response = await apiService.cartGet(); 
+      if (response is Cart) {
+        value = response.items.length;      
+        print("Cart Size ViewModel :${value}");
+      }
+    }
+
+    notifyListeners();
+    _cartSize = value;
+  }
 
 
   void refresh() {

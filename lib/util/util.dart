@@ -20,6 +20,7 @@ String convertToRupiah(dynamic value) {
   return converted;
 }
 
+
 Widget svgViewer(String svg){  
   WebViewController controller =WebViewController();  
   var htmlContent = '''

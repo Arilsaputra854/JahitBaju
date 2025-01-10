@@ -2,7 +2,7 @@
 class SurveiResponse {
   bool error;
   String? message;
-  int? id;
+  String? id;
 
   SurveiResponse({
     required this.error,
@@ -14,7 +14,7 @@ class SurveiResponse {
     return SurveiResponse(
       error: json['error'] ?? false,
       message: json['message'] ?? "",     
-      id: json['data'] != null ? json['data']['id'] as int : null,     
+      id: json['data'] != null ? json['data']['id'] as String : null,     
     );
   }
 }

@@ -22,10 +22,10 @@ import 'response/term_condition_response.dart';
 import 'response/user_response.dart';
 
 class ApiService {
-  // final String baseUrl =
-  //     "https://jahit-baju-backend-936228436122.asia-east1.run.app/api/";
   final String baseUrl =
-      "http://192.168.1.13:3000/api/";
+      "https://jahit-baju-backend-936228436122.asia-east1.run.app/api/";
+  // final String baseUrl =
+  //     "http://192.168.1.13:3000/api/";
   TokenStorage tokenStorage = TokenStorage();
   Logger logger = Logger();
 

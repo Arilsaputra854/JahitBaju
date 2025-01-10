@@ -18,7 +18,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _indexPage = 0;
   late int cartItemSize;
-
+  late HomeScreenViewModel viewModel;
   final List<Widget> page = [
     HomePage(),
     SearchPage(),
@@ -36,14 +36,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    viewModel  = context.read<HomeScreenViewModel>();
+
     cartItemSize = 0;
   }
-
-  @override
-  void didChangeDependencies() {
-    updateCartItemSize();
-    super.didChangeDependencies();
-  }
+  
 
   @override
 Widget build(BuildContext context) {
@@ -58,16 +55,10 @@ Widget build(BuildContext context) {
       centerTitle: false,
       backgroundColor: Colors.white,
       actions: [
-        Consumer<HomeScreenViewModel>(
-          builder: (context, viewModel, child) {
-            return FutureBuilder<int>(
-              future: viewModel.getCartItemSize(),
-              builder: (context, snapshot) {                
-                return cartIcon(snapshot.data ?? 0); 
-              },
-            );
-          },
-        ),
+        Consumer<HomeScreenViewModel>(builder: (context, vm, child) {
+          print("Cart Size: ${vm.cartSize}");
+          return cartIcon(vm.cartSize);
+        },) 
       ],
     ),
     body: page[_indexPage],
@@ -90,7 +81,10 @@ Widget build(BuildContext context) {
 
   goToCartScreen() {
     Navigator.push(
-        context, MaterialPageRoute(builder: (context) => CartScreen()));
+        context, MaterialPageRoute(builder: (context) => CartScreen())).then((value){
+
+      updateCartItemSize();
+        });
   }
 
   Widget cartIcon(int itemCount) {
@@ -132,8 +126,7 @@ Widget build(BuildContext context) {
         ));
   }
 
-  void updateCartItemSize() async {
-
-    setState(() {});
+  void updateCartItemSize() async {            
+    await viewModel.getCartItemSize();   
   }
 }

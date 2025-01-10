@@ -29,95 +29,102 @@ class _HistoryPageState extends State<HistoryPage> {
     deviceHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+        backgroundColor: Colors.white,
         body: RefreshIndicator(
-      child: Container(
-            width: deviceWidth,
-            margin: EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "History",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
-                ),
-                SizedBox(height: 5),
-                FutureBuilder(
-                  future: getOrder(),
-                  builder: (context, snapshot) {
-                    //if fetch success
-                    if (snapshot.hasData) {
-                      orders = snapshot.data!;
-                      Map<String, List<Order?>> groupedOrders =
-                          sortOrderWithDate(orders);
-                      //if data exists
-                      if (orders.isNotEmpty) {
-                        return Expanded(child: ListView.builder(
-                          itemCount: groupedOrders.keys.length,
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          itemBuilder: (context, dateIndex) {
-                            String dateKey =
-                                groupedOrders.keys.elementAt(dateIndex);
-                            List<Order?> ordersByDate = groupedOrders[dateKey]!;
+          child: SingleChildScrollView(
+            child: Container(
+                width: deviceWidth,
+                margin: EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "History",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 30),
+                      ),
+                      SizedBox(height: 5),
+                      FutureBuilder(
+                        future: getOrder(),
+                        builder: (context, snapshot) {
+                          //if fetch success
+                          if (snapshot.hasData) {
+                            orders = snapshot.data!;
+                            Map<String, List<Order?>> groupedOrders =
+                                sortOrderWithDate(orders);
+                            //if data exists
+                            if (orders.isNotEmpty) {
+                              return ListView.builder(
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: groupedOrders.keys.length,
+                                shrinkWrap: true,
+                                itemBuilder: (context, dateIndex) {
+                                  String dateKey =
+                                      groupedOrders.keys.elementAt(dateIndex);
+                                  List<Order?> ordersByDate =
+                                      groupedOrders[dateKey]!;
 
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 2.0),
-                                  child: Text(
-                                    DateFormat('EEEE, dd MMMM yyyy')
-                                        .format(DateTime.parse(dateKey)),
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.normal,
-                                        fontSize: 16),
-                                  ),
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 2.0),
+                                        child: Text(
+                                          DateFormat('EEEE, dd MMMM yyyy')
+                                              .format(DateTime.parse(dateKey)),
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.normal,
+                                              fontSize: 16),
+                                        ),
+                                      ),
+                                      ListView.builder(
+                                        itemCount: ordersByDate.length,
+                                        shrinkWrap: true,
+                                        physics:
+                                            const NeverScrollableScrollPhysics(),
+                                        itemBuilder: (context, orderIndex) {
+                                          Order? order =
+                                              ordersByDate[orderIndex];
+                                          return _buildCartItem(order!);
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            } else {
+                              //if data is empty
+                              return Container(
+                                height: deviceHeight * 0.5,
+                                child: const Center(
+                                  child: Text("Tidak ada history"),
                                 ),
-                                ListView.builder(
-                                  itemCount: ordersByDate.length,
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemBuilder: (context, orderIndex) {
-                                    Order? order = ordersByDate[orderIndex];
-                                    return _buildCartItem(order!);
-                                  },
-                                ),
-                              ],
+                              );
+                            }
+                          } else if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            //if status is fetching data from server
+                            return itemCartShimmer();
+                          } else {
+                            return Container(
+                              height: deviceHeight * 0.5,
+                              child: const Center(
+                                child: Text("Tidak ada history"),
+                              ),
                             );
-                          },
-                        ));
-                      } else {
-                        //if data is empty
-                        return Container(
-                          height: deviceHeight*0.5,
-                          child: const Center(
-                            child: Text("Tidak ada history"),
-                          ),
-                        );
-                      }
-                      
-                    } else if (snapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      //if status is fetching data from server
-                      return itemCartShimmer();
-                    } else {
-                      return Container(
-                          height: deviceHeight*0.5,
-                          child: const Center(
-                            child: Text("Tidak ada history"),
-                          ),
-                        );
-                    }
-                  },
-                )
-              ],
-            ),
-          ),
-      onRefresh: () async {
-        setState(() {});
-      },
-    ));
+                          }
+                        },
+                      )
+                    ],
+                  ),
+                )),
+          
+          onRefresh: () async {
+            setState(() {});
+          },
+        ));
   }
 
   Map<String, List<Order?>> sortOrderWithDate(List<Order?> orders) {
@@ -134,7 +141,11 @@ class _HistoryPageState extends State<HistoryPage> {
       }
     }
 
-    return sortedOrders;
+    Map<String, List<Order?>> sortedDescending = Map.fromEntries(
+      sortedOrders.entries.toList()..sort((a, b) => b.key.compareTo(a.key)),
+    );
+
+    return sortedDescending;
   }
 
   Widget itemCartShimmer() {
@@ -209,7 +220,8 @@ class _HistoryPageState extends State<HistoryPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -218,25 +230,27 @@ class _HistoryPageState extends State<HistoryPage> {
                               style: const TextStyle(
                                   fontSize: 8, fontWeight: FontWeight.bold),
                             ),
-                            order.orderStatus == Order.WAITING_FOR_PAYMENT ? InkWell(                              
-                                onTap: () => _deleteOrder(order.id),
-                                child: Text(
-                                  "Cancel",
-                                  style: const TextStyle(
-                                    color: AppColor.primary,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold),
-                                )) : Container()
+                            order.orderStatus == Order.WAITING_FOR_PAYMENT
+                                ? InkWell(
+                                    onTap: () => _deleteOrder(order.id),
+                                    child: Text(
+                                      "Cancel",
+                                      style: const TextStyle(
+                                          color: AppColor.primary,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold),
+                                    ))
+                                : Container()
                           ],
                         )),
                     ListView.builder(
+                      physics: NeverScrollableScrollPhysics(),
                         itemCount: order.items.length,
                         shrinkWrap: true,
                         itemBuilder: (context, index) {
                           return FutureBuilder<Product>(
                               future: getProduct(order.items[index].productId),
                               builder: (context, snapshot) {
-
                                 if (snapshot.hasData) {
                                   Product product = snapshot.data!;
                                   return Row(
@@ -256,39 +270,40 @@ class _HistoryPageState extends State<HistoryPage> {
                                                           Radius.circular(8)),
                                               child: AspectRatio(
                                                   aspectRatio: 4 / 5,
-                                                  child:
-                                                      product.type ==
-                                                              Product
-                                                                  .READY_TO_WEAR
-                                                          ? CachedNetworkImage(
-                                                              imageUrl: product
-                                                                  .imageUrl
-                                                                  .first,
-                                                              fit: BoxFit.cover,
-                                                              placeholder:
-                                                                  (context,
-                                                                      url) {
-                                                                return Shimmer
-                                                                    .fromColors(
-                                                                        baseColor:
-                                                                            Colors.grey[
-                                                                                300]!,
-                                                                        highlightColor:
-                                                                            Colors.grey[
-                                                                                100]!,
-                                                                        child:
-                                                                            Container(
-                                                                          width:
-                                                                              double.infinity,
-                                                                          height:
-                                                                              double.infinity,
-                                                                          color:
-                                                                              Colors.grey,
-                                                                        ));
-                                                              },
-                                                            )
-                                                          : order.items[index].customDesign != null ?
-                                                          svgViewer(order.items[index].customDesign!): SvgPicture.network(
+                                                  child: product.type ==
+                                                          Product.READY_TO_WEAR
+                                                      ? CachedNetworkImage(
+                                                          imageUrl: product
+                                                              .imageUrl.first,
+                                                          fit: BoxFit.cover,
+                                                          placeholder:
+                                                              (context, url) {
+                                                            return Shimmer
+                                                                .fromColors(
+                                                                    baseColor:
+                                                                        Colors.grey[
+                                                                            300]!,
+                                                                    highlightColor:
+                                                                        Colors.grey[
+                                                                            100]!,
+                                                                    child:
+                                                                        Container(
+                                                                      width: double
+                                                                          .infinity,
+                                                                      height: double
+                                                                          .infinity,
+                                                                      color: Colors
+                                                                          .grey,
+                                                                    ));
+                                                          },
+                                                        )
+                                                      : order.items[index]
+                                                                  .customDesign !=
+                                                              null
+                                                          ? svgViewer(order
+                                                              .items[index]
+                                                              .customDesign!)
+                                                          : SvgPicture.network(
                                                               product.imageUrl
                                                                   .first,
                                                               placeholderBuilder:
@@ -391,7 +406,7 @@ class _HistoryPageState extends State<HistoryPage> {
     ApiService apiService = ApiService();
 
     OrderResponse orders = await apiService.orderGet();
-    
+
     if (orders.data is List<Order>) {
       return orders.data;
     } else {
@@ -410,18 +425,14 @@ class _HistoryPageState extends State<HistoryPage> {
         MaterialPageRoute(builder: (context) => PaymentScreen(order: order)));
   }
 
-
-  _deleteOrder(String? id)async{
+  _deleteOrder(String? id) async {
     ApiService apiService = ApiService();
     OrderResponse response = await apiService.orderDelete(id);
-    if(response.error){
+    if (response.error) {
       Fluttertoast.showToast(msg: response.message!);
-    }else{      
+    } else {
       Fluttertoast.showToast(msg: response.message!);
-      setState(() {
-        
-      });
+      setState(() {});
     }
-    
   }
 }

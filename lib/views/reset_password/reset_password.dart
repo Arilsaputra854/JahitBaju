@@ -66,12 +66,12 @@ class _ResetPasswordState extends State<ResetPassword> {
               backgroundColor: Colors.transparent,
               body: Consumer<ResetPasswordViewModel>(
                   builder: (context, viewModel, child) {
-                return Center(
+                return SingleChildScrollView(child: Center(
                   child: SizedBox(
                     width: deviceWidth * 0.8,
                     child: registerForm(),
                   ),
-                );
+                ),);
               }),
             )
           ],

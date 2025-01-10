@@ -13,6 +13,8 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+
+
   var init = true;
 
   @override
@@ -30,6 +32,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     readUserToken();
     super.initState();
+
   }
 
   @override
@@ -71,4 +74,5 @@ class _SplashScreenState extends State<SplashScreen> {
       });
     }
   }
+  
 }

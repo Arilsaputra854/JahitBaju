@@ -157,8 +157,8 @@ class _HomePageState extends State<HomePage> {
                   itemCount: tags?.length,
                   itemBuilder: (context, index) {
                     return Container(
-                      width: deviceWidth  * 0.15,
-                      height: deviceWidth  * 0.15,
+                      width: deviceWidth  * 0.17,
+                      height: deviceWidth  * 0.17,
                       margin: EdgeInsets.symmetric(horizontal: deviceWidth  * 0.02),
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,

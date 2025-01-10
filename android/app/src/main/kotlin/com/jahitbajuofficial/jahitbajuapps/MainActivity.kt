@@ -1,4 +1,4 @@
-package com.example.jahit_baju
+package com.jahitbajuofficial.jahitbajuapps
 
 import io.flutter.embedding.android.FlutterActivity
 

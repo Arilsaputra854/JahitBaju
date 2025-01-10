@@ -9,6 +9,7 @@ import 'package:jahit_baju/helper/preferences.dart';
 import 'package:jahit_baju/model/product.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/viewmodels/search_view_model.dart';
+import 'package:jahit_baju/views/home_screen/fragment/home_page.dart';
 import 'package:jahit_baju/views/product_screen/product_screen.dart';
 import 'package:logger/web.dart';
 import 'package:provider/provider.dart';
@@ -181,8 +182,12 @@ class _SearchPageState extends State<SearchPage> {
         child: filteredRTW != null
             ? filteredRTW!.isNotEmpty
                 ? GridView.builder(
+                  physics: NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      childAspectRatio: 0.7,
+                      crossAxisSpacing: 10.0,     // Jarak antar item di sumbu horizontal (kanan)
+  mainAxisSpacing: 10.0,      
                         crossAxisCount: 2),
                     itemCount: filteredRTW?.length,
                     itemBuilder: (context, index) {
@@ -191,17 +196,14 @@ class _SearchPageState extends State<SearchPage> {
                             goToProductScreen(filteredRTW![index]);
                           },
                           child: Container(
-                            width: 150,
-                            height: 200,
-                            margin: const EdgeInsets.symmetric(horizontal: 5),
+                            
                             decoration: BoxDecoration(
                                 color: Colors.white,
                                 border: Border.all(width: 1)),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Expanded(
-                                    child: Center(
+                                Expanded(child: Center(
                                   child: CachedNetworkImage(
                                     imageUrl: filteredRTW![index].imageUrl[0],
                                     placeholder: (context, url) {
@@ -216,7 +218,7 @@ class _SearchPageState extends State<SearchPage> {
                                     },
                                     fit: BoxFit.cover,
                                   ),
-                                )),
+                                ),),
                                 Container(
                                     margin: EdgeInsets.all(5),
                                     child: Column(
@@ -228,7 +230,7 @@ class _SearchPageState extends State<SearchPage> {
                                           filteredRTW![index].name,
                                           style: TextStyle(
                                               fontWeight: FontWeight.bold,
-                                              fontSize: deviceWidth * 0.03),
+                                              fontSize: deviceWidth * 0.04),
                                         ),
                                         Text(
                                           convertToRupiah(
@@ -253,7 +255,11 @@ class _SearchPageState extends State<SearchPage> {
             ? filteredCustom!.isNotEmpty
                 ? GridView.builder(
                     shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      childAspectRatio: 0.7,
+                      crossAxisSpacing: 10.0,
+  mainAxisSpacing: 10.0,      
                         crossAxisCount: 2),
                     itemCount: filteredCustom?.length,
                     itemBuilder: (context, index) {
@@ -267,7 +273,6 @@ class _SearchPageState extends State<SearchPage> {
                                 },
                           child: Container(
                               width: 150,
-                              margin: const EdgeInsets.symmetric(horizontal: 5),
                               decoration: BoxDecoration(
                                   color: Colors.white,
                                   border: Border.all(width: 1)),
@@ -310,16 +315,16 @@ class _SearchPageState extends State<SearchPage> {
                                             children: [
                                               Text(
                                                 filteredCustom![index].name,
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                     fontWeight: FontWeight.bold,
-                                                    fontSize: 18),
+                                              fontSize: deviceWidth * 0.04),
                                               ),
                                               Text(
                                                 convertToRupiah(
                                                     productsCustom?[index]
                                                         .price),
-                                                style: const TextStyle(
-                                                    fontSize: 15),
+                                                style: TextStyle(
+                                              fontSize: deviceWidth * 0.03),
                                               ),
                                             ],
                                           ))
@@ -469,19 +474,24 @@ class _SearchPageState extends State<SearchPage> {
           actions: [
             ElevatedButton(
               onPressed: () {
-                if (sourceAnswer != "" &&
-                    field1Answer != "" &&
-                    field2Answer != "") {
-                      var success = viewmodel.sendSurvei();
-                     if(success){
-                          saveAccessCustom(true)
-                          .then((value) => Navigator.of(context).pop());
-                        }else{
-                          Fluttertoast.showToast(msg: "Terjadi kesalahan, coba lagi.");
-                        }
-                  
-                  setState(() {});
-                }
+                if(sourceAnswer != "" && field1Answer != "" && field2Answer != ""){
+                  sentSurveiData(sourceAnswer, field1Answer, field2Answer).then((isSuccess){
+
+                     if(isSuccess){
+
+                     saveAccessCustom(true).then((value){
+                      
+                      Fluttertoast.showToast(msg: "Survei berhasil disimpan.");
+                      Navigator.of(context).pop();});
+                     }else{
+                      Fluttertoast.showToast(msg: "Terjadi kesalahan, coba lagi.");
+                     }
+                  });
+
+                  setState(() {
+                    
+                  });
+              }
               },
               child: const Text('Kirim'),
             ),
