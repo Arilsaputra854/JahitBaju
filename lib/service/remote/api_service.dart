@@ -14,6 +14,7 @@ import 'package:jahit_baju/service/remote/response/favorite_response.dart';
 import 'package:jahit_baju/service/remote/response/login_response.dart';
 import 'package:jahit_baju/service/remote/response/order_response.dart';
 import 'package:jahit_baju/service/remote/response/otp_response.dart';
+import 'package:jahit_baju/service/remote/response/product_response.dart';
 import 'package:jahit_baju/service/remote/response/size_guide_response.dart';
 import 'package:jahit_baju/service/remote/response/survei_response.dart';
 import 'package:logger/web.dart';
@@ -22,10 +23,10 @@ import 'response/term_condition_response.dart';
 import 'response/user_response.dart';
 
 class ApiService {
-  final String baseUrl =
-      "https://jahit-baju-backend-936228436122.asia-east1.run.app/api/";
   // final String baseUrl =
-  //     "http://192.168.1.13:3000/api/";
+  //     "https://jahit-baju-backend-936228436122.asia-east1.run.app/api/";
+  final String baseUrl =
+      "http://192.168.1.155:3000/api/";
   TokenStorage tokenStorage = TokenStorage();
   Logger logger = Logger();
 
@@ -300,6 +301,11 @@ class ApiService {
           'Authorization': '${token}'
         },
         body: jsonEncode(<String, dynamic>{
+          'packaging_price': order.packagingPrice,
+          'shipping_price':order.shippingPrice,
+          'custom_price': order.customPrice,
+          'rtw_price': order.rtwPrice,
+          'discount': order.discount,
           'product_id': order.product!.id,
           'quantity': order.quantity,
           'total_price': order.totalPrice,
@@ -492,7 +498,10 @@ class ApiService {
         body: jsonEncode(<String, dynamic>{
           'shipping_id': order.shippingId,
           'packaging_id': order.packagingId,
-          'cart_id': order.cartId,
+          'packaging_price' : order.packagingPrice,
+          'shipping_price' : order.shippingPrice,
+          'discount' : order.discount,
+          'cart_id': order.cartId,                    
           'total_price': order.totalPrice,
           'order_status': order.orderStatus
         }),
@@ -569,7 +578,7 @@ class ApiService {
     }
   }
 
-  productsGetById(String productId) async {
+  Future<ProductResponse> productsGetById(String productId) async {
     final url = Uri.parse("${baseUrl}products/$productId");
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
@@ -582,21 +591,12 @@ class ApiService {
       var data = jsonDecode(response.body);
 
       logger.d("Get Product by ID : ${data}");
-
-      dynamic message;
-      if (response.statusCode == 200) {
-        var productData = data["data"];
-
-        Product product = Product.fromJson(productData);
-
-        return product;
-      } else {
-        message = data["message"] ?? "Unknown error occurred";
-        return message;
-      }
+      
+      ProductResponse productResponse = ProductResponse.fromJson(data);
+      return productResponse;
     } catch (e) {
       logger.e("Get Product by ID : ${e}");
-      return "Network error : $e";
+      return ProductResponse(error: true, message: "Network error : $e",product: null);
     }
   }
 

@@ -6,6 +6,7 @@ import 'package:jahit_baju/model/favorite.dart';
 import 'package:jahit_baju/model/product.dart';
 import 'package:jahit_baju/service/remote/api_service.dart';
 import 'package:jahit_baju/service/remote/response/favorite_response.dart';
+import 'package:jahit_baju/service/remote/response/product_response.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/views/product_screen/product_screen.dart';
 import 'package:shimmer/shimmer.dart';
@@ -130,7 +131,7 @@ class _HomePageState extends State<FavoritePage> {
             itemCount: favorites.length,
             shrinkWrap: true,
             itemBuilder: (context, index) {
-              return FutureBuilder<Product>(
+              return FutureBuilder<Product?>(
                   future: getProduct(favorites[index]!.productId),
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
@@ -235,6 +236,13 @@ class _HomePageState extends State<FavoritePage> {
                                                     fontSize: 15),
                                               ),
                                               SizedBox(height: 5),
+                                              Text(
+                                                product.description,   
+                                                maxLines: 2, // Batas jumlah baris yang ditampilkan
+              overflow: TextOverflow.ellipsis,                                             
+                                                style: const TextStyle(
+                                                    fontSize: 12),
+                                              ),
                                               Row(
                                                 mainAxisAlignment:
                                                     MainAxisAlignment.end,
@@ -269,10 +277,14 @@ class _HomePageState extends State<FavoritePage> {
     return favorites;
   }
 
-  Future<Product> getProduct(String productId) async {
+  Future<Product?> getProduct(String productId) async {
     ApiService apiService = ApiService();
-    Product product = await apiService.productsGetById(productId);
-    return product;
+    ProductResponse response = await apiService.productsGetById(productId);
+    if (response.error) {
+       Fluttertoast.showToast(msg: response.message!);
+    } else {
+      return response.product!;
+    }
   }
 
   void _goToProductScreen(product) {

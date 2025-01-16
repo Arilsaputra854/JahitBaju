@@ -36,7 +36,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text("Payment"),
+        title: Text("Pembayaran"),
       ),
       body: isPaymentSuccess? paymentSuccess() : Container(
         width: deviceWidth,
@@ -69,7 +69,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
             SizedBox(
               height: 40,
             ),
-            ElevatedButton(
+            SizedBox(
+              width: deviceWidth * 0.5,
+              child: ElevatedButton(
               onPressed: (){
                 openXenditGateway();
               },
@@ -86,10 +88,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     horizontal: 30), // Padding agar tombol lebih besar
               ),
             ),
+            ),
             SizedBox(
               height: 10,
             ),
-            ElevatedButton(
+            SizedBox(
+              width: deviceWidth * 0.5,
+              child: ElevatedButton(
               onPressed: (){
                 validatePaymentXenditGateway();
               },
@@ -105,7 +110,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     vertical: 15,
                     horizontal: 30), // Padding agar tombol lebih besar
               ),
-            )
+            ))
           ],
         ),
       ),

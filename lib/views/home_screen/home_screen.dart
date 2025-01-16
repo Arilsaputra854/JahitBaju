@@ -56,7 +56,7 @@ Widget build(BuildContext context) {
       backgroundColor: Colors.white,
       actions: [
         Consumer<HomeScreenViewModel>(builder: (context, vm, child) {
-          print("Cart Size: ${vm.cartSize}");
+          
           return cartIcon(vm.cartSize);
         },) 
       ],

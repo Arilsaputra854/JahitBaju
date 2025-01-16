@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/service/remote/api_service.dart';
@@ -31,6 +32,8 @@ class _ShippingScreenState extends State<ShippingScreen> {
   Shipping? shipping;
   Packaging? packaging;
 
+  int discount = 0;
+
   var deviceWidth, deviceHeight;
 
   @override
@@ -45,7 +48,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
           return Scaffold(
               appBar: AppBar(
                 elevation: 0,
-                title: const Text("Delivery",
+                title: const Text("Pengiriman",
                     style:
                         TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                 centerTitle: true,
@@ -54,130 +57,11 @@ class _ShippingScreenState extends State<ShippingScreen> {
                   child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  FutureBuilder(
-                      future: viewModel.getListShippingMethod(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-                        List<Shipping> data = snapshot.data;
-
-                        return Container(
-                          padding: EdgeInsets.symmetric(horizontal: 20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Address",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 18),
-                              ),
-                              const SizedBox(height: 5),
-                              FutureBuilder(
-                                  future: viewModel.getUserAddress(),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState ==
-                                        ConnectionState.waiting) {
-                                      return Shimmer(
-                                        child: SizedBox(
-                                          height: 20,
-                                        ),
-                                        gradient: LinearGradient(colors: [
-                                          Colors.white,
-                                          Colors.grey
-                                        ]),
-                                      );
-                                    }
-                                    return InkWell(
-                                        onTap: () => goToAddress(snapshot.data),
-                                        child: Card(
-                                            child: Container(
-                                                width: deviceWidth,
-                                                decoration: BoxDecoration(
-                                                    color: Colors.white,
-                                                    border:
-                                                        Border.all(width: 2),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12)),
-                                                padding: EdgeInsets.all(10),
-                                                child: Text(snapshot.data,
-                                                    maxLines: 1,
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.normal,
-                                                        fontSize: 16)))));
-                                  }),
-                            ],
-                          ),
-                        );
-                      }),
-                  FutureBuilder(
-                      future: viewModel.getListShippingMethod(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-                        List<Shipping> data = snapshot.data;
-
-                        return Container(
-                          padding: EdgeInsets.symmetric(horizontal: 20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Reguler",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 18),
-                              ),
-                              const SizedBox(height: 5),
-                              data.isNotEmpty
-                                  ? shippingList(data)
-                                  : Center(
-                                      child: Text("Tidak ada expedisi."),
-                                    )
-                            ],
-                          ),
-                        );
-                      }),
+                  _addressWidget(viewModel),
                   const SizedBox(height: 15),
-                  FutureBuilder(
-                      future: viewModel.getListPackaging(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-                        List<Packaging> data = snapshot.data;
-
-                        return Container(
-                          padding: EdgeInsets.symmetric(horizontal: 20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Packaging",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 18),
-                              ),
-                              const SizedBox(height: 5),
-                              data.isNotEmpty
-                                  ? packaginglist(data)
-                                  : Center(
-                                      child: Text("Tidak ada packaging."),
-                                    )
-                            ],
-                          ),
-                        );
-                      })
+                  _deliveryWidget(viewModel),
+                  const SizedBox(height: 15),
+                  _packagingWidget(viewModel)
                 ],
               )),
               bottomNavigationBar: _bottomNavBar(viewModel));
@@ -188,8 +72,24 @@ class _ShippingScreenState extends State<ShippingScreen> {
     if ((deliveryChoosedIndex != -1 && shipping != "") &&
         (packagingChoosedIndex != -1 && packaging != "")) {
       if (widget.cart != null) {
+        int customPrice = 0, rtwPrice = 0;
+        for (var cart in widget.cart!.items) {
+          Product? product = await getProductById(cart.productId);
+
+          if (product!.type == Product.CUSTOM) {
+            customPrice += product.price.toInt();
+          } else {
+            rtwPrice += product.price.toInt();
+          }
+        }
+
         //order from cart
         Order order = Order(
+            customPrice: customPrice,
+            rtwPrice: rtwPrice,
+            discount: discount,
+            packagingPrice: packaging!.price.toInt(),
+            shippingPrice: shipping!.price.toInt(),
             shippingId: shipping!.id,
             packagingId: packaging!.id,
             cartId: widget.cart!.id,
@@ -200,7 +100,6 @@ class _ShippingScreenState extends State<ShippingScreen> {
             paymentUrl: "");
         viewModel.createOrder(order).then((orderFromServer) {
           if (orderFromServer != null) {
-            print("Data order yang diterima dari server :\n${order.toJson()}");
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
@@ -210,20 +109,33 @@ class _ShippingScreenState extends State<ShippingScreen> {
           }
         });
       } else {
+        int customPrice = 0, rtwPrice = 0;        
+
+        if (widget.product!.type == Product.CUSTOM) {
+          customPrice = widget.product!.price.toInt();
+        } else {
+          rtwPrice = widget.product!.price.toInt();
+        }
+
         //order direct buy now
         Order order = Order(
+            customPrice: customPrice,
+            rtwPrice: rtwPrice,
             shippingId: shipping!.id,
             packagingId: packaging!.id,
             size: widget.size,
             quantity: 1,
-            product:widget.product,
+            product: widget.product,
             totalPrice:
                 (shipping!.price + widget.product!.price + packaging!.price)
                     .toInt(),
             orderStatus: Order.WAITING_FOR_PAYMENT,
-            paymentUrl: "");
+            paymentUrl: "",
+            shippingPrice: shipping!.price.toInt(),
+            packagingPrice: packaging!.price.toInt(),
+            discount: discount);
         await viewModel.buyNow(order).then((orderFromServer) {
-          if (orderFromServer != null) {            
+          if (orderFromServer != null) {
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
@@ -314,7 +226,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
     ));
   }
 
-  Widget shippingList(var data) {
+  Widget deliveryList(var data) {
     return ListView.builder(
         shrinkWrap: true,
         itemCount: data.length,
@@ -340,8 +252,11 @@ class _ShippingScreenState extends State<ShippingScreen> {
                 padding: EdgeInsets.all(10),
                 child: Row(
                   children: [
-                    Image.network(
-                      data[index].imgUrl,
+                    CachedNetworkImage(
+                      imageUrl: data[index].imgUrl,
+                      errorWidget: (context, url, error) {
+                        return Icon(Icons.warning);
+                      },
                       width: 50,
                     ),
                     SizedBox(
@@ -412,31 +327,35 @@ class _ShippingScreenState extends State<ShippingScreen> {
 
   Widget _bottomNavBar(ShippingViewModel viewModel) {
     return Container(
-        height: deviceHeight * 0.38,
         padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Wrap(
           children: [
-            price(),
-            const SizedBox(height: 15),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(0)),
-                backgroundColor: Colors.red, // Latar belakang merah
-                padding: const EdgeInsets.symmetric(
-                    vertical: 15,
-                    horizontal: 30), // Padding agar tombol lebih besar
-              ),
-              onPressed: () => _goToPaymentScreen(viewModel),
-              child: const Text(
-                "Bayar",
-                style: TextStyle(
-                  color: Colors.white, // Warna teks putih
-                  fontWeight: FontWeight.bold,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                price(),
+                const SizedBox(height: 15),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(0)),
+                    backgroundColor: Colors.red, // Latar belakang merah
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 15,
+                        horizontal: 30), // Padding agar tombol lebih besar
+                  ),
+                  onPressed: () => _goToPaymentScreen(viewModel),
+                  child: const Text(
+                    "Bayar",
+                    style: TextStyle(
+                      color: Colors.white, // Warna teks putih
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-              ),
-            ),
+              ],
+            )
           ],
         ));
   }
@@ -444,5 +363,122 @@ class _ShippingScreenState extends State<ShippingScreen> {
   void goToAddress(address) {
     Navigator.push(context,
         MaterialPageRoute(builder: (context) => AddressScreen(address)));
+  }
+
+  _addressWidget(ShippingViewModel viewModel) {
+    return Container(
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Alamat",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            const SizedBox(height: 5),
+            FutureBuilder(
+                future: viewModel.getListShippingMethod(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                  List<Shipping> data = snapshot.data;
+
+                  return FutureBuilder(
+                    future: viewModel.getUserAddress(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Shimmer(
+                          child: SizedBox(
+                            height: 20,
+                          ),
+                          gradient: LinearGradient(
+                              colors: [Colors.white, Colors.grey]),
+                        );
+                      }
+                      return InkWell(
+                          onTap: () => goToAddress(snapshot.data),
+                          child: Card(
+                              child: Container(
+                                  width: deviceWidth,
+                                  decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      border: Border.all(width: 2),
+                                      borderRadius: BorderRadius.circular(12)),
+                                  padding: EdgeInsets.all(10),
+                                  child: Text(snapshot.data,
+                                      maxLines: 1,
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.normal,
+                                          fontSize: 16)))));
+                    },
+                  );
+                })
+          ],
+        ));
+  }
+
+  _packagingWidget(ShippingViewModel viewModel) {
+    return Container(
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Packaging",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            const SizedBox(height: 5),
+            FutureBuilder(
+                future: viewModel.getListPackaging(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                  List<Packaging> data = snapshot.data;
+
+                  return data.isNotEmpty
+                      ? packaginglist(data)
+                      : Center(
+                          child: Text("Tidak ada packaging."),
+                        );
+                })
+          ],
+        ));
+  }
+
+  _deliveryWidget(ShippingViewModel viewModel) {
+    return Container(
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Jasa Ekpedisi",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            const SizedBox(height: 5),
+            FutureBuilder(
+                future: viewModel.getListShippingMethod(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                  List<Shipping> data = snapshot.data;
+
+                  return data.isNotEmpty
+                      ? deliveryList(data)
+                      : Center(
+                          child: Text("Tidak ada expedisi."),
+                        );
+                })
+          ],
+        ));
   }
 }

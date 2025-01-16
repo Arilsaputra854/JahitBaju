@@ -2,12 +2,16 @@ class Cart {
   final String id;
   final String buyerId;
   final double totalPrice;
+  final double rtwPrice;
+  final double customPrice;
   final List<CartItem> items;
 
   Cart({
     required this.id,
     required this.buyerId,
     required this.totalPrice,
+    required this.rtwPrice,
+    required this.customPrice,
     required this.items,
   });
 
@@ -17,6 +21,8 @@ class Cart {
       id: json['id'],
       buyerId: json['buyerId'],
       totalPrice: json['totalPrice'].toDouble(),
+      rtwPrice: json['rtw_price'].toDouble(),
+      customPrice: json['custom_price'].toDouble(),
       items: (json['items'] as List)
           .map((itemJson) => CartItem.fromJson(itemJson))
           .toList(),
@@ -29,6 +35,8 @@ class Cart {
       'id': id,
       'buyerId': buyerId,
       'totalPrice': totalPrice,
+      'custom_price' : customPrice,
+      'rtw_price' : rtwPrice,
       'items': items.map((item) => item.toJson()).toList(),
     };
   }

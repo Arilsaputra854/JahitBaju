@@ -8,7 +8,6 @@ import 'package:jahit_baju/helper/secure/token_storage.dart';
 import 'package:jahit_baju/viewmodels/cart_view_model.dart';
 import 'package:jahit_baju/model/cart.dart';
 import 'package:jahit_baju/model/order.dart';
-import 'package:jahit_baju/model/order_item.dart';
 import 'package:jahit_baju/model/product.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/views/product_screen/product_screen.dart';
@@ -236,6 +235,7 @@ class _CartScreenState extends State<CartScreen> {
 
           Cart? cart = snapshot.data as Cart?;
           this.cart = cart;
+          
 
           return SingleChildScrollView(
             child: Column(
@@ -330,7 +330,7 @@ class _CartScreenState extends State<CartScreen> {
                       const SizedBox(height: 30),
                       Column(
                         children: [
-                          const Row(
+                          Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
@@ -338,7 +338,7 @@ class _CartScreenState extends State<CartScreen> {
                                 style: TextStyle(fontSize: 15),
                               ),
                               Text(
-                                "Rp 0.00",
+                                convertToRupiah(cart?.rtwPrice ?? 0),
                                 style: TextStyle(fontSize: 15),
                               ),
                             ],
@@ -351,7 +351,7 @@ class _CartScreenState extends State<CartScreen> {
                                 style: TextStyle(fontSize: 15),
                               ),
                               Text(
-                                "Rp 0.00",
+                                convertToRupiah(cart?.customPrice ?? 0),
                                 style: const TextStyle(fontSize: 15),
                               ),
                             ],

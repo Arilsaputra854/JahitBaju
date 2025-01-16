@@ -9,9 +9,9 @@ import 'package:jahit_baju/model/favorite.dart';
 import 'package:jahit_baju/service/remote/api_service.dart';
 import 'package:jahit_baju/model/cart.dart';
 import 'package:jahit_baju/model/order.dart';
-import 'package:jahit_baju/model/order_item.dart';
 import 'package:jahit_baju/model/product.dart';
 import 'package:jahit_baju/service/remote/response/favorite_response.dart';
+import 'package:jahit_baju/service/remote/response/product_response.dart';
 import 'package:jahit_baju/service/remote/response/size_guide_response.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/viewmodels/home_view_model.dart';
@@ -91,98 +91,7 @@ class _ProductScreenState extends State<ProductScreen> {
             child: widget.product.type == Product.READY_TO_WEAR
                 ? showRTW()
                 : showCustom()),
-        bottomNavigationBar: widget.product.type == Product.READY_TO_WEAR
-            ? Container(
-                padding: EdgeInsets.all(20),
-                child: Row(
-                  mainAxisAlignment:
-                      MainAxisAlignment.spaceBetween, // Untuk distribusi tombol
-                  children: [
-                    // Tombol Tambah ke Keranjang
-                    Expanded(
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          backgroundColor: Colors.white,
-                          disabledBackgroundColor: Colors.grey,                          
-                          padding: EdgeInsets.symmetric(vertical: 15),
-                        ),
-                        onPressed: purchaseLoading ? null:  () => addToCart(),
-                        child: Wrap(
-                          alignment: WrapAlignment.center,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          spacing: 5, // Jarak antara ikon dan teks
-                          children: [
-                            Icon(
-                              Icons.shopping_bag,
-                              color: purchaseLoading?const Color.fromARGB(255, 95, 92, 92) :Colors.black,
-                            ),
-                            Text(
-                              "Tambah ke Keranjang",
-                              style: TextStyle(
-                                color: purchaseLoading?const Color.fromARGB(255, 95, 92, 92) :Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              softWrap:
-                                  true, 
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    // Tombol Beli Sekarang
-                    Expanded(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          backgroundColor: purchaseLoading? Colors.grey : Colors.red,
-                          padding: EdgeInsets.symmetric(vertical: 15),
-                        ),
-                        onPressed: () {
-                          buyNow(context, _selectedSize, widget.product);
-                        },
-                        child: Text(
-                          "Beli Sekarang",
-                          style: TextStyle(
-                            color: purchaseLoading?const Color.fromARGB(255, 95, 92, 92) :Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          softWrap:
-                              true, // Agar teks membungkus jika terlalu panjang
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            : Container(
-                padding: EdgeInsets.all(20),
-                child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                      backgroundColor: Colors.red,
-                      disabledBackgroundColor: Colors.grey,
-                      padding:
-                          EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                    ),
-                    onPressed: currentSvg.contains("none")? null :  () {
-                      goToDesignConfirmation(htmlContent);
-                    },
-                    child: Text(
-                      "Selanjutnya",
-                      style: TextStyle(
-                        color: currentSvg.contains("none")? Colors.black:Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ))));
+        bottomNavigationBar: _bottomNavigationWidget());
   }
 
   showRTW() {
@@ -443,19 +352,37 @@ class _ProductScreenState extends State<ProductScreen> {
 
   addToCart() async {
     setState(() {
-        purchaseLoading = true;
-      });
+      purchaseLoading = true;
+    });
     ApiService apiService = ApiService();
 
-    if (_selectedSize != "" && _selectedSize.isNotEmpty) {
-      var msg = await apiService.cartAdd(widget.product, 1, _selectedSize, null);
-      setState(() {
-        purchaseLoading = false;
-      });
-      Fluttertoast.showToast(msg: msg);
+    ProductResponse productResponse =
+        await apiService.productsGetById(widget.product.id);
+    if (productResponse.error) {
+      Fluttertoast.showToast(
+          msg:
+              productResponse.message ?? "Terjadi kesalahan, Coba lagi nanti.");
     } else {
-      
-      Fluttertoast.showToast(msg: "Silakan pilih ukuran terlebih dahulu");
+      if (productResponse.product != null) {
+        if (productResponse.product!.stock > 0) {
+          if (_selectedSize != "" && _selectedSize.isNotEmpty) {
+            var msg = await apiService.cartAdd(
+                widget.product, 1, _selectedSize, null);
+            setState(() {
+              purchaseLoading = false;
+            });
+            Fluttertoast.showToast(msg: msg);
+          } else {
+            Fluttertoast.showToast(msg: "Silakan pilih ukuran terlebih dahulu");
+          }
+        } else {
+
+            Fluttertoast.showToast(msg: "Maaf, Stok produk ini telah habis");
+            Navigator.pop(context);
+        }
+      } else {
+        Fluttertoast.showToast(msg: "Maaf, Produk tidak ditemukan");
+      }
     }
   }
 
@@ -524,8 +451,7 @@ class _ProductScreenState extends State<ProductScreen> {
                             currentColor = svgColor[index];
                           });
 
-                          if (svgColor[index].contains("https")) {                            
-
+                          if (svgColor[index].contains("https")) {
                             // Ambil dan konversi gambar ke Base64
                             String? base64Image =
                                 await fetchAndConvertToBase64(currentColor!);
@@ -534,8 +460,7 @@ class _ProductScreenState extends State<ProductScreen> {
                               updatedSvg = addPatternToSvg(
                                   currentSvg, base64Image, currentFeature!);
                             }
-                          } else {                            
-
+                          } else {
                             // Jika tidak ada URL gambar, lakukan perubahan warna biasa
                             updatedSvg = updateFillColorByIdWithColor(
                                 currentSvg, currentFeature!, currentColor!);
@@ -656,8 +581,11 @@ class _ProductScreenState extends State<ProductScreen> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Container(
-                width: deviceWidth * 0.65,
-                height: 400, child: Center(child: CircularProgressIndicator(),));
+                  width: deviceWidth * 0.65,
+                  height: 400,
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ));
             }
             if (snapshot.hasData) {
               currentSvg = snapshot.data!;
@@ -693,13 +621,14 @@ class _ProductScreenState extends State<ProductScreen> {
             }
 
             return Container(
-                width: deviceWidth * 0.65,
-                height: 400,
-                padding: EdgeInsets.all(10),
-                child: WebViewWidget(
-                  controller: _controller,
-                  gestureRecognizers: Set(),
-                ),);
+              width: deviceWidth * 0.65,
+              height: 400,
+              padding: EdgeInsets.all(10),
+              child: WebViewWidget(
+                controller: _controller,
+                gestureRecognizers: Set(),
+              ),
+            );
           });
     }
 
@@ -739,14 +668,18 @@ class _ProductScreenState extends State<ProductScreen> {
         height: 400,
         padding: EdgeInsets.all(10),
         child: Stack(
-                  children: [
-                    WebViewWidget(
-                  controller: _controller,
-                  gestureRecognizers: Set(),
-                ),
-                  rendering ? Center(child: CircularProgressIndicator(),) : SizedBox()
-                  ],
-                ));
+          children: [
+            WebViewWidget(
+              controller: _controller,
+              gestureRecognizers: Set(),
+            ),
+            rendering
+                ? Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : SizedBox()
+          ],
+        ));
   }
 
   Future<String?> fetchAndConvertToBase64(String imageUrl) async {
@@ -868,7 +801,7 @@ class _ProductScreenState extends State<ProductScreen> {
     Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) => DesignConfirmPage(currentSvg,htmlContent,
+            builder: (context) => DesignConfirmPage(currentSvg, htmlContent,
                 currentFeatureColor, widget.product, _selectedSize)));
   }
 
@@ -894,6 +827,132 @@ class _ProductScreenState extends State<ProductScreen> {
             child: CircularProgressIndicator(),
           );
         });
+  }
+
+  _bottomNavigationWidget() {
+    return Stack(
+      alignment: AlignmentDirectional.center,
+      children: [
+        widget.product.type == Product.READY_TO_WEAR
+            ? Container(
+                padding: EdgeInsets.all(20),
+                child: Row(
+                  mainAxisAlignment:
+                      MainAxisAlignment.spaceBetween, // Untuk distribusi tombol
+                  children: [
+                    // Tombol Tambah ke Keranjang
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          backgroundColor: Colors.white,
+                          disabledBackgroundColor: Colors.grey,
+                          padding: EdgeInsets.symmetric(vertical: 15),
+                        ),
+                        onPressed: purchaseLoading ? null : () => addToCart(),
+                        child: Wrap(
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 5, // Jarak antara ikon dan teks
+                          children: [
+                            Icon(
+                              Icons.shopping_bag,
+                              color: purchaseLoading
+                                  ? const Color.fromARGB(255, 95, 92, 92)
+                                  : Colors.black,
+                            ),
+                            Text(
+                              "Tambah ke Keranjang",
+                              style: TextStyle(
+                                color: purchaseLoading
+                                    ? const Color.fromARGB(255, 95, 92, 92)
+                                    : Colors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              softWrap: true,
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    // Tombol Beli Sekarang
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          backgroundColor:
+                              purchaseLoading ? Colors.grey : Colors.red,
+                          padding: EdgeInsets.symmetric(vertical: 15),
+                        ),
+                        onPressed: () {
+                          buyNow(context, _selectedSize, widget.product);
+                        },
+                        child: Text(
+                          "Beli Sekarang",
+                          style: TextStyle(
+                            color: purchaseLoading
+                                ? const Color.fromARGB(255, 95, 92, 92)
+                                : Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          softWrap:
+                              true, // Agar teks membungkus jika terlalu panjang
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : Container(
+                padding: EdgeInsets.all(20),
+                child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                      backgroundColor: Colors.red,
+                      disabledBackgroundColor: Colors.grey,
+                      padding:
+                          EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                    ),
+                    onPressed: currentSvg.contains("none")
+                        ? null
+                        : () {
+                            goToDesignConfirmation(htmlContent);
+                          },
+                    child: Text(
+                      "Selanjutnya",
+                      style: TextStyle(
+                        color: currentSvg.contains("none")
+                            ? Colors.black
+                            : Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ))),
+        widget.product.stock <= 0
+            ? Positioned.fill(
+                child: Container(
+                    padding: EdgeInsets.all(20),
+                    color: const Color.fromARGB(213, 255, 255, 255),
+                    child: Center(
+                      child: Text(
+                        "Stok Habis",
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    )),
+              )
+            : SizedBox()
+      ],
+    );
   }
 }
 

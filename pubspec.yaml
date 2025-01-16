@@ -60,6 +60,7 @@ dependencies:
   xml: ^6.2.2
   shared_preferences: ^2.0.15  
   app_links:
+  timelines_plus:
 
 icons_launcher:
   image_path: "assets/logo/jahit_baju_logo.png"

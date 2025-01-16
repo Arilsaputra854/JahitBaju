@@ -7,23 +7,34 @@ class Order {
   final String? cartId;
   final Product? product;
   final int totalPrice;
+  final int rtwPrice;
+  final int customPrice;
+  final int packagingPrice;
+  final int shippingPrice;
+  final int discount;
   final int? quantity;
   final String? size;
   final DateTime orderCreated;
   final String orderStatus;
-  final DateTime _lastUpdate; // Properti privat untuk last_update
-  final List<OrderItem> items; // Properti biasa untuk daftar item
+  final DateTime _lastUpdate; 
+  final List<OrderItem> items;
   final String? paymentUrl;
   final DateTime expiredDate;
+  final String resi;
 
 
-  // Status Order
+  // // Status Order
+  // static const String WAITING_FOR_PAYMENT = "Menunggu Pembayaran";
+  // static const String DONE = "Pesanan Selesai";
+  // static const String PROCESS = "Pesanan sedang disiapkan";
+  // static const String ON_DELIVERY = "Dalam Pengiriman";
+  // static const String CANCEL = "Pesanan Dibatalkan";
+
   static const String WAITING_FOR_PAYMENT = "WAITING FOR PAYMENT";
   static const String DONE = "DONE";
   static const String PROCESS = "PROCESS";
-  static const String ON_DELIVERY = "ON DELIVERY";
-  static const String CANCEL = "CANCELED";
-
+  static const String ON_DELIVERY = "ON_DELIVERY";
+  static const String CANCEL = "CANCEL";
 
   // Constructor
   Order({
@@ -35,11 +46,17 @@ class Order {
     this.size,
     this.quantity,
     required this.totalPrice,
+    required this.rtwPrice,
+    required this.customPrice,
+    required this.shippingPrice,
+    required this.packagingPrice,
+    required this.discount,
     this.items = const [], // Default kosong jika tidak ada
     DateTime? orderCreated,
     required this.orderStatus,
     this.paymentUrl,
-    DateTime? expiredDate
+    DateTime? expiredDate,
+    this.resi = "-"
   })  : orderCreated = orderCreated ?? DateTime.now(),
         _lastUpdate = DateTime.now(),expiredDate = expiredDate ?? DateTime.now().add(Duration(hours: 23,minutes: 50));
     
@@ -54,6 +71,11 @@ class Order {
       packagingId: json['packaging_id'] ?? "",
       cartId: json['cart_id'] ?? "",
       totalPrice: json['total_price'] ?? 0,
+      customPrice: json['custom_price'] ?? 0,
+      rtwPrice: json['rtw_price'] ?? 0,
+      shippingPrice: json['shipping_price'] ?? 0,
+      packagingPrice: json['packaging_price'] ?? 0,
+      discount: json['discount'] ?? 0,
       orderCreated: json['order_created'] != null
           ? DateTime.parse(json['order_created'])
           : null,
@@ -65,6 +87,7 @@ class Order {
       expiredDate: json['expired_date'] != null
           ? DateTime.parse(json['expired_date'])
           : null,
+      resi: json['resi'] ?? "-",
     );
   }
 
@@ -75,12 +98,18 @@ class Order {
       'packaging_id': packagingId,
       'cart_id': cartId,
       'total_price': totalPrice,
+      'rtw_price': rtwPrice,
+      'custom_price': customPrice,
+      'shipping_price': shippingPrice,
+      'packaging_price': packagingPrice,
+      'discount': discount,
       'order_created': orderCreated.toIso8601String(),
       'order_status': orderStatus,
       'last_update': _lastUpdate.toIso8601String(),
       'items': items.map((item) => item.toJson()).toList(),
       'payment_url' : paymentUrl ?? "",
       'expired_date': expiredDate.toIso8601String(),
+      'resi' : resi
     };
   }
 

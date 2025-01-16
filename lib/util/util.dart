@@ -1,10 +1,13 @@
 import 'package:animated_snack_bar/animated_snack_bar.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:jahit_baju/model/product.dart';
 import 'package:jahit_baju/service/remote/api_service.dart';
+import 'package:jahit_baju/service/remote/response/product_response.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 String convertToRupiah(dynamic value) {
@@ -20,6 +23,17 @@ String convertToRupiah(dynamic value) {
   return converted;
 }
 
+ApiService apiService = ApiService();
+
+Future<Product?> getProductById(productId) async {
+    ProductResponse response = await apiService.productsGetById(productId);
+    if (response.error) {
+      Fluttertoast.showToast(msg: response.message ?? "Terjadi Kesalahan");
+      return null;
+    } else {
+      return response.product!;
+    }
+  }
 
 Widget svgViewer(String svg){  
   WebViewController controller =WebViewController();  

@@ -22,28 +22,23 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Product>? products;
-
-  List? productsRTW;
-  List? productsCustom;
-  List? allProducts;
+  List<Product>? products = [];
+  List<Product>? productsRTW = [];
+  List<Product>? productsCustom = [];
+  List<Product>? allProducts = [];
 
   List? tags;
 
   bool accessCustom = false;
 
-  var deviceWidth ;
-
-  
-  
+  var deviceWidth;
 
   @override
   Widget build(BuildContext context) {
-
-    loadAccessCustom().then((value){
-      if(value == null){
+    loadAccessCustom().then((value) {
+      if (value == null) {
         accessCustom = false;
-      }else{
+      } else {
         accessCustom = value!;
       }
     });
@@ -51,94 +46,108 @@ class _HomePageState extends State<HomePage> {
     deviceWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: Colors.white,body: RefreshIndicator(
-        child: Stack(children: [ChangeNotifierProvider(
-            create: (context) => HomeViewModel(),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    color: Colors.black,
-                    height: deviceWidth * 0.5,
-                    width: deviceWidth,
-                    child: Image.asset(
-                      alignment: const Alignment(1, -0.3),
-                      "assets/background/bg.png",
-                      fit: BoxFit.cover,
+      backgroundColor: Colors.white,
+      body: RefreshIndicator(
+          child: Stack(
+            children: [
+              ChangeNotifierProvider(
+                  create: (context) => HomeViewModel(),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          color: Colors.black,
+                          height: deviceWidth * 0.5,
+                          width: deviceWidth,
+                          child: Image.asset(
+                            alignment: const Alignment(1, -0.3),
+                            "assets/background/bg.png",
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Consumer<HomeViewModel>(
+                            builder: (context, viewModel, child) {
+                          return FutureBuilder(
+                              future: viewModel.getListProducts(),
+                              builder: (context, snapshot) {
+                                // Menampilkan data atau place holder
+                                List<Product>? products = snapshot.data;
+
+                                productsRTW = products
+                                    ?.where((product) =>
+                                        product.type == Product.READY_TO_WEAR)
+                                    .toList();
+                                productsCustom = products
+                                    ?.where((product) =>
+                                        product.type == Product.CUSTOM)
+                                    .toList();
+                                allProducts = [
+                                  ...?productsRTW,
+                                  ...?productsCustom
+                                ];
+
+                                tags = allProducts
+                                    ?.expand((product) => product.tags)
+                                    .toSet()
+                                    .toList();
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    tagsWidget(),
+                                    Container(
+                                      margin: const EdgeInsets.symmetric(
+                                          horizontal: 10),
+                                      child: Column(
+                                        children: [
+                                          Text("Siap Pakai",
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize:
+                                                      deviceWidth * 0.05)),
+                                        ],
+                                      ),
+                                    ),
+                                    widgetListRTW(),
+                                    SizedBox(
+                                      height: deviceWidth * 0.02,
+                                    ),
+                                    Container(
+                                      margin: const EdgeInsets.symmetric(
+                                          horizontal: 10),
+                                      child: Column(
+                                        children: [
+                                          Text(
+                                            "Custom Produk",
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: deviceWidth * 0.05),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    widgetListCustom(),
+                                    SizedBox(
+                                      height: deviceWidth * 0.02,
+                                    ),
+                                  ],
+                                );
+                              });
+                        }),
+                      ],
                     ),
-                  ),
-                  Consumer<HomeViewModel>(builder: (context, viewModel, child) {
-                    return FutureBuilder(
-                        future: viewModel.getListProducts(),
-                        builder: (context, snapshot) {
-                          // Menampilkan data atau place holder
-                          List<Product>? products = snapshot.data;
-
-                          productsRTW = products
-                              ?.where((product) =>
-                                  product.type == Product.READY_TO_WEAR)
-                              .toList();
-                          productsCustom = products
-                              ?.where(
-                                  (product) => product.type == Product.CUSTOM)
-                              .toList();
-                          allProducts = [...?productsRTW, ...?productsCustom];
-
-                          tags = allProducts
-                              ?.expand((product) => product.tags)
-                              .toSet()
-                              .toList();
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              tagsWidget(),
-                              Container(
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 10),
-                                child:  Column(
-                                  children: [
-                                    Text(
-                                      "Siap Pakai",
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: deviceWidth * 0.05)
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              widgetListRTW(),
-                              SizedBox(
-                                height: deviceWidth * 0.02,
-                              ),
-                              Container(
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 10),
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      "Custom Produk",
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: deviceWidth * 0.05),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              widgetListCustom(),
-                              SizedBox(
-                                height: deviceWidth * 0.02,
-                              ),
-                            ],
-                          );
-                        });
-                  }),
-                ],
-              ),
-            )),],),
-        onRefresh: () async {          
-          setState(() {});
-        }),);
+                  )),
+            ],
+          ),
+          onRefresh: () async {
+            setState(() {
+              products = [];
+              productsRTW = [];
+              productsCustom = [];
+              allProducts = [];
+            });
+          }),
+    );
   }
 
   void goToProductScreen(Product item) {
@@ -150,16 +159,16 @@ class _HomePageState extends State<HomePage> {
     return tags != null
         ? tags!.isNotEmpty
             ? Container(
-
-                height: deviceWidth  * 0.2,
+                height: deviceWidth * 0.2,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: tags?.length,
                   itemBuilder: (context, index) {
                     return Container(
-                      width: deviceWidth  * 0.17,
-                      height: deviceWidth  * 0.17,
-                      margin: EdgeInsets.symmetric(horizontal: deviceWidth  * 0.02),
+                      width: deviceWidth * 0.17,
+                      height: deviceWidth * 0.17,
+                      margin:
+                          EdgeInsets.symmetric(horizontal: deviceWidth * 0.02),
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         color: Color(0xFFFFAAAA),
@@ -180,44 +189,45 @@ class _HomePageState extends State<HomePage> {
         : smimmerTag();
   }
 
-  Widget smimmerTag(){
+  Widget smimmerTag() {
     return Container(
-                height: deviceWidth  * 0.3,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: 5, // Number of placeholder items
-                  itemBuilder: (context, index) {
-                    return Shimmer.fromColors(
-                      baseColor: Colors.grey[300]!,
-                      highlightColor: Colors.grey[100]!,
-                      child: Container(
-                      width: deviceWidth  * 0.15,
-                      height: deviceWidth  * 0.15,
-                        margin: const EdgeInsets.symmetric(horizontal: 10),
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              );
+      height: deviceWidth * 0.3,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: 5, // Number of placeholder items
+        itemBuilder: (context, index) {
+          return Shimmer.fromColors(
+            baseColor: Colors.grey[300]!,
+            highlightColor: Colors.grey[100]!,
+            child: Container(
+              width: deviceWidth * 0.15,
+              height: deviceWidth * 0.15,
+              margin: const EdgeInsets.symmetric(horizontal: 10),
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.grey,
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   widgetListRTW() {
     return Container(
       margin: const EdgeInsets.all(10),
-      height: 200 ,
+      height: 200,
       child: productsRTW != null
           ? productsRTW!.isNotEmpty
               ? ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: productsRTW?.length,
                   itemBuilder: (context, index) {
+                    productsRTW![index];
                     return InkWell(
                         onTap: () {
-                          goToProductScreen(productsRTW?[index]);
+                          goToProductScreen(productsRTW![index]);
                         },
                         child: Container(
                           width: 150,
@@ -230,23 +240,22 @@ class _HomePageState extends State<HomePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
-                                child: Center(
-                                  child: CachedNetworkImage(
-                                    imageUrl: productsRTW?[index].imageUrl[0],
-                                    placeholder: (context, url) {
-                                      return Shimmer.fromColors(
-                                          baseColor: Colors.grey[300]!,
-                                          highlightColor: Colors.grey[100]!,
-                                          child: Container(
-                                            width: double.infinity,
-                                            height: double.infinity,
-                                            color: Colors.grey,
-                                          ));
-                                    },
-                                    fit: BoxFit.cover,
-                                  ),
-                                )
-                              ),
+                                  child: Center(
+                                child: CachedNetworkImage(
+                                  imageUrl: productsRTW![index].imageUrl[0],
+                                  placeholder: (context, url) {
+                                    return Shimmer.fromColors(
+                                        baseColor: Colors.grey[300]!,
+                                        highlightColor: Colors.grey[100]!,
+                                        child: Container(
+                                          width: double.infinity,
+                                          height: double.infinity,
+                                          color: Colors.grey,
+                                        ));
+                                  },
+                                  fit: BoxFit.cover,
+                                ),
+                              )),
                               Container(
                                   margin: EdgeInsets.all(5),
                                   child: Column(
@@ -255,17 +264,29 @@ class _HomePageState extends State<HomePage> {
                                     children: [
                                       Text(
                                         maxLines: 2,
-                                        productsRTW?[index].name,
+                                        productsRTW![index].name,
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            fontSize: deviceWidth*0.03),
+                                            fontSize: deviceWidth * 0.03),
                                       ),
                                       Text(
-                                        convertToRupiah(productsRTW?[index].price),
-                                        style: TextStyle(fontSize: deviceWidth*0.03),
+                                        convertToRupiah(
+                                            productsRTW![index].price),
+                                        style: TextStyle(
+                                            fontSize: deviceWidth * 0.03),
                                       ),
                                     ],
-                                  ))
+                                  )),
+                              // Expanded(child: ListView.builder(
+                              //     shrinkWrap: true,
+                              //     itemCount: productsRTW![index].tags.length,
+                              //     itemBuilder: (context, index) {
+                              //       Text(
+                              //         productsRTW![index].tags[index],
+                              //         style: TextStyle(
+                              //             fontSize: deviceWidth * 0.03),
+                              //       );
+                              //     }))
                             ],
                           ),
                         ));
@@ -333,63 +354,80 @@ class _HomePageState extends State<HomePage> {
                   itemCount: productsCustom?.length,
                   itemBuilder: (context, index) {
                     return InkWell(
-                        onTap: accessCustom ?() {
-                          goToProductScreen(productsCustom?[index]);
-                        } : (){
-                          customSurvey(context);
-                        },
+                        onTap: accessCustom
+                            ? () {
+                                goToProductScreen(productsCustom![index]);
+                              }
+                            : () {
+                                customSurvey(context);
+                              },
                         child: Container(
-                          width: 150,
-                          margin: const EdgeInsets.symmetric(horizontal: 5),
-                          decoration: BoxDecoration(
-                              color: Colors.white,
-                              border: Border.all(width: 1)),
-                          child: Stack(
-                            children: [ Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.all(5),
-                                  child: SvgPicture.network(
-                                    productsCustom?[index].imageUrl.first,
-                                    placeholderBuilder:
-                                        (BuildContext context) =>  Shimmer.fromColors(
-                                          baseColor: Colors.grey[300]!,
-                                          highlightColor: Colors.grey[100]!,
-                                          child: Container(
-                                            width: double.infinity,
-                                            height: double.infinity,
-                                            color: Colors.grey,
-                                          )),
-                                    width: 200,
-                                    height: 200,
-                                  ),
+                            width: 150,
+                            margin: const EdgeInsets.symmetric(horizontal: 5),
+                            decoration: BoxDecoration(
+                                color: Colors.white,
+                                border: Border.all(width: 1)),
+                            child: Stack(
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.all(5),
+                                        child: SvgPicture.network(
+                                          productsCustom![index].imageUrl.first,
+                                          placeholderBuilder:
+                                              (BuildContext context) =>
+                                                  Shimmer.fromColors(
+                                                      baseColor:
+                                                          Colors.grey[300]!,
+                                                      highlightColor:
+                                                          Colors.grey[100]!,
+                                                      child: Container(
+                                                        width: double.infinity,
+                                                        height: double.infinity,
+                                                        color: Colors.grey,
+                                                      )),
+                                          width: 200,
+                                          height: 200,
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                        margin: const EdgeInsets.all(5),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              productsCustom![index].name,
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 18),
+                                            ),
+                                            Text(
+                                              convertToRupiah(
+                                                  productsCustom?[index].price),
+                                              style:
+                                                  const TextStyle(fontSize: 15),
+                                            ),
+                                          ],
+                                        ))
+                                  ],
                                 ),
-                              ),
-                              Container(
-                                  margin: const EdgeInsets.all(5),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        productsCustom?[index].name,
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18),
+                                accessCustom
+                                    ? SizedBox()
+                                    : Center(
+                                        child: Icon(
+                                          Icons.lock,
+                                          color: AppColor.primary,
+                                          size: 100,
+                                        ),
                                       ),
-                                      Text(
-                                        convertToRupiah(productsCustom?[index].price),
-                                        style: const TextStyle(fontSize: 15),
-                                      ),
-                                    ],
-                                  ))
-                            ],
-                          ),accessCustom? SizedBox() : Center(child: Icon(Icons.lock, color: AppColor.primary,size: 100,),),],
-                          )
-                        ));
+                              ],
+                            )));
                   })
               : const Center(child: Text("Tidak ada produk"))
           : ListView.builder(
@@ -442,177 +480,177 @@ class _HomePageState extends State<HomePage> {
             ),
     );
   }
-  
+
   void showSnackBar(String text) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(text),
-      duration: Duration(days: 365))
-    );
+        SnackBar(content: Text(text), duration: Duration(days: 365)));
   }
 
+  void customSurvey(BuildContext context) {
+    String field1Answer = '';
+    String field2Answer = '';
+    String sourceAnswer = '';
 
-void customSurvey(BuildContext context) {
-  String field1Answer = '';
-  String field2Answer = '';
-  String sourceAnswer = ''; 
-
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Survei Aplikasi'),
-        content: StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Apakah kamu tahu kain ulos?'),
-                    Row(
-                      children: [
-                        Radio<String>(
-                          value: 'Ya',
-                          groupValue: field1Answer,
-                          onChanged: (value) {
-                            setState(() {
-                              field1Answer = value!;
-                            });
-                          },
-                        ),
-                        const Text('Ya'),
-                        Radio<String>(
-                          value: 'Tidak',
-                          groupValue: field1Answer,
-                          onChanged: (value) {
-                            setState(() {
-                              field1Answer = value!;
-                            });
-                          },
-                        ),
-                        const Text('Tidak'),
-                      ],
-                    ),
-                  ],
-                ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Apakah pernah membeli atau memiliki kain ulos?'),
-                    Row(
-                      children: [
-                        Radio<String>(
-                          value: 'Pernah',
-                          groupValue: field2Answer,
-                          onChanged: (value) {
-                            setState(() {
-                              field2Answer = value!;
-                            });
-                          },
-                        ),
-                        const Text('Pernah'),
-                        Radio<String>(
-                          value: 'Tidak Pernah',
-                          groupValue: field2Answer,
-                          onChanged: (value) {
-                            setState(() {
-                              field2Answer = value!;
-                            });
-                          },
-                        ),
-                        const Expanded(child: Text('Tidak Pernah')),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                const Text('Darimana kamu tahu JahitBaju?'),
-                Row(
-                  children: [
-                    Radio<String>(
-                      value: 'Teman',
-                      groupValue: sourceAnswer,
-                      onChanged: (value) {
-                        setState(() {
-                          sourceAnswer = value!;
-                        });
-                      },
-                    ),
-                    const Text('Teman'),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Radio<String>(
-                      value: 'Sosial Media',
-                      groupValue: sourceAnswer,
-                      onChanged: (value) {
-                        setState(() {
-                          sourceAnswer = value!;
-                        });
-                      },
-                    ),
-                    const Text('Sosial Media'),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Radio<String>(
-                      value: 'Website',
-                      groupValue: sourceAnswer,
-                      onChanged: (value) {
-                        setState(() {
-                          sourceAnswer = value!;
-                        });
-                      },
-                    ),
-                    const Text('Website'),
-                  ],
-                ),
-              ],
-            );
-          },
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () {
-              if(sourceAnswer != "" && field1Answer != "" && field2Answer != ""){
-                  sentSurveiData(sourceAnswer, field1Answer, field2Answer).then((isSuccess){
-
-                     if(isSuccess){
-
-                     saveAccessCustom(true).then((value){
-                      
-                      Fluttertoast.showToast(msg: "Survei berhasil disimpan.");
-                      Navigator.of(context).pop();});
-                     }else{
-                      Fluttertoast.showToast(msg: "Terjadi kesalahan, coba lagi.");
-                     }
-                  });
-
-                  setState(() {
-                    
-                  });
-              }
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Survei Aplikasi'),
+          content: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Apakah kamu tahu kain ulos?'),
+                      Row(
+                        children: [
+                          Radio<String>(
+                            value: 'Ya',
+                            groupValue: field1Answer,
+                            onChanged: (value) {
+                              setState(() {
+                                field1Answer = value!;
+                              });
+                            },
+                          ),
+                          const Text('Ya'),
+                          Radio<String>(
+                            value: 'Tidak',
+                            groupValue: field1Answer,
+                            onChanged: (value) {
+                              setState(() {
+                                field1Answer = value!;
+                              });
+                            },
+                          ),
+                          const Text('Tidak'),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                          'Apakah pernah membeli atau memiliki kain ulos?'),
+                      Row(
+                        children: [
+                          Radio<String>(
+                            value: 'Pernah',
+                            groupValue: field2Answer,
+                            onChanged: (value) {
+                              setState(() {
+                                field2Answer = value!;
+                              });
+                            },
+                          ),
+                          const Text('Pernah'),
+                          Radio<String>(
+                            value: 'Tidak Pernah',
+                            groupValue: field2Answer,
+                            onChanged: (value) {
+                              setState(() {
+                                field2Answer = value!;
+                              });
+                            },
+                          ),
+                          const Expanded(child: Text('Tidak Pernah')),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Darimana kamu tahu JahitBaju?'),
+                  Row(
+                    children: [
+                      Radio<String>(
+                        value: 'Teman',
+                        groupValue: sourceAnswer,
+                        onChanged: (value) {
+                          setState(() {
+                            sourceAnswer = value!;
+                          });
+                        },
+                      ),
+                      const Text('Teman'),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Radio<String>(
+                        value: 'Sosial Media',
+                        groupValue: sourceAnswer,
+                        onChanged: (value) {
+                          setState(() {
+                            sourceAnswer = value!;
+                          });
+                        },
+                      ),
+                      const Text('Sosial Media'),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Radio<String>(
+                        value: 'Website',
+                        groupValue: sourceAnswer,
+                        onChanged: (value) {
+                          setState(() {
+                            sourceAnswer = value!;
+                          });
+                        },
+                      ),
+                      const Text('Website'),
+                    ],
+                  ),
+                ],
+              );
             },
-            child: const Text('Kirim'),
           ),
-        ],
-      );
-    },
-  );
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                if (sourceAnswer != "" &&
+                    field1Answer != "" &&
+                    field2Answer != "") {
+                  sentSurveiData(sourceAnswer, field1Answer, field2Answer)
+                      .then((isSuccess) {
+                    if (isSuccess) {
+                      saveAccessCustom(true).then((value) {
+                        Fluttertoast.showToast(
+                            msg: "Survei berhasil disimpan.");
+                        Navigator.of(context).pop();
+                      });
+                    } else {
+                      Fluttertoast.showToast(
+                          msg: "Terjadi kesalahan, coba lagi.");
+                    }
+                  });
+
+                  setState(() {});
+                }
+              },
+              child: const Text('Kirim'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
-}
+Future<bool> sentSurveiData(
+    String sourceAnswer, String field1answer, String field2answer) async {
+  ApiService apiService = ApiService();
 
-Future<bool> sentSurveiData(String sourceAnswer, String field1answer, String field2answer)async {
-    ApiService apiService = ApiService();
-
-    SurveiResponse response =  await apiService.sendSurveiData(sourceAnswer, field1answer, field2answer);
-    if(response.error){
-      return false;
-    }else{
-      return true;
-    }
+  SurveiResponse response =
+      await apiService.sendSurveiData(sourceAnswer, field1answer, field2answer);
+  if (response.error) {
+    return false;
+  } else {
+    return true;
+  }
 }
