@@ -61,6 +61,9 @@ dependencies:
   shared_preferences: ^2.0.15  
   app_links:
   timelines_plus:
+  sqflite: 
+  path: ^1.9.0
+  flutter_carousel_widget:
 
 icons_launcher:
   image_path: "assets/logo/jahit_baju_logo.png"

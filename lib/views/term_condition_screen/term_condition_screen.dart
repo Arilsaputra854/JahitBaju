@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:jahit_baju/service/remote/api_service.dart';
-import 'package:jahit_baju/service/remote/response/term_condition_response.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/data/source/remote/response/term_condition_response.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class TermConditionScreen extends StatefulWidget {
@@ -42,7 +42,7 @@ class _TermConditionScreenState extends State<TermConditionScreen> {
   }
 
   Future<String> getTermCondition() async{
-    ApiService apiService = ApiService();
+    ApiService apiService = ApiService(context);
     TermConditionResponse response =  await apiService.termCondition();
 
     if(response.error){

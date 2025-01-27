@@ -3,15 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:jahit_baju/data/model/packaging.dart';
+import 'package:jahit_baju/data/model/shipping.dart';
+import 'package:jahit_baju/data/source/remote/response/packaging_response.dart';
+import 'package:jahit_baju/data/source/remote/response/shipping_response.dart';
 import 'package:jahit_baju/helper/app_color.dart';
-import 'package:jahit_baju/model/cart.dart';
-import 'package:jahit_baju/model/order.dart';
-import 'package:jahit_baju/model/product.dart';
-import 'package:jahit_baju/service/remote/api_service.dart';
-import 'package:jahit_baju/service/remote/response/product_response.dart';
+import 'package:jahit_baju/data/model/cart.dart';
+import 'package:jahit_baju/data/model/order.dart';
+import 'package:jahit_baju/data/model/product.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/data/source/remote/response/product_response.dart';
 import 'package:jahit_baju/util/util.dart';
+import 'package:jahit_baju/views/payment_screen/payment_screen.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:timelines_plus/timelines_plus.dart';
+
+import '../../data/source/remote/response/order_response.dart';
 
 class DetailOrderScreen extends StatefulWidget {
   final Order order;
@@ -25,33 +32,43 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
   var deviceHeight, deviceWidth;
   bool buttonState = false;
 
+  late ApiService apiService;
+
   var fontSize;
 
   List<String> status = [
+    "Bayar Pesanan",
     "Pesanan Disiapkan",
     "Dalam Pengiriman",
-    "Pesanan Tiba"
+    "Pesanan Tiba",
+    "Pesanan Selesai",
   ];
   int currentStatus = 0;
 
   @override
   void initState() {
+    apiService = ApiService(context);
     switch (widget.order.orderStatus) {
-      case Order.PROCESS:
+      case Order.WAITING_FOR_PAYMENT:
         currentStatus = 0;
         break;
-      case Order.ON_DELIVERY:
+      case Order.PROCESS:
         currentStatus = 1;
         break;
-      case Order.DONE:
+      case Order.ON_DELIVERY:
         currentStatus = 2;
+        break;
+      case Order.ARRIVED:
+        currentStatus = 3;
+        break;
+      case Order.DONE:
+        currentStatus = 4;
         break;
     }
 
     super.initState();
   }
 
-  ApiService apiService = ApiService();
   @override
   Widget build(BuildContext context) {
     deviceWidth = MediaQuery.of(context).size.width;
@@ -76,11 +93,18 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    DateFormat('HH:mm,EEEE, dd MMMM yyyy').format(DateTime.parse(
-                        widget.order.orderCreated.toIso8601String())),
+                    DateFormat('HH:mm, EEEE, dd MMMM yyyy').format(
+                        DateTime.parse(
+                            widget.order.orderCreated.toIso8601String())),
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                   ),
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 5),
+                  Text(
+                    "Order Id :\n ${widget.order.id}",
+                    style:
+                        TextStyle(fontWeight: FontWeight.normal, fontSize: 12),
+                  ),
+                  const SizedBox(height: 10),
                   Text(
                     "Status",
                     style: TextStyle(
@@ -140,7 +164,7 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 10),
                   Text(
                     "Detail Produk",
                     style: TextStyle(
@@ -156,6 +180,128 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
             ),
             const SizedBox(height: 5),
             _listProduct(),
+            SizedBox(height: 5),
+            Container(
+              padding: EdgeInsets.all(5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Detail Kemasan",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: fontSize),
+                  ),
+                  Divider(
+                    color: Colors.black,
+                    thickness: 1,
+                    height: 8,
+                  ),
+                ],
+              ),
+            ),
+            FutureBuilder(
+              future: getPackagingById(),
+              builder: (context, snapshot) {
+                if(snapshot.connectionState == ConnectionState.waiting){
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+                if (snapshot.hasData && snapshot.data != null) {
+                  return Card(
+                      child: Container(
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(width: 2),
+                        borderRadius: BorderRadius.circular(12)),
+                    padding: EdgeInsets.all(10),
+                    child: Row(
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(snapshot.data!.name,
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 16)),
+                            Text(snapshot.data!.description,
+                                style: TextStyle(
+                                    fontWeight: FontWeight.normal,
+                                    fontSize: 12)),
+                            Text(convertToRupiah(widget.order.packagingPrice))
+                          ],
+                        )
+                      ],
+                    ),
+                  ));
+                }
+                return Text("Tidak dapat memuat detail kemasan.");
+              },
+            ),
+            SizedBox(height: 5),
+            Container(
+              padding: EdgeInsets.all(5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Detail Pengiriman",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: fontSize),
+                  ),
+                  Divider(
+                    color: Colors.black,
+                    thickness: 1,
+                    height: 8,
+                  ),
+                ],
+              ),
+            ),
+            FutureBuilder<Shipping?>(
+              future: getShippingById(widget.order.shippingId),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+
+                if (snapshot.hasData && snapshot.data != null) {
+                  return Card(
+                      child: Container(
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(width: 2),
+                        borderRadius: BorderRadius.circular(12)),
+                    padding: EdgeInsets.all(10),
+                    child: Row(
+                      children: [
+                        CachedNetworkImage(
+                          imageUrl: snapshot.data!.imgUrl,
+                          errorWidget: (context, url, error) {
+                            return Icon(Icons.warning);
+                          },
+                          width: 50,
+                        ),
+                        SizedBox(
+                          width: 20,
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(snapshot.data!.name,
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 16)),
+                            Text(convertToRupiah(snapshot.data!.price))
+                          ],
+                        )
+                      ],
+                    ),
+                  ));
+                } else {                  
+                return Text("Tidak dapat memuat detail pengiriman.");
+                }
+              },
+            ),
             SizedBox(height: 15),
             _detailPrice()
           ]),
@@ -166,7 +312,22 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
             mainAxisAlignment:
                 MainAxisAlignment.spaceBetween, // Untuk distribusi tombol
             children: [
-              // Tombol Tambah ke Keranjang
+              OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    backgroundColor: Colors.white,
+                    disabledBackgroundColor: Colors.grey,
+                    padding: EdgeInsets.symmetric(vertical: 15),
+                  ),
+                  onPressed: buttonState
+                      ? null
+                      : () {
+                          //chat
+                        },
+                  child: Icon(Icons.chat)),
+              SizedBox(width: 10),
               Expanded(
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
@@ -177,14 +338,23 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                     disabledBackgroundColor: Colors.grey,
                     padding: EdgeInsets.symmetric(vertical: 15),
                   ),
-                  onPressed: buttonState ? null : () {},
+                  onPressed: buttonState
+                      ? null
+                      : currentStatus == 0
+                          ? () {
+                              //batal pesanan
+                              _deleteOrder(widget.order.id);
+                            }
+                          : () {
+                              //lacak pesanan
+                            },
                   child: Wrap(
                     alignment: WrapAlignment.center,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     spacing: 5, // Jarak antara ikon dan teks
                     children: [
                       Text(
-                        "Lacak",
+                        currentStatus == 0 ? "Batal" : "Lacak",
                         style: TextStyle(
                           color: buttonState
                               ? const Color.fromARGB(255, 95, 92, 92)
@@ -199,7 +369,6 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                 ),
               ),
               SizedBox(width: 10),
-              // Tombol Beli Sekarang
               Expanded(
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -209,9 +378,17 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                     backgroundColor: buttonState ? Colors.grey : Colors.red,
                     padding: EdgeInsets.symmetric(vertical: 15),
                   ),
-                  onPressed: () {},
-                  child: Text(
-                    "Pesanan Selesai",
+                  onPressed: buttonState
+                      ? null
+                      : currentStatus == 0
+                          ? () {
+                              //bayar pesanan
+                              _goToPaymentScreen(widget.order);
+                            }
+                          : currentStatus != 3 ? null : (){
+                              //pesanan selesai
+                            },
+                  child: currentStatus != 3 && currentStatus == 0 ? Text("Bayar Sekarang",
                     style: TextStyle(
                       color: buttonState
                           ? const Color.fromARGB(255, 95, 92, 92)
@@ -220,7 +397,16 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                     ),
                     softWrap: true, // Agar teks membungkus jika terlalu panjang
                     textAlign: TextAlign.center,
-                  ),
+                  ) : Text("Pesanan Selesai",
+                    style: TextStyle(
+                      color: buttonState
+                          ? const Color.fromARGB(255, 95, 92, 92)
+                          : Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    softWrap: true, // Agar teks membungkus jika terlalu panjang
+                    textAlign: TextAlign.center,
+                  ) ,
                 ),
               ),
             ],
@@ -228,28 +414,27 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
         ));
   }
 
-
   Widget _listProduct() {
     return ListView.builder(
         itemCount: widget.order.items.length,
         shrinkWrap: true,
         itemBuilder: (context, index) {
           return FutureBuilder<Product?>(
-              future: getProductById(widget.order.items[index].productId),
+              future: getProductById(
+                  widget.order.items[index].productId, ApiService(context)),
               builder: (context, snapshot) {
-
-                if(snapshot.connectionState == ConnectionState.waiting){
+                if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(
                     child: CircularProgressIndicator(),
-                  ); 
+                  );
                 }
-                if (snapshot.hasData) {
+                if (snapshot.hasData || snapshot.data != null) {
                   return Card(
                     color: Colors.white,
                     elevation: 4,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
-                        side: BorderSide(width: 1)),
+                        side: BorderSide(width: 2)),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -332,8 +517,9 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                       ],
                     ),
                   );
-                }else{
-                  return Container();
+                } else {
+                  
+                return Text("Tidak dapat memuat detail produk.");
                 }
               });
         });
@@ -423,5 +609,52 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
         ),
       ],
     );
+  }
+
+  void _deleteOrder(String? id) async {
+    ApiService apiService = ApiService(context);
+    OrderResponse response = await apiService.orderDelete(id);
+    if (response.error) {
+      Fluttertoast.showToast(msg: response.message!);
+    } else {
+      Fluttertoast.showToast(msg: response.message!);
+      setState(() {});
+    }
+  }
+
+  void _goToPaymentScreen(order) {
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => PaymentScreen(order: order)));
+  }
+
+  Future<Shipping?> getShippingById(String shippingId) async {
+    ShippingResponse response =
+        await ApiService(context).getShipping(widget.order.shippingId);
+    if (response.error) {
+      if (response.message != null) {
+        Fluttertoast.showToast(msg: response.message!);
+      } else {
+        Fluttertoast.showToast(msg: "Terjadi kesalahan, coba lagi nanti.");
+      }
+    } else {
+      return response.shipping;
+    }
+    return null;
+  }
+
+//get packaging
+  Future<Packaging?> getPackagingById() async {
+    PackagingResponse response =
+          await ApiService(context).getPackaging(widget.order.packagingId);
+      if (response.error) {
+        if (response.message != null) {
+          Fluttertoast.showToast(msg: response.message!);
+        } else {
+          Fluttertoast.showToast(msg: "Terjadi kesalahan, coba lagi nanti.");
+        }
+      } else {
+        return response.packaging;
+      }
+      return null;
   }
 }

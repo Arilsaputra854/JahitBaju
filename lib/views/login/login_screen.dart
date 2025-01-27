@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/viewmodels/login_view_model.dart';
 import 'package:jahit_baju/viewmodels/register_view_model.dart';
 import 'package:jahit_baju/views/forgot_password/forgot_password.dart';
@@ -20,7 +21,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool _isPasswordVisible = false;
   var deviceWidth, deviceHeight;
-  var formKey = GlobalKey<FormState>();
+  var formKey = GlobalKey<FormState>();  
 
   bool init = false;
 
@@ -48,34 +49,35 @@ class _LoginScreenState extends State<LoginScreen> {
     deviceHeight = MediaQuery.of(context).size.height;
 
     return ChangeNotifierProvider(
-        create: (context) => LoginViewModel(),
+        create: (context) => LoginViewModel(new ApiService(context)),
         child: Stack(
           alignment: Alignment.center,
           children: [
-            Transform.scale(
+            Positioned.fill(
+              child: Transform.scale(
               scale: 1.3,
               child: Container(
-                width: deviceWidth,
                 decoration: const BoxDecoration(
-                    color: Colors.black,
-                    image: DecorationImage(
-                        image: AssetImage("assets/background/bg.png"),
-                        fit: BoxFit.cover,
-                        opacity: 0.6)),
-              ),
+                  color: Colors.black,
+                  image: DecorationImage(
+                    image: AssetImage("assets/background/bg.png"),
+                    fit: BoxFit.cover,
+                    opacity: 0.6,
+                  ),
+                ),
+              )),
             ),
             Scaffold(
               backgroundColor: Colors.transparent,
-              body: Consumer<LoginViewModel>(
-                  builder: (context, viewModel, child) {
-                return Center(
-                  child: SizedBox(
-                    width: deviceWidth * 0.8,
-                    height: deviceHeight * 0.8,
-                    child: loginForm(),
-                  ),
-                );
-              }),
+              body: Container(
+                height: deviceHeight,
+                width: deviceWidth,
+                child: Center(                
+                child: FractionallySizedBox(
+                widthFactor: 0.8, // 80% dari lebar layar.
+                child: loginForm(),
+                )
+              )),
             ),
             if (isLoading)
               LoadingAnimationWidget.staggeredDotsWave(
@@ -91,6 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Form(
             key: formKey,
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
@@ -157,8 +160,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(5)),
-                              backgroundColor: Colors.white),
-                          onPressed: () async {
+                              backgroundColor: isLoading? Colors.grey : Colors.white),
+                          onPressed: isLoading? null : () async {
                             if (formKey.currentState!.validate()) {
                               login(viewModel);
                             }
@@ -220,7 +223,7 @@ class _LoginScreenState extends State<LoginScreen> {
             borderRadius: BorderRadius.all(Radius.circular(10))));
   }
 
-  goToForgotPassword() {    
+  goToForgotPassword() {
     Navigator.push(context,
         MaterialPageRoute(builder: (context) => ForgotPasswordScreen()));
   }
@@ -246,13 +249,12 @@ class _LoginScreenState extends State<LoginScreen> {
         Fluttertoast.showToast(msg: viewModel.errorMsg.toString());
       }
       if (isSuccess) {
-        await viewModel.emailVerified().then((isVerified){
-          
-          if(isVerified){
+        await viewModel.emailVerified().then((isVerified) {
+          if (isVerified) {
             Fluttertoast.showToast(msg: "Login berhasil!");
 
             goToHomeScreen();
-          }else{
+          } else {
             goTogoToOtpPage(viewModel.email);
             Fluttertoast.showToast(msg: "Email belum terverifikasi!");
           }
@@ -264,9 +266,10 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-void goTogoToOtpPage(String? email) {
-   Navigator.push(
-        context, MaterialPageRoute(builder: (context) => OtpScreen(email!, OtpScreen.REGISTER)));
-}
-
+  void goTogoToOtpPage(String? email) {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => OtpScreen(email!, OtpScreen.REGISTER)));
+  }
 }

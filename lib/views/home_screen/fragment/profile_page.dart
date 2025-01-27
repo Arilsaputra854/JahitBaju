@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:jahit_baju/service/remote/api_service.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
-import 'package:jahit_baju/model/user.dart';
-import 'package:jahit_baju/service/remote/response/user_response.dart';
+import 'package:jahit_baju/data/model/user.dart';
+import 'package:jahit_baju/data/source/remote/response/user_response.dart';
+import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/views/login/login_screen.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -14,7 +15,6 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<ProfilePage> {
-  TokenStorage tokenStorage = TokenStorage();
   late bool onEdit, enabled;
   late TextEditingController nameController;
   late TextEditingController emailController;
@@ -195,7 +195,7 @@ class _HomePageState extends State<ProfilePage> {
                     ),
                     SizedBox(height: deviceWidth * 0.03),
                     InkWell(
-                      onTap: () => logoutUser(),
+                      onTap: () => logoutUser(context),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -238,20 +238,17 @@ class _HomePageState extends State<ProfilePage> {
     );
   }
 
-  logoutUser() async {
-    await tokenStorage.deleteToken(TokenStorage.TOKEN_KEY);
-    Fluttertoast.showToast(msg: "Logout berhasil");
-    goToLoginScreen();
-  }
 
   Future<User> loadUserFromDatabase() async {
-    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
-    if (token != null) {
-      var apiService = await ApiService().userGet(token!);
-      if (apiService is User) {
-        return apiService as User;
-      }
+    UserResponse response = await ApiService(context).userGet();
+
+    if(!response.error){
+      return response.data ?? User(
+        email: "email",
+        name: "name",
+        password: "password",
+        emailVerified: false);
     }
 
     return User(
@@ -261,15 +258,9 @@ class _HomePageState extends State<ProfilePage> {
         emailVerified: false);
   }
 
-  void goToLoginScreen() {
-    Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-        (Route<dynamic> route) => false);
-  }
 
   Future<void> saveSetting() async {
-    ApiService apiService = ApiService();
+    ApiService apiService = ApiService(context);
 
 
     UserResponse response =  await apiService
@@ -277,7 +268,7 @@ class _HomePageState extends State<ProfilePage> {
         nameController.text,
         emailController.text,
         passwordController.text,
-        null, // assuming imageUrl is not being updated
+        null,
         addressController.text,
         phoneController.text,
       );

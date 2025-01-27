@@ -7,6 +7,7 @@ class User {
   String address;
   String imageUrl;
   bool emailVerified;
+  bool customAccess;
 
   User({
     this.id = "",
@@ -17,6 +18,7 @@ class User {
      this.address= "",
      this.imageUrl= "",
     this.emailVerified = false,
+    this.customAccess = false,
   });
 factory User.fromJson(Map<String, dynamic> json) {
     return User(
@@ -27,7 +29,8 @@ factory User.fromJson(Map<String, dynamic> json) {
       password: json['password'] ?? "",  // Use empty string if 'password' is null
       address: json['address']?? "",  // Nullable field
       imageUrl: json['img_url']?? "",  // Nullable field
-      emailVerified: json['email_verified'] ?? false
+      emailVerified: json['email_verified'] ?? false,
+      customAccess: json['custom_access'] ?? false
     );
   }
 
@@ -40,7 +43,8 @@ factory User.fromJson(Map<String, dynamic> json) {
       'password': password,
       'address': address,
       'img_url': imageUrl,
-      'email_verified' : emailVerified
+      'email_verified' : emailVerified,
+      'custom_access' : customAccess
     };
   }
 }

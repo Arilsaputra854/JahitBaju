@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:jahit_baju/service/remote/api_service.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
-import 'package:jahit_baju/model/order.dart';
-import 'package:jahit_baju/service/remote/response/order_response.dart';
+import 'package:jahit_baju/data/model/order.dart';
+import 'package:jahit_baju/data/source/remote/response/order_response.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/viewmodels/home_view_model.dart';
 import 'package:jahit_baju/viewmodels/payment_view_model.dart';
@@ -32,7 +32,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     deviceWidth = MediaQuery.of(context).size.width;
     deviceHeight = MediaQuery.of(context).size.height;
 
-    return ChangeNotifierProvider(create:(context)=> PaymentViewModel(), child: Consumer<PaymentViewModel>(builder: (context,viewmodel, child){
+    return ChangeNotifierProvider(create:(context)=> PaymentViewModel(ApiService(context)), child: Consumer<PaymentViewModel>(builder: (context,viewmodel, child){
       return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -120,7 +120,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   
 
   Future<void> validatePaymentXenditGateway() async {
-    ApiService apiService  =ApiService();
+    ApiService apiService  =ApiService(context);
     OrderResponse response = await  apiService.orderGet();
 
     if(!response.error){
@@ -144,6 +144,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   }
 
+  //Bug release cannot open web
   Future<void> openXenditGateway() async {
     final url = Uri.parse(widget.order!.paymentUrl!);
 

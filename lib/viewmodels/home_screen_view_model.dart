@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
-import 'package:jahit_baju/model/cart.dart';
-import 'package:jahit_baju/service/remote/api_service.dart';
-import 'package:jahit_baju/model/product.dart';
+import 'package:jahit_baju/data/model/cart.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/data/model/product.dart';
 
 class HomeScreenViewModel extends ChangeNotifier {
-  ApiService apiService = ApiService();
+  ApiService apiService;
   late TokenStorage tokenStorage = TokenStorage();
 
   String? _errorMsg;
@@ -13,6 +13,7 @@ class HomeScreenViewModel extends ChangeNotifier {
   int _cartSize = 0;
   int get cartSize => _cartSize;
 
+  HomeScreenViewModel(this.apiService);
 
   Future<void> getCartItemSize() async {
     String? token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);

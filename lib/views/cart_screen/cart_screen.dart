@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
-import 'package:jahit_baju/service/remote/api_service.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
 import 'package:jahit_baju/viewmodels/cart_view_model.dart';
-import 'package:jahit_baju/model/cart.dart';
-import 'package:jahit_baju/model/order.dart';
-import 'package:jahit_baju/model/product.dart';
+import 'package:jahit_baju/data/model/cart.dart';
+import 'package:jahit_baju/data/model/order.dart';
+import 'package:jahit_baju/data/model/product.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/views/product_screen/product_screen.dart';
 import 'package:jahit_baju/views/shipping_screen/shipping_screen.dart';
@@ -32,7 +32,7 @@ class _CartScreenState extends State<CartScreen> {
     deviceHeight = MediaQuery.of(context).size.height;
 
     return ChangeNotifierProvider(
-        create: (context) => CartViewModel(),
+        create: (context) => CartViewModel(ApiService(context)),
         child: Consumer<CartViewModel>(builder: (context, viewModel, child) {
           return Scaffold(
               appBar: AppBar(
@@ -210,7 +210,7 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   deleteCartItem(CartItem item) async {
-    ApiService apiService = ApiService();
+    ApiService apiService = ApiService(context);
 
     var msg = await apiService.itemCartDelete(item);
     Fluttertoast.showToast(msg: msg);

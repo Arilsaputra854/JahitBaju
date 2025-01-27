@@ -3,9 +3,9 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:jahit_baju/service/remote/api_service.dart';
-import 'package:jahit_baju/service/remote/response/login_response.dart';
-import 'package:jahit_baju/service/remote/response/otp_response.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/data/source/remote/response/login_response.dart';
+import 'package:jahit_baju/data/source/remote/response/otp_response.dart';
 import 'package:jahit_baju/views/home_screen/home_screen.dart';
 import 'package:jahit_baju/views/login/login_screen.dart';
 import 'package:jahit_baju/views/reset_password/reset_password.dart';
@@ -32,10 +32,11 @@ class _ResetPasswordState extends State<OtpScreen> {
 
   int currentOtp = 0;
 
-  ApiService apiService = ApiService();
+  late ApiService apiService;
 
   @override
   void initState() {
+    apiService = ApiService(context);
     super.initState();
   }
 

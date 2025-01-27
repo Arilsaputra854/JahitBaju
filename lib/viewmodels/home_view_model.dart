@@ -1,25 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:jahit_baju/service/remote/api_service.dart';
-import 'package:jahit_baju/model/product.dart';
+import 'package:jahit_baju/data/repository/repository.dart';
+import 'package:jahit_baju/data/model/product.dart';
 
 class HomeViewModel extends ChangeNotifier {
-  ApiService apiService = ApiService();
+  
+  Repository repository;
 
   String? _errorMsg;
-
   String? get errorMsg =>_errorMsg;
 
-  Future<dynamic> getListProducts() async {
-    ApiService apiService = ApiService();
-    var data = await apiService.productsGet();
-    print("Data: ${data}");
-    if (data is List<Product>) {
-      return data;
-    } else if (data is String) {
-      _errorMsg = data;
-    }else{
-      return null;
-    }
+  HomeViewModel(this.repository);
+
+  Future<List<Product>?> getListProducts() async {    
+    return await repository.getAllProduct();
   }
 
   void refresh(){

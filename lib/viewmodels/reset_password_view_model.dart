@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:jahit_baju/service/remote/api_service.dart';
-import 'package:jahit_baju/service/remote/response/user_response.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/data/source/remote/response/user_response.dart';
 
 class ResetPasswordViewModel extends ChangeNotifier {
   String? _password;
@@ -12,7 +12,9 @@ class ResetPasswordViewModel extends ChangeNotifier {
   String? get errorMsg => _errorMsg;
 
 
-  ApiService apiService = ApiService();
+  ApiService apiService;
+
+  ResetPasswordViewModel(this.apiService);
 
   void setPassword(String password) {
     _password = password;

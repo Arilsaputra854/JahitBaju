@@ -1,18 +1,21 @@
 import 'package:animated_snack_bar/animated_snack_bar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:jahit_baju/data/repository/repository.dart';
 import 'package:jahit_baju/helper/app_color.dart';
-import 'package:jahit_baju/helper/preferences.dart';
-import 'package:jahit_baju/service/remote/api_service.dart';
-import 'package:jahit_baju/service/remote/response/survei_response.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/data/source/remote/response/survei_response.dart';
 import 'package:jahit_baju/viewmodels/home_view_model.dart';
-import 'package:jahit_baju/model/product.dart';
+import 'package:jahit_baju/data/model/product.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/views/product_screen/product_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
+
+import '../../../data/source/remote/response/product_response.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -35,12 +38,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    loadAccessCustom().then((value) {
-      if (value == null) {
-        accessCustom = false;
-      } else {
-        accessCustom = value!;
-      }
+    loadAccessCustom(new ApiService(context)).then((value) {
+      accessCustom = value;
     });
 
     deviceWidth = MediaQuery.of(context).size.width;
@@ -51,21 +50,13 @@ class _HomePageState extends State<HomePage> {
           child: Stack(
             children: [
               ChangeNotifierProvider(
-                  create: (context) => HomeViewModel(),
+                  create: (context) =>
+                      HomeViewModel(Repository(ApiService(context))),
                   child: SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          color: Colors.black,
-                          height: deviceWidth * 0.5,
-                          width: deviceWidth,
-                          child: Image.asset(
-                            alignment: const Alignment(1, -0.3),
-                            "assets/background/bg.png",
-                            fit: BoxFit.cover,
-                          ),
-                        ),
+                        appBannerWidget(),
                         Consumer<HomeViewModel>(
                             builder: (context, viewModel, child) {
                           return FutureBuilder(
@@ -358,8 +349,10 @@ class _HomePageState extends State<HomePage> {
                             ? () {
                                 goToProductScreen(productsCustom![index]);
                               }
-                            : () {
-                                customSurvey(context);
+                            : () async {
+                                if (await checkInternetConnection()) {
+                                  customSurvey(context);
+                                }
                               },
                         child: Container(
                             width: 150,
@@ -419,13 +412,21 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 accessCustom
                                     ? SizedBox()
-                                    : Center(
-                                        child: Icon(
-                                          Icons.lock,
-                                          color: AppColor.primary,
-                                          size: 100,
-                                        ),
-                                      ),
+                                    : Container(
+                                          color: const Color.fromARGB(
+                                              226, 255, 255, 255),
+                                          width: double.infinity,
+                                          height: double.infinity,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(Icons.lock_outline_rounded),
+                                              Text("Fitur ini terkunci")
+                                            ],
+                                          ))
                               ],
                             )));
                   })
@@ -616,14 +617,12 @@ class _HomePageState extends State<HomePage> {
                 if (sourceAnswer != "" &&
                     field1Answer != "" &&
                     field2Answer != "") {
-                  sentSurveiData(sourceAnswer, field1Answer, field2Answer)
+                  sentSurveiData(sourceAnswer, field1Answer, field2Answer,
+                          ApiService(context))
                       .then((isSuccess) {
                     if (isSuccess) {
-                      saveAccessCustom(true).then((value) {
-                        Fluttertoast.showToast(
-                            msg: "Survei berhasil disimpan.");
-                        Navigator.of(context).pop();
-                      });
+                      Fluttertoast.showToast(msg: "Survei berhasil disimpan.");
+                      Navigator.of(context).pop();
                     } else {
                       Fluttertoast.showToast(
                           msg: "Terjadi kesalahan, coba lagi.");
@@ -640,17 +639,60 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
-}
 
-Future<bool> sentSurveiData(
-    String sourceAnswer, String field1answer, String field2answer) async {
-  ApiService apiService = ApiService();
-
-  SurveiResponse response =
-      await apiService.sendSurveiData(sourceAnswer, field1answer, field2answer);
-  if (response.error) {
-    return false;
-  } else {
-    return true;
+  appBannerWidget() {
+    try {
+      return FutureBuilder(
+        future: ApiService(context).getAllAppBanner(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            if (snapshot.data!.appBanner != null) {
+              return FlutterCarousel(
+                  options: FlutterCarouselOptions(
+                      viewportFraction: 1, autoPlay: true, aspectRatio: 16 / 9),
+                  items: snapshot.data!.appBanner!.map((item) {
+                    return CachedNetworkImage(imageUrl: item.imageUrl!);
+                  }).toList());
+            } else {
+              return AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: Container(
+                    color: Colors.black,
+                    width: deviceWidth,
+                    child: Image.asset(
+                      alignment: const Alignment(1, -0.3),
+                      "assets/background/bg.png",
+                      fit: BoxFit.cover,
+                    ),
+                  ));
+            }
+          } else {
+            return AspectRatio(
+                aspectRatio: 16 / 9,
+                child: Container(
+                  color: Colors.black,
+                  width: deviceWidth,
+                  child: Image.asset(
+                    alignment: const Alignment(1, -0.3),
+                    "assets/background/bg.png",
+                    fit: BoxFit.cover,
+                  ),
+                ));
+          }
+        },
+      );
+    } catch (e) {
+      return AspectRatio(
+          aspectRatio: 16 / 9,
+          child: Container(
+            color: Colors.black,
+            width: deviceWidth,
+            child: Image.asset(
+              alignment: const Alignment(1, -0.3),
+              "assets/background/bg.png",
+              fit: BoxFit.cover,
+            ),
+          ));
+    }
   }
 }

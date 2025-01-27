@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/helper/app_color.dart';
-import 'package:jahit_baju/service/remote/api_service.dart';
-import 'package:jahit_baju/service/remote/response/user_response.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/data/source/remote/response/user_response.dart';
 
 class AddressScreen extends StatefulWidget {
   String? currentAddress;
@@ -16,7 +16,13 @@ class _AddressScreenState extends State<AddressScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _addressController = TextEditingController();
 
-  ApiService apiService = ApiService();
+  late ApiService apiService;
+
+  @override
+  void initState() {
+    apiService = ApiService(context);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

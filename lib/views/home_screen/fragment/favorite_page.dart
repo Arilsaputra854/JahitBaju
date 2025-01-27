@@ -2,11 +2,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:jahit_baju/model/favorite.dart';
-import 'package:jahit_baju/model/product.dart';
-import 'package:jahit_baju/service/remote/api_service.dart';
-import 'package:jahit_baju/service/remote/response/favorite_response.dart';
-import 'package:jahit_baju/service/remote/response/product_response.dart';
+import 'package:jahit_baju/data/model/favorite.dart';
+import 'package:jahit_baju/data/model/product.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/data/source/remote/response/favorite_response.dart';
+import 'package:jahit_baju/data/source/remote/response/product_response.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/views/product_screen/product_screen.dart';
 import 'package:shimmer/shimmer.dart';
@@ -272,13 +272,13 @@ class _HomePageState extends State<FavoritePage> {
   }
 
   Future<List<Favorite>> getFavorite() async {
-    ApiService apiService = ApiService();
-    List<Favorite> favorites = await apiService.favoriteGet();
+    ApiService apiService = ApiService(context);
+    List<Favorite> favorites = await apiService.favoriteGet(context);
     return favorites;
   }
 
   Future<Product?> getProduct(String productId) async {
-    ApiService apiService = ApiService();
+    ApiService apiService = ApiService(context);
     ProductResponse response = await apiService.productsGetById(productId);
     if (response.error) {
        Fluttertoast.showToast(msg: response.message!);
@@ -293,7 +293,7 @@ class _HomePageState extends State<FavoritePage> {
   }
 
   Future<void> removeFavorite(Favorite? favorite) async {
-    ApiService apiService = ApiService();
+    ApiService apiService = ApiService(context);
 
     if (favorite != null) {
       FavoriteResponse response = await apiService.favoriteDelete(favorite.id!);

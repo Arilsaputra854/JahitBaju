@@ -1,4 +1,4 @@
-import 'package:jahit_baju/model/user.dart';
+import 'package:jahit_baju/data/model/user.dart';
 
 class UserResponse {
   bool error;

@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/viewmodels/register_view_model.dart';
 import 'package:jahit_baju/views/otp_screen/otp_screen.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -47,7 +48,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     deviceHeight = MediaQuery.of(context).size.height;
 
     return ChangeNotifierProvider(
-        create: (context) => RegisterViewModel(),
+        create: (context) => RegisterViewModel(ApiService(context)),
         child: Stack(
           alignment: Alignment.center,
           children: [

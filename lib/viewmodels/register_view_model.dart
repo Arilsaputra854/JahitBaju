@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:jahit_baju/service/remote/api_service.dart';
-import 'package:jahit_baju/model/user.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/data/model/user.dart';
 
 class RegisterViewModel extends ChangeNotifier {
-  ApiService api = ApiService();
+  ApiService apiService;
 
   String? _email;
   String? _password;
@@ -22,6 +22,8 @@ class RegisterViewModel extends ChangeNotifier {
   String? get message => _message;
   String? get name => _name;
   String? get phoneNumber => _phoneNumber;
+
+  RegisterViewModel(this.apiService);
 
   void setEmail(String email) {
     _email = email;
@@ -50,7 +52,7 @@ class RegisterViewModel extends ChangeNotifier {
 
   Future<void> register() async {
     if (_email == null || !_email!.contains('@')) {
-      _message = 'Email tidak valid!';
+      _message = 'Email yang kamu masukkan tidak valid!';
       notifyListeners();
       return;
     }
@@ -62,17 +64,17 @@ class RegisterViewModel extends ChangeNotifier {
     }
 
     if (_password != _confirmPassword) {
-      _message = 'Confirm password tidak sama!';
+      _message = 'Konfirmasi password tidak sama!';
       notifyListeners();
       return;
     }
 
-    var data = await api.userRegister(_name!, _email!, _phoneNumber!, _password!);
+    var data = await apiService.userRegister(_name!, _email!, _phoneNumber!, _password!);
 
     if (data != null) {
       //if register successfully
       if (data is User) {
-        _message = "Register Success!";
+        _message = "Buat akun berhasil!";
         return;
       }
 

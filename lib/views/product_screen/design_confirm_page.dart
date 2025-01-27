@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:jahit_baju/model/product.dart';
-import 'package:jahit_baju/service/remote/api_service.dart';
+import 'package:jahit_baju/data/model/product.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/viewmodels/home_view_model.dart';
 import 'package:jahit_baju/views/shipping_screen/shipping_screen.dart';
@@ -32,10 +32,11 @@ class _DesignConfirmPageState extends State<DesignConfirmPage> {
   late Logger log;
 
   bool purchaseLoading = false;
-  ApiService apiService = ApiService();
+  late ApiService apiService;
 
   @override
   void initState() {
+    apiService = ApiService(context);
     super.initState();    
     log = Logger();
     _controller = WebViewController();

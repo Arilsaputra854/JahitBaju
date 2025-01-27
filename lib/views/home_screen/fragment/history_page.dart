@@ -3,17 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
-import 'package:jahit_baju/service/remote/api_service.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/helper/app_color.dart';
-import 'package:jahit_baju/model/order.dart';
-import 'package:jahit_baju/model/product.dart';
-import 'package:jahit_baju/service/remote/response/order_response.dart';
-import 'package:jahit_baju/service/remote/response/product_response.dart';
+import 'package:jahit_baju/data/model/order.dart';
+import 'package:jahit_baju/data/model/product.dart';
+import 'package:jahit_baju/data/source/remote/response/order_response.dart';
+import 'package:jahit_baju/data/source/remote/response/product_response.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/views/payment_screen/payment_screen.dart';
 import 'package:shimmer/shimmer.dart';
 
-import '../../detal_order_screen/detail_order_screen.dart';
+import '../../detail_order_screen/detail_order_screen.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -202,11 +202,11 @@ class _HistoryPageState extends State<HistoryPage> {
             borderRadius: BorderRadius.circular(8), color: Colors.white),
         child: InkWell(
             onTap: () {
-              if (order.orderStatus == Order.WAITING_FOR_PAYMENT) {
-                _goToPaymentScreen(order);
-              } else {
+              // if (order.orderStatus == Order.WAITING_FOR_PAYMENT) {
+              //   _goToPaymentScreen(order);
+              // } else {
                 _goToDetailOrderScreen(order);
-              }
+              //}
             },
             child: Card(
                 color: Colors.white,
@@ -386,7 +386,7 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   Future<List<Order?>> getOrder() async {
-    ApiService apiService = ApiService();
+    ApiService apiService = ApiService(context);
 
     OrderResponse orders = await apiService.orderGet();
 
@@ -398,7 +398,7 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   Future<Product?> getProduct(String productId) async {
-    ApiService apiService = ApiService();
+    ApiService apiService = ApiService(context);
     ProductResponse response = await apiService.productsGetById(productId);
     if (response.error) {
       Fluttertoast.showToast(msg: response.message!);
@@ -407,13 +407,9 @@ class _HistoryPageState extends State<HistoryPage> {
     }
   }
 
-  void _goToPaymentScreen(order) {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (context) => PaymentScreen(order: order)));
-  }
 
   _deleteOrder(String? id) async {
-    ApiService apiService = ApiService();
+    ApiService apiService = ApiService(context);
     OrderResponse response = await apiService.orderDelete(id);
     if (response.error) {
       Fluttertoast.showToast(msg: response.message!);

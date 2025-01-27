@@ -1,4 +1,4 @@
-import 'package:jahit_baju/model/product.dart';
+import 'package:jahit_baju/data/model/product.dart';
 
 class Order {
   final String? id;
@@ -33,6 +33,7 @@ class Order {
   static const String WAITING_FOR_PAYMENT = "WAITING FOR PAYMENT";
   static const String DONE = "DONE";
   static const String PROCESS = "PROCESS";
+  static const String ARRIVED = "ARRIVED";
   static const String ON_DELIVERY = "ON_DELIVERY";
   static const String CANCEL = "CANCEL";
 

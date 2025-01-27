@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:animated_snack_bar/animated_snack_bar.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -5,9 +7,13 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
-import 'package:jahit_baju/model/product.dart';
-import 'package:jahit_baju/service/remote/api_service.dart';
-import 'package:jahit_baju/service/remote/response/product_response.dart';
+import 'package:jahit_baju/data/model/product.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/data/source/remote/response/product_response.dart';
+import 'package:jahit_baju/data/source/remote/response/survei_response.dart';
+import 'package:jahit_baju/helper/secure/token_storage.dart';
+import 'package:jahit_baju/views/login/login_screen.dart';
+import 'package:logger/web.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 String convertToRupiah(dynamic value) {
@@ -23,9 +29,32 @@ String convertToRupiah(dynamic value) {
   return converted;
 }
 
-ApiService apiService = ApiService();
 
-Future<Product?> getProductById(productId) async {
+Future<bool> sentSurveiData(
+    String sourceAnswer, String field1answer, String field2answer,ApiService apiService) async {    
+
+  SurveiResponse response =
+      await apiService.sendSurveiData(sourceAnswer, field1answer, field2answer);
+  if (response.error) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+
+  Future<bool> loadAccessCustom(ApiService apiService) async {
+    SurveiResponse response =
+        await apiService.getSurveiData();
+    if (response.error) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+
+Future<Product?> getProductById(productId, ApiService apiService) async {
     ProductResponse response = await apiService.productsGetById(productId);
     if (response.error) {
       Fluttertoast.showToast(msg: response.message ?? "Terjadi Kesalahan");
@@ -36,6 +65,8 @@ Future<Product?> getProductById(productId) async {
   }
 
 Widget svgViewer(String svg){  
+
+  Logger logger = Logger();
   WebViewController controller =WebViewController();  
   var htmlContent = '''
             <!DOCTYPE html>
@@ -64,37 +95,14 @@ Widget svgViewer(String svg){
               $svg
             </body>
             </html>
-            ''';
+            ''';            
     controller.loadHtmlString(htmlContent);
-          
+          logger.d("SVG Loaded: $htmlContent");
     return WebViewWidget(      
                   controller: controller,
                   gestureRecognizers: Set(),
                 );
 }
-
-// Future<void> checkConnection(BuildContext context) async {
-//   // Cek status koneksi internet
-//   final connectivityResult = await Connectivity().checkConnectivity();
-
-//   if (connectivityResult == ConnectivityResult.none) {
-//     // Jika tidak ada koneksi internet
-//     showSnackBar(context, "Kamu sedang offline!", isError: true);
-//     return;
-//   }
-
-//   // Jika ada koneksi, cek status server
-//   try {
-//     final response = await http.get(Uri.parse(ApiService().baseUrl)).timeout(Duration(seconds: 5));
-
-//     if (response.statusCode >= 200 && response.statusCode < 300) {
-//     showSnackBar(context, "Terjadi kesalahan pada server. ${response.statusCode}", isError: true);
-//     }
-//   } catch (e) {
-//     // Timeout atau error lainnya
-//     showSnackBar(context, "Terjadi kesalahan pada server.", isError: true);
-//   }
-// }
 
 String customFormatDate(DateTime date){
   return DateFormat('HH:mm, dd-MM-yyyy').format(date);
@@ -107,4 +115,53 @@ void showSnackBar(BuildContext context, String message, {required bool isError})
     duration: Duration(seconds: 3),
   );
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
+}
+
+void showDialogSession(BuildContext context){
+  showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Sesi Anda Telah Habis'),
+          content: Text('Silakan login kembali untuk melanjutkan.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                logoutUser(context);
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+}
+
+
+
+  logoutUser(BuildContext context) async {
+    TokenStorage tokenStorage = TokenStorage();
+    await tokenStorage.deleteToken(TokenStorage.TOKEN_KEY);
+    Fluttertoast.showToast(msg: "Logout berhasil");
+    goToLoginScreen(context);
+  }
+
+
+  void goToLoginScreen(BuildContext context) {
+    Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        (Route<dynamic> route) => false);
+  }
+
+
+Future<bool> checkInternetConnection() async {  
+  try {
+    final result = await InternetAddress.lookup('example.com');
+    return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+  } on SocketException catch (_) {
+    return false;
+  }
 }

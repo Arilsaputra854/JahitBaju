@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:jahit_baju/service/remote/api_service.dart';
-import 'package:jahit_baju/model/product.dart';
+import 'package:jahit_baju/data/repository/repository.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/data/model/product.dart';
+import 'package:jahit_baju/data/source/remote/response/product_response.dart';
 
 class SearchViewModel extends ChangeNotifier {
-  ApiService apiService = ApiService();
+  Repository repository;
 
   String? _errorMsg;
-
   String? get errorMsg =>_errorMsg;
 
+  SearchViewModel(this.repository);
+
   Future<dynamic> getListProducts() async {    
-    var data = await apiService.productsGet();
+    var data = await repository.getAllProduct();
     if (data is List<Product>) {
       return data;
-    } else if (data is String) {
-      _errorMsg = data;
-    }else{
-      return null;
+    }else if(data is String){
+      _errorMsg = data.toString();
     }
   }
 

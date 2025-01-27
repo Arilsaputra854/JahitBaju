@@ -1,14 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:jahit_baju/service/remote/api_service.dart';
-import 'package:jahit_baju/service/remote/response/order_response.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/data/source/remote/response/order_response.dart';
 import 'package:jahit_baju/viewmodels/shipping_view_model.dart';
-import 'package:jahit_baju/model/cart.dart';
-import 'package:jahit_baju/model/order.dart';
-import 'package:jahit_baju/model/packaging.dart';
-import 'package:jahit_baju/model/product.dart';
-import 'package:jahit_baju/model/shipping.dart';
+import 'package:jahit_baju/data/model/cart.dart';
+import 'package:jahit_baju/data/model/order.dart';
+import 'package:jahit_baju/data/model/packaging.dart';
+import 'package:jahit_baju/data/model/product.dart';
+import 'package:jahit_baju/data/model/shipping.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/views/address_screen/address_screen.dart';
 import 'package:jahit_baju/views/payment_screen/payment_screen.dart';
@@ -42,7 +42,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
     deviceHeight = MediaQuery.of(context).size.height;
 
     return ChangeNotifierProvider(
-        create: (context) => ShippingViewModel(),
+        create: (context) => ShippingViewModel(ApiService(context)),
         child:
             Consumer<ShippingViewModel>(builder: (context, viewModel, child) {
           return Scaffold(
@@ -74,7 +74,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
       if (widget.cart != null) {
         int customPrice = 0, rtwPrice = 0;
         for (var cart in widget.cart!.items) {
-          Product? product = await getProductById(cart.productId);
+          Product? product = await getProductById(cart.productId, ApiService(context));
 
           if (product!.type == Product.CUSTOM) {
             customPrice += product.price.toInt();

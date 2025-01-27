@@ -2,17 +2,19 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:jahit_baju/model/favorite.dart';
-import 'package:jahit_baju/service/remote/api_service.dart';
-import 'package:jahit_baju/model/cart.dart';
-import 'package:jahit_baju/model/order.dart';
-import 'package:jahit_baju/model/product.dart';
-import 'package:jahit_baju/service/remote/response/favorite_response.dart';
-import 'package:jahit_baju/service/remote/response/product_response.dart';
-import 'package:jahit_baju/service/remote/response/size_guide_response.dart';
+import 'package:jahit_baju/data/model/favorite.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/data/model/cart.dart';
+import 'package:jahit_baju/data/model/order.dart';
+import 'package:jahit_baju/data/model/product.dart';
+import 'package:jahit_baju/data/source/remote/response/favorite_response.dart';
+import 'package:jahit_baju/data/source/remote/response/product_response.dart';
+import 'package:jahit_baju/data/source/remote/response/size_guide_response.dart';
+import 'package:jahit_baju/helper/app_color.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/viewmodels/home_view_model.dart';
 import 'package:jahit_baju/views/cart_screen/cart_screen.dart';
@@ -103,19 +105,55 @@ class _ProductScreenState extends State<ProductScreen> {
               color: Colors.black,
               height: deviceWidth * 0.7,
               width: deviceWidth,
-              child: AspectRatio(
-                aspectRatio: 4 / 5,
-                child: Image.network(
-                  alignment: Alignment(1, -0.3),
-                  widget.product.imageUrl[0],
-                  fit: BoxFit.cover,
-                ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Positioned.fill(
+                    child: AspectRatio(
+                        aspectRatio: 4 / 5,
+                        child: CachedNetworkImage(
+                          imageUrl: widget.product.imageUrl.first,
+                          errorWidget: (context, url, error) {
+                            return Icon(Icons.image_not_supported);
+                          },
+                          alignment: const Alignment(1, -0.3),
+                          fit: BoxFit.cover,
+                        )),
+                  ),
+                  Positioned(
+                    bottom: 8,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                          color: Colors.redAccent,
+                          borderRadius: BorderRadius.circular(5)),
+                      child: Text(
+                        '${widget.product.imageUrl.length} Foto',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               )),
           onTap: () {
             SwipeImageGallery(
+              hideStatusBar: false,
               context: context,
               itemBuilder: (context, indexImage) {
-                return Image.network(widget.product.imageUrl[indexImage]);
+                return CachedNetworkImage(
+                  errorWidget: (context, url, error) {
+                    return Icon(
+                      Icons.image_not_supported,
+                      color: Colors.white,
+                    );
+                  },
+                  imageUrl: widget.product.imageUrl[indexImage],
+                );
               },
               itemCount: widget.product.imageUrl.length,
             ).show();
@@ -141,7 +179,7 @@ class _ProductScreenState extends State<ProductScreen> {
                     child: Wrap(
                       spacing: 5, // Jarak horizontal antar tag
                       runSpacing: 5, // Jarak vertikal antara baris tag
-                      children: widget.product.tags.map((tag) {
+                      children: widget.product.category!.map((category) {
                         return Container(
                           padding:
                               EdgeInsets.symmetric(vertical: 5, horizontal: 10),
@@ -150,7 +188,7 @@ class _ProductScreenState extends State<ProductScreen> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
-                            tag,
+                            category,
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -240,7 +278,34 @@ class _ProductScreenState extends State<ProductScreen> {
                   fontSize: 18,
                 ),
               ),
-              _sizeWidget()
+              _sizeWidget(),
+              Text(
+                "Tags",
+                style: TextStyle(
+                  fontSize: 16,
+                ),
+              ),
+              Wrap(
+                spacing: 5, // Jarak horizontal antar tag
+                runSpacing: 5, // Jarak vertikal antara baris tag
+                children: widget.product.tags!.map((tag) {
+                  return Container(
+                    padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: AppColor.tag,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      tag,
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
             ],
           ),
         )
@@ -354,7 +419,7 @@ class _ProductScreenState extends State<ProductScreen> {
     setState(() {
       purchaseLoading = true;
     });
-    ApiService apiService = ApiService();
+    ApiService apiService = ApiService(context);
 
     ProductResponse productResponse =
         await apiService.productsGetById(widget.product.id);
@@ -376,9 +441,8 @@ class _ProductScreenState extends State<ProductScreen> {
             Fluttertoast.showToast(msg: "Silakan pilih ukuran terlebih dahulu");
           }
         } else {
-
-            Fluttertoast.showToast(msg: "Maaf, Stok produk ini telah habis");
-            Navigator.pop(context);
+          Fluttertoast.showToast(msg: "Maaf, Stok produk ini telah habis");
+          Navigator.pop(context);
         }
       } else {
         Fluttertoast.showToast(msg: "Maaf, Produk tidak ditemukan");
@@ -387,8 +451,8 @@ class _ProductScreenState extends State<ProductScreen> {
   }
 
   Future getFavoriteStatus() async {
-    ApiService apiService = ApiService();
-    List<Favorite> favorites = await apiService.favoriteGet();
+    ApiService apiService = ApiService(context);
+    List<Favorite> favorites = await apiService.favoriteGet(context);
 
     if (favorites.isNotEmpty) {
       favorites.forEach((favorite) {
@@ -403,7 +467,7 @@ class _ProductScreenState extends State<ProductScreen> {
   }
 
   Future<void> addProductFavorite(Product product) async {
-    ApiService apiService = ApiService();
+    ApiService apiService = ApiService(context);
 
     Favorite favorite = Favorite(productId: product.id);
 
@@ -736,7 +800,7 @@ class _ProductScreenState extends State<ProductScreen> {
 
   _sizeWidget() {
     return Container(
-      margin: EdgeInsets.only(top: 10, bottom: 10),
+      margin: EdgeInsets.only(bottom: 10),
       height: 60,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
@@ -806,7 +870,7 @@ class _ProductScreenState extends State<ProductScreen> {
   }
 
   Future<String> getSizeGuide() async {
-    ApiService apiService = ApiService();
+    ApiService apiService = ApiService(context);
     SizeGuideResponse response = await apiService.sizeGuide();
 
     if (response.error) {
@@ -820,12 +884,23 @@ class _ProductScreenState extends State<ProductScreen> {
     return FutureBuilder(
         future: getSizeGuide(),
         builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return CachedNetworkImage(imageUrl: snapshot.data!);
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
           }
-          return Center(
-            child: CircularProgressIndicator(),
-          );
+          if (snapshot.hasData) {
+            return CachedNetworkImage(
+              imageUrl: snapshot.data!,
+              errorWidget: (context, url, error) {
+                return Icon(Icons.image_not_supported);
+              },
+            );
+          } else {
+            return Center(
+              child: Icon(Icons.image_not_supported),
+            );
+          }
         });
   }
 
@@ -911,6 +986,7 @@ class _ProductScreenState extends State<ProductScreen> {
                 ),
               )
             : Container(
+              width: deviceWidth,
                 padding: EdgeInsets.all(20),
                 child: ElevatedButton(
                     style: ElevatedButton.styleFrom(

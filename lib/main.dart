@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:jahit_baju/data/repository/repository.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/viewmodels/cart_view_model.dart';
 import 'package:jahit_baju/viewmodels/forgot_password_view_model.dart';
 import 'package:jahit_baju/viewmodels/home_screen_view_model.dart';
@@ -18,15 +20,15 @@ void main() async {
 
   await initializeDateFormatting("id_ID");
   runApp(MultiProvider(providers: [
-    ChangeNotifierProvider(create: (context) => CartViewModel()),
+    ChangeNotifierProvider(create: (context) => CartViewModel(ApiService(context))),
     ChangeNotifierProvider(create: (context) => ForgotPasswordViewModel()),
-    ChangeNotifierProvider(create: (context) => HomeViewModel()),
-    ChangeNotifierProvider(create: (context) => PaymentViewModel()),
-    ChangeNotifierProvider(create: (context) => RegisterViewModel()),
-    ChangeNotifierProvider(create: (context) => ResetPasswordViewModel()),
-    ChangeNotifierProvider(create: (context) => SearchViewModel()),
-    ChangeNotifierProvider(create: (context) => ShippingViewModel()),
-    ChangeNotifierProvider(create: (context) => HomeScreenViewModel()),
+    ChangeNotifierProvider(create: (context) => HomeViewModel(Repository(ApiService(context)))),
+    ChangeNotifierProvider(create: (context) => PaymentViewModel(ApiService(context))),
+    ChangeNotifierProvider(create: (context) => RegisterViewModel(ApiService(context))),
+    ChangeNotifierProvider(create: (context) => ResetPasswordViewModel(ApiService(context))),
+    ChangeNotifierProvider(create: (context) => SearchViewModel(Repository(ApiService(context)))),
+    ChangeNotifierProvider(create: (context) => ShippingViewModel(ApiService(context))),
+    ChangeNotifierProvider(create: (context) => HomeScreenViewModel(ApiService(context))),
   ],
   child: const MyApp(),));
 }

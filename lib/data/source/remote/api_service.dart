@@ -1,34 +1,44 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
+import 'package:jahit_baju/data/source/remote/response/app_banner_response.dart';
+import 'package:jahit_baju/data/source/remote/response/packaging_response.dart';
+import 'package:jahit_baju/data/source/remote/response/shipping_response.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
-import 'package:jahit_baju/model/cart.dart';
-import 'package:jahit_baju/model/favorite.dart';
-import 'package:jahit_baju/model/order.dart';
-import 'package:jahit_baju/model/packaging.dart';
-import 'package:jahit_baju/model/product.dart';
-import 'package:jahit_baju/model/shipping.dart';
-import 'package:jahit_baju/model/user.dart';
-import 'package:jahit_baju/service/remote/response/favorite_response.dart';
-import 'package:jahit_baju/service/remote/response/login_response.dart';
-import 'package:jahit_baju/service/remote/response/order_response.dart';
-import 'package:jahit_baju/service/remote/response/otp_response.dart';
-import 'package:jahit_baju/service/remote/response/product_response.dart';
-import 'package:jahit_baju/service/remote/response/size_guide_response.dart';
-import 'package:jahit_baju/service/remote/response/survei_response.dart';
+import 'package:jahit_baju/data/model/cart.dart';
+import 'package:jahit_baju/data/model/favorite.dart';
+import 'package:jahit_baju/data/model/order.dart';
+import 'package:jahit_baju/data/model/packaging.dart';
+import 'package:jahit_baju/data/model/product.dart';
+import 'package:jahit_baju/data/model/shipping.dart';
+import 'package:jahit_baju/data/model/user.dart';
+import 'package:jahit_baju/data/source/remote/response/favorite_response.dart';
+import 'package:jahit_baju/data/source/remote/response/login_response.dart';
+import 'package:jahit_baju/data/source/remote/response/order_response.dart';
+import 'package:jahit_baju/data/source/remote/response/otp_response.dart';
+import 'package:jahit_baju/data/source/remote/response/product_response.dart';
+import 'package:jahit_baju/data/source/remote/response/size_guide_response.dart';
+import 'package:jahit_baju/data/source/remote/response/survei_response.dart';
 import 'package:logger/web.dart';
+import 'package:path/path.dart';
 
+import '../../../util/util.dart';
 import 'response/term_condition_response.dart';
 import 'response/user_response.dart';
 
 class ApiService {
-  // final String baseUrl =
-  //     "https://jahit-baju-backend-936228436122.asia-east1.run.app/api/";
   final String baseUrl =
-      "http://192.168.1.155:3000/api/";
+      "https://jahit-baju-backend-936228436122.asia-east1.run.app/api/";
+  // final String baseUrl =
+  //     "http://192.168.1.171:3000/api/";
   TokenStorage tokenStorage = TokenStorage();
   Logger logger = Logger();
+  final BuildContext context;
+
+  ApiService(this.context);
 
   Future<LoginResponse> userLogin(String email, String password) async {
     final url = Uri.parse("${baseUrl}users/login");
@@ -87,8 +97,12 @@ class ApiService {
     }
   }
 
-  Future<dynamic> userGet(String token) async {
+  Future<UserResponse> userGet() async {
     final url = Uri.parse("${baseUrl}users/current");
+
+
+    String? token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+
     final response = await http.get(url, headers: <String, String>{
       'Content-Type': 'application/json',
       'Authorization': '${token}'
@@ -97,22 +111,23 @@ class ApiService {
     try {
       var data = jsonDecode(response.body);
 
+      if(response.statusCode == 401){
+        
+        logger.e("User Get : $data");
+        showDialogSession(context);
+        return UserResponse(message: "Unauthorized", error: true);
+      }
       logger.d("User Get : $data");
 
-      dynamic message;
-      if (response.statusCode == 200) {
-        var userData = data["data"];
+      return UserResponse.fromJson(data);
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
 
-        User user = User.fromJson(userData);
-
-        return user;
-      } else {
-        message = data["message"] ?? "Unknown error occurred";
-      }
-      return message;
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      return UserResponse(message: "Tidak ada internet", error: true);
     } catch (e) {
       logger.e("User Get : $e");
-      return "Network error : $e";
+      return UserResponse(message: "Network error : $e", error: true);
     }
   }
 
@@ -172,6 +187,11 @@ class ApiService {
       UserResponse responseBody = UserResponse.fromJson(data);
 
       return responseBody;
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      return UserResponse(message:"Tidak ada koneksi internet", error: true);
     } catch (e) {
       logger.e("User Update : $e");
       return UserResponse(message: "Network error : $e", error: true);
@@ -200,6 +220,11 @@ class ApiService {
       LoginResponse responseBody = LoginResponse.fromJson(data);
 
       return responseBody;
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      return LoginResponse(message:"Tidak ada koneksi internet", error: true);
     } catch (e) {
       logger.e("User Email Verify : $e");
 
@@ -225,6 +250,11 @@ class ApiService {
 
       OtpResponse responseBody = OtpResponse.fromJson(data);
       return responseBody;
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      return OtpResponse(message:"Tidak ada koneksi internet", error: true);
     } catch (e) {
       logger.e("User Request OTP : $e");
 
@@ -254,7 +284,12 @@ class ApiService {
       OtpResponse responseBody = OtpResponse.fromJson(data);
 
       return responseBody;
-    } catch (e) {
+    }on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      return OtpResponse(message:"Tidak ada koneksi internet", error: true);
+    }  catch (e) {
       logger.e("User Reset Email Verify : $e");
 
       return OtpResponse(message: "Network error : $e", error: true);
@@ -280,6 +315,11 @@ class ApiService {
 
       LoginResponse responseBody = LoginResponse.fromJson(data);
       return responseBody;
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      return LoginResponse(message:"Tidak ada koneksi internet", error: true);
     } catch (e) {
       logger.e("User Reset Request OTP : $e");
 
@@ -321,6 +361,11 @@ class ApiService {
       OrderResponse orderResponse = OrderResponse.fromJson(data);
       logger.d("Order now : ${data}");
       return OrderResponse.fromJson(data);
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      return OrderResponse(message:"Tidak ada koneksi internet", error: true);
     } catch (e) {
       logger.e("Order now : $e");
       return OrderResponse(error: true, message: "Network error : $e");
@@ -349,6 +394,11 @@ class ApiService {
         message = data["message"] ?? "Unknown error occurred";
         return message;
       }
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      return "Tidak ada koneksi internet";
     } catch (e) {
       logger.e("Cart Get : $e");
       return "Network error : $e";
@@ -388,6 +438,11 @@ class ApiService {
         message = data["message"] ?? "Unknown error occurred";
         return message;
       }
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      return "Tidak ada koneksi internet";
     } catch (e) {
       logger.e("Cart Add : $e");
       return "Network error : $e";
@@ -416,13 +471,18 @@ class ApiService {
         message = data["message"] ?? "Unknown error occurred";
         return message;
       }
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      return "Tidak ada koneksi internet";
     } catch (e) {
       logger.e("Item Cart Delete : $e");
       return "Network error : $e";
     }
   }
 
-  Future<dynamic> shippingGet() async {
+  Future<dynamic> getAllShipping() async {
     final url = Uri.parse("${baseUrl}shippings");
 
     try {
@@ -447,14 +507,49 @@ class ApiService {
         message = data["message"] ?? "Unknown error occurred";
         return message;
       }
-    } catch (e) {
+    }on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      return "Tidak ada koneksi internet";
+    }  catch (e) {
       logger.e("Shipping Get : $e");
       return "error";
     }
   }
 
-  Future<dynamic> packagingGet() async {
-    final url = Uri.parse("${baseUrl}packagings");
+
+
+  Future<ShippingResponse> getShipping(String shippingId) async {
+    final url = Uri.parse("${baseUrl}shipping?id=$shippingId");
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+
+    try {
+      final response = await http.get(url, headers: <String, String>{
+        'Content-Type': 'application/json',
+        'Authorization': '${token}'
+      });
+
+      var data = jsonDecode(response.body);
+      logger.d("Shipping Get : ${data}");
+
+      ShippingResponse shippingResponse = ShippingResponse.fromJson(data);
+
+      return shippingResponse;
+    }on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      return ShippingResponse(error: true, message: "Tidak ada koneksi internet.");
+    }  catch (e) {
+      logger.e("Shipping Get : $e");
+      return ShippingResponse(error: true, message: "Terjadi kesalahan.");
+    }
+  }
+
+
+  Future<dynamic> getAllPackaging() async {
+    final url = Uri.parse("${baseUrl}packaging");
 
     try {
       final response = await http.get(url, headers: <String, String>{
@@ -477,9 +572,38 @@ class ApiService {
         message = data["message"] ?? "Unknown error occurred";
         return message;
       }
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      return "Tidak ada koneksi internet";
     } catch (e) {
       logger.e("Packaging Get : $e");
       return "error";
+    }
+  }
+
+
+  Future<PackagingResponse> getPackaging(String packagingId) async {
+    final url = Uri.parse("${baseUrl}packaging?id=$packagingId");
+
+    try {
+      final response = await http.get(url, headers: <String, String>{
+        'Content-Type': 'application/json',
+      });
+
+      var data = jsonDecode(response.body);
+      logger.d("Get Packaging : ${data}");
+      
+      return PackagingResponse.fromJson(data);
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Packaging : Tidak ada koneksi internet");
+      return PackagingResponse(error: true,message: "Tidak ada koneksi internet.");
+    } catch (e) {
+      logger.e("Get Packaging : $e");
+      return PackagingResponse(error: true,message: "Terjadi kesalahan, Coba lagi nanti.");
     }
   }
 
@@ -520,6 +644,11 @@ class ApiService {
       orderResponse.data = Order.fromJson(orderResponse.data);
 
       return orderResponse;
+    }on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      return "Tidak ada koneksi internet";
     } catch (e) {
       logger.e("Create Order: ${e}");
       return OrderResponse(error: true, message: "Network error : $e");
@@ -550,6 +679,11 @@ class ApiService {
       }
       
       return orderResponse;
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      return OrderResponse(message:"Tidak ada koneksi internet", error: true);
     } catch (e) {
       logger.e("Get Order: ${e}");
       return OrderResponse(error: true, message: "Network error : $e");
@@ -572,14 +706,19 @@ class ApiService {
       OrderResponse orderResponse = OrderResponse.fromJson(data);
       
       return orderResponse;
-    } catch (e) {
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      return OrderResponse(message:"Tidak ada koneksi internet", error: true);
+    }  catch (e) {
       logger.e("Delete Order: ${e}");
       return OrderResponse(error: true, message: "Network error : $e");
     }
   }
 
   Future<ProductResponse> productsGetById(String productId) async {
-    final url = Uri.parse("${baseUrl}products/$productId");
+    final url = Uri.parse("${baseUrl}products?id=$productId");
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
     try {
@@ -594,13 +733,50 @@ class ApiService {
       
       ProductResponse productResponse = ProductResponse.fromJson(data);
       return productResponse;
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      
+      return ProductResponse(message:"Tidak ada koneksi internet", error: true);
     } catch (e) {
       logger.e("Get Product by ID : ${e}");
       return ProductResponse(error: true, message: "Network error : $e",product: null);
     }
   }
 
-  Future<dynamic> productsGet() async {
+  Future<ProductLatestResponse> productsGetByLastUpdate() async {
+    final url = Uri.parse("${baseUrl}products/latest");
+    final response = await http.get(url, headers: <String, String>{
+      'Content-Type': 'application/json',
+    });
+
+    var data = jsonDecode(response.body);
+
+    logger.d("Get Product by Last Update : ${data}");
+
+    try {
+       ProductLatestResponse productLatestResponse;
+      if (response.statusCode == 200) {        
+        productLatestResponse = ProductLatestResponse.fromJson(data);
+      } else {
+        logger.e("Get Favorite : ${data["message"]}");
+        productLatestResponse = ProductLatestResponse(error: true, message: data["message"]);
+
+      }
+      return productLatestResponse;
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      return ProductLatestResponse(message:"Tidak ada koneksi internet", error: true);
+    }  catch (e) {
+      logger.e("Get Product by Last Update : ${e}");
+      return ProductLatestResponse(error: true, message: e.toString());
+    }
+  }
+
+  Future<ProductsResponse> productsGet() async {
     final url = Uri.parse("${baseUrl}products");
     final response = await http.get(url, headers: <String, String>{
       'Content-Type': 'application/json',
@@ -608,29 +784,29 @@ class ApiService {
 
     var data = jsonDecode(response.body);
 
-    logger.d("Get Product : ${data}");
+    logger.d("Get Product : ${data["data"]}");
 
-    dynamic message;
     try {
       if (response.statusCode == 200) {
-        var productsData = data["data"] as List;
 
-        List<Product> products = productsData.map<Product>((json) {
-          return Product.fromJson(json);
-        }).toList();
 
-        return products;
+        return ProductsResponse.fromJson(data);
       } else {
-        message = data["message"] ?? "Unknown error occurred";
-        return message;
+        return ProductsResponse(error: false, message: data["message"]);
       }
-    } catch (e) {
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      
+      return ProductsResponse(message:"Tidak ada koneksi internet", error: true);
+    }  catch (e) {
       logger.e("Get Product : ${e}");
-      return "error";
+      return ProductsResponse(error: true, message: "Terjadi kesalahan saat mengambil data produk");
     }
   }
 
-  Future<dynamic> favoriteGet() async {
+  Future<dynamic> favoriteGet(BuildContext context) async {
     final url = Uri.parse("${baseUrl}favorite");
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
@@ -658,10 +834,15 @@ class ApiService {
         message = data["message"] ?? "Unknown error occurred";
         return message;
       }
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      return "Tidak ada koneksi internet";
     } catch (e) {
       
       logger.e("Get Favorite : ${e}");
-      return "error";
+      return "Terjadi Kesalahan";
     }
   }
 
@@ -683,7 +864,13 @@ class ApiService {
       FavoriteResponse favoriteResponse = FavoriteResponse.fromJson(data);
 
       return favoriteResponse;
-    } catch (e) {
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      
+      return FavoriteResponse(message:"Tidak ada koneksi internet", error: true);
+    }  catch (e) {
       logger.e("Delete Favorite : $e");
       return FavoriteResponse(error: true, message: "Network error : $e");
     }
@@ -707,7 +894,13 @@ class ApiService {
       FavoriteResponse favoriteResponse = FavoriteResponse.fromJson(data);
 
       return favoriteResponse;
-    } catch (e) {
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      
+      return FavoriteResponse(message:"Tidak ada koneksi internet", error: true);
+    }  catch (e) {
       logger.e("Add Favorite : $e");
       return FavoriteResponse(error: true, message: "Network error : $e");
     }
@@ -726,7 +919,12 @@ class ApiService {
           TermConditionResponse.fromJson(data);
 
       return termConditionResponse;
-    } catch (e) {
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      return "Tidak ada koneksi internet";
+    }  catch (e) {
       logger.e("Term Condition : $e");
       return "Network error : $e";
     }
@@ -743,7 +941,12 @@ class ApiService {
       SizeGuideResponse sizeGuideResponse = SizeGuideResponse.fromJson(data);
 
       return sizeGuideResponse;
-    } catch (e) {
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      return "Tidak ada koneksi internet";
+    }  catch (e) {
       logger.e("Size Guide : $e");
       return "Network error : $e";
     }
@@ -769,16 +972,75 @@ class ApiService {
       ));
 
       var data = jsonDecode(response.body);
-      logger.d("Send User Data : ${data}");
+      logger.d("Send survei data : ${data}");
 
       SurveiResponse responseBody = SurveiResponse.fromJson(data);
       return responseBody;
-    } catch (e) {
-      logger.e("Send User Data : $e");
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      return SurveiResponse(message:"Tidak ada koneksi internet", error: true);
+    }  catch (e) {
+      logger.e("Send survei data : $e");
 
       return SurveiResponse(message: "Network error : $e", error: true);
     }
   }
 
+  Future<SurveiResponse> getSurveiData() async {
+    final url = Uri.parse("${baseUrl}survei-custom");
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+    
+    try {
+      final response = await http.get(
+        url,
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': '${token}'
+        });
+
+      var data = jsonDecode(response.body);
+      logger.d("get survei data : ${data}");
+
+      SurveiResponse responseBody = SurveiResponse.fromJson(data);
+      return responseBody;
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("get survei data : Tidak ada koneksi internet");
+      return SurveiResponse(message:"Tidak ada koneksi internet", error: true);
+    }  catch (e) {
+      logger.e("get survei data : $e");
+
+      return SurveiResponse(message: "Network error : $e", error: true);
+    }
+  }
+
+  Future<AppBannerResponse> getAllAppBanner() async {
+    final url = Uri.parse("${baseUrl}app-banner");    
+    try {
+      final response = await http.get(
+        url,
+        headers: <String, String>{
+          'Content-Type': 'application/json',          
+        });
+
+      var data = jsonDecode(response.body);
+      logger.d("get all app banner : ${data}");
+
+      AppBannerResponse responseBody = AppBannerResponse.fromJson(data);
+      return responseBody;
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("get all app banner : Tidak ada koneksi internet");
+      return AppBannerResponse(message:"Tidak ada koneksi internet", error: true);
+    }  catch (e) {
+      logger.e("get all app banner : $e");
+
+      return AppBannerResponse(message: "Network error : $e", error: true);
+    }
+  }
 
 }

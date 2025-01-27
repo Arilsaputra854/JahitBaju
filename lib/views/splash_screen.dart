@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
 import 'package:jahit_baju/views/home_screen/fragment/home_page.dart';
@@ -13,9 +15,9 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-
-
   var init = true;
+
+
 
   @override
   void didChangeDependencies() {
@@ -31,8 +33,19 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     readUserToken();
+    _initDeepLinkListener();
     super.initState();
 
+  }
+
+  void _initDeepLinkListener() {
+    
+  }
+
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override

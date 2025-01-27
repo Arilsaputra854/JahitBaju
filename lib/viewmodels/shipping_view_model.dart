@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:jahit_baju/model/order.dart';
-import 'package:jahit_baju/service/remote/api_service.dart';
+import 'package:jahit_baju/data/model/order.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/data/source/remote/response/user_response.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
-import 'package:jahit_baju/model/packaging.dart';
-import 'package:jahit_baju/model/shipping.dart';
-import 'package:jahit_baju/model/user.dart';
-import 'package:jahit_baju/service/remote/response/order_response.dart';
+import 'package:jahit_baju/data/model/packaging.dart';
+import 'package:jahit_baju/data/model/shipping.dart';
+import 'package:jahit_baju/data/model/user.dart';
+import 'package:jahit_baju/data/source/remote/response/order_response.dart';
 
 class ShippingViewModel extends ChangeNotifier {
-  ApiService api = ApiService();
-  final TokenStorage _tokenStorage = TokenStorage();
+  ApiService apiService;
 
   String? _errorMsg;
   String? get errorMsg => _errorMsg;
 
+  ShippingViewModel(this.apiService);
+
   Future<dynamic> getListShippingMethod() async {
-    ApiService apiService = ApiService();
-    var data = await apiService.shippingGet();
+    var data = await apiService.getAllShipping();
     if (data is List<Shipping>) {
       return data;
     } else if (data is String) {
@@ -27,21 +28,18 @@ class ShippingViewModel extends ChangeNotifier {
   }
 
   Future<dynamic> getUserAddress() async {
-    String? token = await _tokenStorage.readToken(TokenStorage.TOKEN_KEY);
-    ApiService apiService = ApiService();
-    var data = await apiService.userGet(token!);
-    if (data is User) {
-      return data.address;
-    } else if (data is String) {
-      _errorMsg = data;
-    } else {
-      return null;
+    UserResponse response = await apiService.userGet();
+
+    if(response.error){
+      _errorMsg = response.message;
+      notifyListeners();
+    }else{
+      return response.data?.address ?? "";
     }
   }
 
   Future<dynamic> getListPackaging() async {
-    ApiService apiService = ApiService();
-    var data = await apiService.packagingGet();
+    var data = await apiService.getAllPackaging();
 
     if (data is List<Packaging>) {
       return data;
@@ -54,7 +52,6 @@ class ShippingViewModel extends ChangeNotifier {
 
   Future<Order?> createOrder(Order? order) async {
     if (order != null) {
-      ApiService apiService = ApiService();
 
       OrderResponse orderResponse = await apiService.orderCreate(order);
 
@@ -70,10 +67,8 @@ class ShippingViewModel extends ChangeNotifier {
   Future<Order?> buyNow(Order? order) async {
     
     if (order != null) {
-      ApiService apiService = ApiService();
 
       OrderResponse orderResponse = await apiService.buyNow(order);
-      print("Data: ${Order.fromJson(orderResponse.data)}");
       if (orderResponse.error) {        
         _errorMsg = orderResponse.message;
         return null;

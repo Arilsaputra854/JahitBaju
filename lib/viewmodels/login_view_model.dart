@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:jahit_baju/model/user.dart';
-import 'package:jahit_baju/service/remote/api_service.dart';
+import 'package:jahit_baju/data/model/user.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/data/source/remote/response/user_response.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
 
 class LoginViewModel extends ChangeNotifier {
-  ApiService api = ApiService();
 
   String? _email;
   String? _password;
@@ -14,6 +14,8 @@ class LoginViewModel extends ChangeNotifier {
   String? get email => _email;
   String? get password => _password;
   String? get errorMsg => _errorMsg;
+  ApiService api;
+  LoginViewModel(this.api);
 
   final TokenStorage _tokenStorage = TokenStorage();
 
@@ -55,12 +57,15 @@ class LoginViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> emailVerified() async {
-    var token = await _tokenStorage.readToken(TokenStorage.TOKEN_KEY);
-    if (token != null) {
-      User user = await api.userGet(token);
-      return user.emailVerified;
-    }
-    return false;
+  Future<bool> emailVerified() async {    
+    UserResponse response = await api.userGet();
+
+      if(response.error){
+        _errorMsg = response.message;
+        notifyListeners();
+        return false;
+      }else{
+        return response.data?.emailVerified ?? false;
+      }
   }
 }
