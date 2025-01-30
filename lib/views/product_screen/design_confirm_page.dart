@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/model/product.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/data/source/remote/response/custom_design_response.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/viewmodels/home_view_model.dart';
 import 'package:jahit_baju/views/shipping_screen/shipping_screen.dart';
@@ -10,6 +13,7 @@ import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:xml/xml.dart';
+import 'package:path_provider/path_provider.dart';
 
 class DesignConfirmPage extends StatefulWidget {
   final String html;
@@ -18,8 +22,8 @@ class DesignConfirmPage extends StatefulWidget {
   final String size;
   final String customDesignSvg;
 
-  const DesignConfirmPage(this.customDesignSvg,
-      this.html, this.currentFeatureColor, this.product, this.size,
+  const DesignConfirmPage(this.customDesignSvg, this.html,
+      this.currentFeatureColor, this.product, this.size,
       {super.key});
 
   @override
@@ -37,7 +41,7 @@ class _DesignConfirmPageState extends State<DesignConfirmPage> {
   @override
   void initState() {
     apiService = ApiService(context);
-    super.initState();    
+    super.initState();
     log = Logger();
     _controller = WebViewController();
     _controller.enableZoom(false);
@@ -70,28 +74,29 @@ class _DesignConfirmPageState extends State<DesignConfirmPage> {
                     backgroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(vertical: 15),
                   ),
-                  onPressed:purchaseLoading ? null: () =>
-                    addToCart()
-                  ,
+                  onPressed: purchaseLoading ? null : () => addToCart(),
                   child: Wrap(
                     alignment: WrapAlignment.center,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     spacing: 5, // Jarak antara ikon dan teks
                     children: [
                       Icon(
-                              Icons.shopping_bag,
-                              color: purchaseLoading?const Color.fromARGB(255, 95, 92, 92) :Colors.black,
-                            ),
-                            Text(
-                              "Tambah ke Keranjang",
-                              style: TextStyle(
-                                color: purchaseLoading?const Color.fromARGB(255, 95, 92, 92) :Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              softWrap:
-                                  true, 
-                              textAlign: TextAlign.center,
-                            ),
+                        Icons.shopping_bag,
+                        color: purchaseLoading
+                            ? const Color.fromARGB(255, 95, 92, 92)
+                            : Colors.black,
+                      ),
+                      Text(
+                        "Tambah ke Keranjang",
+                        style: TextStyle(
+                          color: purchaseLoading
+                              ? const Color.fromARGB(255, 95, 92, 92)
+                              : Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        softWrap: true,
+                        textAlign: TextAlign.center,
+                      ),
                     ],
                   ),
                 ),
@@ -104,14 +109,18 @@ class _DesignConfirmPageState extends State<DesignConfirmPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    backgroundColor: purchaseLoading? Colors.grey : Colors.red,
+                    backgroundColor: purchaseLoading ? Colors.grey : Colors.red,
                     padding: EdgeInsets.symmetric(vertical: 15),
                   ),
-                  onPressed:purchaseLoading ? null: () =>buyNow(context, widget.size, widget.product),
+                  onPressed: purchaseLoading
+                      ? null
+                      : () => buyNow(context, widget.size, widget.product),
                   child: Text(
                     "Beli Sekarang",
                     style: TextStyle(
-                      color: purchaseLoading?const Color.fromARGB(255, 95, 92, 92) :Colors.white,
+                      color: purchaseLoading
+                          ? const Color.fromARGB(255, 95, 92, 92)
+                          : Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
                     softWrap: true, // Agar teks membungkus jika terlalu panjang
@@ -189,7 +198,6 @@ class _DesignConfirmPageState extends State<DesignConfirmPage> {
                       ),
                     ],
                   ),
-                  
                 ],
               ),
             )
@@ -197,18 +205,38 @@ class _DesignConfirmPageState extends State<DesignConfirmPage> {
         )));
   }
 
-
-  void addToCart() async {        
+  void addToCart() async {
     setState(() {
       purchaseLoading = true;
     });
+    try {
+      // 1. Convert customDesignSvg (SVG string) to a file
+      String svgContent = widget.customDesignSvg;
+      File svgFile = await _writeSvgToFile(svgContent);
 
-    var msg = await apiService.cartAdd(widget.product, 1, widget.size, widget.customDesignSvg);
-    Fluttertoast.showToast(msg: msg);
-    setState(() {
-      purchaseLoading = true;
-    });
-    
+      // 2. Upload the custom design file
+      CustomDesignResponse? response =
+          await apiService.uploadCustomDesign(svgFile);
+
+      if (response != null && !response.error) {
+        // 3. Add to cart with the uploaded design's filename
+        var msg = await apiService.cartAdd(
+          widget.product,
+          1,
+          widget.size,
+          response.file?.filename ?? '',
+        );
+
+        Fluttertoast.showToast(msg: msg);
+      } else {
+        // Handle upload failure
+        Fluttertoast.showToast(msg: "Gagal menyimpan desain, coba lagi nanti.");
+      }
+    } catch (e) {
+      // Handle any errors that occur during the process
+      Fluttertoast.showToast(msg: "Terjadi kesalahan");
+    }
+
     setState(() {
       purchaseLoading = false;
     });
@@ -217,6 +245,7 @@ class _DesignConfirmPageState extends State<DesignConfirmPage> {
   Widget _textureWidget() {
     return Container(
       width: deviceWidth * 0.3,
+      padding: EdgeInsets.only(left: 10),
       child: ListView(
         children: widget.currentFeatureColor.entries.map((entry) {
           final feature = entry.key;
@@ -228,39 +257,46 @@ class _DesignConfirmPageState extends State<DesignConfirmPage> {
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: deviceWidth * 0.03),
             ),
-            color.contains("https")?
-            Container(
-              clipBehavior: Clip.hardEdge,
-              width: deviceWidth * 0.08,
-              height: deviceWidth * 0.08,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.grey, 
-              ),
-              child:CachedNetworkImage(
-                              imageUrl: color,
-                              placeholder: (context, url) => Padding(
-                                  padding: EdgeInsets.all(5),
-                                  child: CircularProgressIndicator()),
-                              fit: BoxFit.cover,
-                            ),
-            ) : Container(
-              clipBehavior: Clip.hardEdge,
-              width: deviceWidth * 0.08,
-              height: deviceWidth * 0.08,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Color(int.parse(
-                    color.replaceFirst('#', '0xFF'))), // Gunakan warna dari Map
-              ),
-            )
+            color.contains("https")
+                ? Container(
+                    clipBehavior: Clip.hardEdge,
+                    width: deviceWidth * 0.08,
+                    height: deviceWidth * 0.08,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.grey,
+                    ),
+                    child: CachedNetworkImage(
+                      imageUrl: color,
+                      placeholder: (context, url) => Padding(
+                          padding: EdgeInsets.all(5),
+                          child: CircularProgressIndicator()),
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                : Container(
+                    clipBehavior: Clip.hardEdge,
+                    width: deviceWidth * 0.08,
+                    height: deviceWidth * 0.08,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(int.parse(color.replaceFirst(
+                          '#', '0xFF'))), // Gunakan warna dari Map
+                    ),
+                  )
           ]);
         }).toList(),
       ),
     );
   }
-}
 
+  _writeSvgToFile(String svgContent) async {
+    final directory = await getTemporaryDirectory();
+    final file = File('${directory.path}/custom_design.svg');
+    await file.writeAsString(svgContent); // Write the SVG string to the file
+    return file;
+  }
+}
 
 void buyNow(BuildContext context, String size, Product? product) {
   if (size == "" && size.isEmpty) {
@@ -275,7 +311,6 @@ void buyNow(BuildContext context, String size, Product? product) {
 
   goToShippingScreen(context, product, size);
 }
-
 
 void goToShippingScreen(BuildContext context, Product? product, String size) {
   if (product != null) {

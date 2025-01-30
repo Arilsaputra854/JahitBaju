@@ -22,6 +22,7 @@ class Product {
   final List<String>? colors;
   final List<String>? features;  
   final String lastUpdate;
+  final String designerCategory;
 
   Product({
     required this.id,
@@ -39,7 +40,8 @@ class Product {
     required this.size,
     this.colors,
     this.features,
-    required this.lastUpdate
+    required this.lastUpdate,
+    required this.designerCategory
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -59,7 +61,8 @@ class Product {
       size: List<String>.from(json['size'])?? [], 
       colors: json['colors'] != null ? List<String>.from(json['colors']) : [],
       features: json['features'] != null ? List<String>.from(json['features']): [],
-      lastUpdate: json['last_update'] ?? DateTime.now().toString()
+      lastUpdate: json['last_update'] ?? DateTime.now().toString(),
+      designerCategory: json['designer_category'] 
     );
   }
 
@@ -89,7 +92,8 @@ class Product {
       'size': size,
       'colors': colors,
       'features': features,
-      'last_update' : lastUpdate
+      'last_update' : lastUpdate,
+      'designer_category' : designerCategory
     };
   }
 }

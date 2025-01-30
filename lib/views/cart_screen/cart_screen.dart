@@ -25,6 +25,13 @@ class CartScreen extends StatefulWidget {
 class _CartScreenState extends State<CartScreen> {
   var deviceWidth, deviceHeight;
   Cart? cart;
+  late ApiService apiService;
+
+  @override
+  void initState() {
+    apiService = ApiService(context);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,8 +113,22 @@ class _CartScreenState extends State<CartScreen> {
                                               color: Colors.grey,
                                             ));
                                       },
-                                    ) : svgViewer(cartItem.customDesign!)                                  
-                                     ))),
+                                    )
+                                  : FutureBuilder(
+                                      future: apiService.getCustomDesign(
+                                          cartItem.customDesign!),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return Center(
+                                            child: CircularProgressIndicator(),
+                                          );
+                                        }
+
+                                        return svgViewer(
+                                            snapshot.data!['data']);
+                                      },
+                                    )))),
                   Expanded(
                     child: Container(
                       color: Colors.white,
@@ -219,8 +240,12 @@ class _CartScreenState extends State<CartScreen> {
 
   goToShippingScreen(Cart? cart) {
     if (cart != null) {
-      Navigator.push(context,
-          MaterialPageRoute(builder: (context) => ShippingScreen(cart: cart,)));
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => ShippingScreen(
+                    cart: cart,
+                  )));
     } else {
       Fluttertoast.showToast(
           msg: "Tidak ada produk, silakan belanja terlebih dahulu.");
@@ -235,7 +260,6 @@ class _CartScreenState extends State<CartScreen> {
 
           Cart? cart = snapshot.data as Cart?;
           this.cart = cart;
-          
 
           return SingleChildScrollView(
             child: Column(
@@ -298,33 +322,33 @@ class _CartScreenState extends State<CartScreen> {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
                             return itemCartShimmer();
-                            
-                          } if (snapshot.hasError) {
+                          }
+                          if (snapshot.hasError) {
                             return itemCartShimmer();
                           } else if (snapshot.data != null) {
-                              List<MapEntry<CartItem, Product>>? data =
-                                  snapshot.data;
+                            List<MapEntry<CartItem, Product>>? data =
+                                snapshot.data;
 
-                              return ListView.builder(
-                                physics: const NeverScrollableScrollPhysics(),
-                                shrinkWrap: true,
-                                itemCount: snapshot.data!.length,
-                                itemBuilder: (context, index) {
-                                  var entry = snapshot.data![index];
-                                  CartItem cartItem = entry.key;
-                                  Product product = entry.value;
+                            return ListView.builder(
+                              physics: const NeverScrollableScrollPhysics(),
+                              shrinkWrap: true,
+                              itemCount: snapshot.data!.length,
+                              itemBuilder: (context, index) {
+                                var entry = snapshot.data![index];
+                                CartItem cartItem = entry.key;
+                                Product product = entry.value;
 
-                                  return _buildCartItem(cartItem, product);
-                                },
-                              );
-                            } else {
-                              return Container(
-                                height: 100,
-                                child: const Center(
-                                  child: Text("Tidak ada produk"),
-                                ),
-                              );
-                            }
+                                return _buildCartItem(cartItem, product);
+                              },
+                            );
+                          } else {
+                            return Container(
+                              height: 100,
+                              child: const Center(
+                                child: Text("Tidak ada produk"),
+                              ),
+                            );
+                          }
                         },
                       ),
                       const SizedBox(height: 30),

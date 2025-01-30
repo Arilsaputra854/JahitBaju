@@ -1,7 +1,17 @@
+import 'dart:ui' as ui;
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:image/image.dart' as img;
+import 'package:path_provider/path_provider.dart';
+
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/helper/app_color.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
 import 'package:jahit_baju/data/model/order.dart';
 import 'package:jahit_baju/data/source/remote/response/order_response.dart';
@@ -23,155 +33,254 @@ class PaymentScreen extends StatefulWidget {
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
+
+    GlobalKey _globalKey = GlobalKey();
   var deviceWidth, deviceHeight;
 
   var isPaymentSuccess = false;
+  Order? paidOrder;
 
   @override
   Widget build(BuildContext context) {
     deviceWidth = MediaQuery.of(context).size.width;
     deviceHeight = MediaQuery.of(context).size.height;
 
-    return ChangeNotifierProvider(create:(context)=> PaymentViewModel(ApiService(context)), child: Consumer<PaymentViewModel>(builder: (context,viewmodel, child){
-      return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text("Pembayaran"),
-      ),
-      body: isPaymentSuccess? paymentSuccess() : Container(
-        width: deviceWidth,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              "assets/logo/jahit_baju_logo.png",
-              width: deviceHeight * 0.3,
+    return ChangeNotifierProvider(
+        create: (context) => PaymentViewModel(ApiService(context)),
+        child: Consumer<PaymentViewModel>(builder: (context, viewmodel, child) {
+          return Scaffold(
+            appBar: AppBar(
+              centerTitle: true,
+              title: Text("Pembayaran"),
             ),
-            SizedBox(
-              height: 40,
-            ),
-            Text("Menunggu proses pembayaran",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            SizedBox(
-              height: 5,
-            ),
-            Text("Id : ${widget.order?.id ?? ""}",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-            SizedBox(
-              height: 10,
-            ),
-            Text("Total Harga : ${convertToRupiah(widget.order?.totalPrice)}"),
-            SizedBox(
-              height: 10,
-            ),
-            Text("Bayar sebelum ${customFormatDate(widget.order!.expiredDate)}"),
-            SizedBox(
-              height: 40,
-            ),
-            SizedBox(
-              width: deviceWidth * 0.5,
-              child: ElevatedButton(
-              onPressed: (){
-                openXenditGateway();
-              },
-              child: Text(
-                "Bayar Sekarang",
-                style: TextStyle(color: Colors.white),
-              ),
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(0)),
-                backgroundColor: Colors.red, // Latar belakang merah
-                padding: const EdgeInsets.symmetric(
-                    vertical: 15,
-                    horizontal: 30), // Padding agar tombol lebih besar
-              ),
-            ),
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            SizedBox(
-              width: deviceWidth * 0.5,
-              child: ElevatedButton(
-              onPressed: (){
-                validatePaymentXenditGateway();
-              },
-              child: Text(
-                "Sudah Bayar",
-                style: TextStyle(color: Colors.white),
-              ),
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(0)),
-                backgroundColor: Colors.red, // Latar belakang merah
-                padding: const EdgeInsets.symmetric(
-                    vertical: 15,
-                    horizontal: 30), // Padding agar tombol lebih besar
-              ),
-            ))
-          ],
-        ),
-      ),
-    );
-    }) );
+            body: isPaymentSuccess
+                ? paymentSuccess()
+                : Container(
+                    width: deviceWidth,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          "assets/logo/jahit_baju_logo.png",
+                          width: deviceHeight * 0.3,
+                        ),
+                        SizedBox(
+                          height: 40,
+                        ),
+                        Text("Menunggu proses pembayaran",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 18)),
+                        SizedBox(
+                          height: 5,
+                        ),
+                        Text("Id : ${widget.order?.id ?? ""}",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 12)),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Text(
+                            "Total Harga : ${convertToRupiah(widget.order?.totalPrice)}"),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Text(
+                            "Bayar sebelum ${customFormatDate(widget.order!.expiredDate)}"),
+                        SizedBox(
+                          height: 40,
+                        ),
+                        SizedBox(
+                          width: deviceWidth * 0.5,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              openXenditGateway();
+                            },
+                            child: Text(
+                              "Bayar Sekarang",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(0)),
+                              backgroundColor:
+                                  Colors.red, // Latar belakang merah
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 15,
+                                  horizontal:
+                                      30), // Padding agar tombol lebih besar
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        SizedBox(
+                            width: deviceWidth * 0.5,
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                paidOrder = await validatePaymentXenditGateway();
+                              },
+                              child: Text(
+                                "Sudah Bayar",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(0)),
+                                backgroundColor:
+                                    Colors.red, // Latar belakang merah
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 15,
+                                    horizontal:
+                                        30), // Padding agar tombol lebih besar
+                              ),
+                            ))
+                      ],
+                    ),
+                  ),
+          );
+        }));
   }
-  
 
-  Future<void> validatePaymentXenditGateway() async {
-    ApiService apiService  =ApiService(context);
-    OrderResponse response = await  apiService.orderGet();
+  Future<Order?> validatePaymentXenditGateway() async {
+    ApiService apiService = ApiService(context);
+    OrderResponse response = await apiService.orderGet();
 
-    if(!response.error){
-    late Order currentOrder;
+    if (!response.error) {
+      late Order currentOrder;
 
       List<Order> orders = response.data;
 
       for (var order in orders) {
-          if(order.id == widget.order!.id){
-            currentOrder = order;
-          }
+        if (order.id == widget.order!.id) {
+          currentOrder = order;
+        }
       }
 
-      if(currentOrder.orderStatus == Order.PROCESS){
+      if (currentOrder.orderStatus == Order.PROCESS && currentOrder.xenditStatus == "PAID" && paidOrder != null) {
         setState(() {
           isPaymentSuccess = true;
         });
       }
+      return currentOrder;
     }
-
-
+    return null;
   }
 
   //Bug release cannot open web
   Future<void> openXenditGateway() async {
     final url = Uri.parse(widget.order!.paymentUrl!);
 
-    if(await canLaunchUrl(url)){
-      await launchUrl(url,mode: LaunchMode.externalApplication).then((v){
+    try {
+      await launchUrl(url, mode: LaunchMode.externalApplication).then((v) {
         validatePaymentXenditGateway();
       });
-      
-    }else{
-      Fluttertoast.showToast(msg: "Terjadi kesalahan, silakan coba lagi nanti.");
+    } catch (e) {
+      Fluttertoast.showToast(
+          msg: "Terjadi kesalahan, silakan coba lagi nanti.");
     }
   }
-  
+
+
+
   Widget paymentSuccess() {
-
-    Future.delayed(Duration(seconds: 2),() {
-        Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
-        (route) => false, // Menghapus semua aktivitas sebelumnya
-      );
-      context.read<HomeViewModel>().refresh();  
-    },);
-
-    return Center(
-      child: Text("Pembayaran Berhasil!"),
-    );
+  
+    return Padding(
+        padding: EdgeInsets.all(10), child: Card(
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12), // Memberikan sudut melengkung pada card
+      ),
+      elevation: 4, // Memberikan bayangan pada card
+      child: Padding(
+        padding: EdgeInsets.all(10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min, // Card akan menyesuaikan ukuran dengan konten
+          children: [
+            Image.asset(
+              "assets/logo/jahit_baju_logo.png",
+              width: deviceHeight * 0.1,
+            ),
+            SizedBox(height: 25),
+            Text(
+              "Pembayaran Berhasil!",
+              style: TextStyle(fontWeight: FontWeight.normal, fontSize: 16),
+            ),
+            SizedBox(height: 5),
+            Text(
+              "${convertToRupiah(paidOrder?.totalPrice)}",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+            ),
+            SizedBox(height: 15),
+            Padding(padding: EdgeInsets.only(left: 20, right: 20),child: Divider(),),
+            SizedBox(height: 15), // Spasi setelah divider
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Order ID
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Order ID:", style: TextStyle(fontSize: 14)),
+                    Text("${paidOrder?.id ?? ""}", style: TextStyle(fontSize: 12)),
+                  ],
+                ),
+                SizedBox(height: 8),
+                // Tanggal Pembayaran
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Tanggal pembayaran:", style: TextStyle(fontSize: 14)),
+                    Text("${paidOrder?.paymentDate}", style: TextStyle(fontSize: 12)),
+                  ],
+                ),
+                SizedBox(height: 8),
+                // Status Pembayaran
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Status Pembayaran:", style: TextStyle(fontSize: 14)),
+                    Text("${paidOrder?.xenditStatus ?? "-"}", style: TextStyle(fontSize: 12)),
+                  ],
+                ),
+                SizedBox(height: 8),
+                // Metode Pembayaran
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Metode pembayaran:", style: TextStyle(fontSize: 14)),
+                    Text("${paidOrder?.paymentMethod ?? "-"}", style: TextStyle(fontSize: 12)),
+                  ],
+                ),
+                SizedBox(height: 20),
+              ],
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => HomeScreen()),
+                  (route) => false, // Menghapus semua aktivitas sebelumnya
+                );
+                context.read<HomeViewModel>().refresh();
+              },
+              child: Text(
+                "Selesai",
+                style: TextStyle(color: Colors.white),
+              ),
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30)),
+                backgroundColor: Colors.red, // Latar belakang merah
+                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30), // Padding agar tombol lebih besar
+              ),
+            )
+          ],
+        ),
+      ),
+    ));
   }
 
 }

@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:jahit_baju/data/source/remote/response/app_banner_response.dart';
+import 'package:jahit_baju/data/source/remote/response/custom_design_response.dart';
 import 'package:jahit_baju/data/source/remote/response/packaging_response.dart';
+import 'package:jahit_baju/data/source/remote/response/product_term_response.dart';
 import 'package:jahit_baju/data/source/remote/response/shipping_response.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
 import 'package:jahit_baju/data/model/cart.dart';
@@ -23,17 +25,17 @@ import 'package:jahit_baju/data/source/remote/response/product_response.dart';
 import 'package:jahit_baju/data/source/remote/response/size_guide_response.dart';
 import 'package:jahit_baju/data/source/remote/response/survei_response.dart';
 import 'package:logger/web.dart';
-import 'package:path/path.dart';
+import 'package:http_parser/http_parser.dart';  
 
 import '../../../util/util.dart';
 import 'response/term_condition_response.dart';
 import 'response/user_response.dart';
 
 class ApiService {
-  final String baseUrl =
-      "https://jahit-baju-backend-936228436122.asia-east1.run.app/api/";
   // final String baseUrl =
-  //     "http://192.168.1.171:3000/api/";
+  //     "https://jahit-baju-backend-936228436122.asia-east1.run.app/api/";
+  final String baseUrl =
+    "http://192.168.1.171:3000/api/";
   TokenStorage tokenStorage = TokenStorage();
   Logger logger = Logger();
   final BuildContext context;
@@ -419,7 +421,7 @@ class ApiService {
           'Authorization': '${token}'
         },
         body: jsonEncode(<String, dynamic>{
-          'productId': product.id,
+          'product_id': product.id,
           'quantity': quantity,
           'price': product.price,
           'size': selectedSize,
@@ -483,7 +485,7 @@ class ApiService {
   }
 
   Future<dynamic> getAllShipping() async {
-    final url = Uri.parse("${baseUrl}shippings");
+    final url = Uri.parse("${baseUrl}shipping");
 
     try {
       final response = await http.get(url, headers: <String, String>{
@@ -513,7 +515,7 @@ class ApiService {
       logger.e("Get Favorite : Tidak ada koneksi internet");
       return "Tidak ada koneksi internet";
     }  catch (e) {
-      logger.e("Shipping Get : $e");
+      logger.e("Favorite Get : $e");
       return "error";
     }
   }
@@ -1042,5 +1044,91 @@ class ApiService {
       return AppBannerResponse(message: "Network error : $e", error: true);
     }
   }
+
+    // Function to upload SVG design to the server
+  Future<CustomDesignResponse?> uploadCustomDesign(File file) async {
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+    final url = Uri.parse("${baseUrl}order/custom-design");
+
+    try {
+      var request = http.MultipartRequest('POST', url)
+        ..headers['Content-Type'] = 'application/json'
+        ..headers['Authorization'] = '$token'
+        ..files.add(await http.MultipartFile.fromPath(
+            'file', file.path,
+            contentType: MediaType('image', 'svg+xml')));
+
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        var responseData = await response.stream.bytesToString();
+        return CustomDesignResponse.fromJson(jsonDecode(responseData));
+      } else {
+        return CustomDesignResponse(error: true, message: 'Failed to upload file');
+      }
+    } on SocketException catch (e) {
+      showSnackBar(context, "Tidak ada koneksi internet", isError: true);
+      logger.e("upload custom design : Tidak ada koneksi internet");
+      return CustomDesignResponse(error: true, message: 'Tidak ada koneksi internet');
+    } catch (e) {
+      logger.e("upload custom design : Terjadi kesalahan");
+      return CustomDesignResponse(error: true, message: 'Terjadi kesalahan');
+    }
+  }
+
+  // Function to retrieve SVG design from the server
+  Future<Map<String, dynamic>?> getCustomDesign(String filename) async {
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+    final url = Uri.parse("${baseUrl}order/custom-design/$filename");
+
+    try {
+      final response = await http.get(url, headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      });
+
+      if (response.statusCode == 200) {
+        // Return file or response as needed
+        return {'error': false, 'data': response.body};
+      } else {
+        return {'error': true, 'message': 'File not found'};
+      }
+    } on SocketException catch (e) {
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+      logger.e("get custom design : Tidak ada koneksi internet");
+    } catch (e) {
+      showSnackBar(context,"Terjadi kesalahan",isError: true);
+      logger.e("get custom design : Tidak ada koneksi internet");
+    }
+  }
+
+  // Function to retrieve SVG design from the server
+  Future<ProductTermResponse> getProductTerm() async {
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+    final url = Uri.parse("${baseUrl}product-terms");
+
+    try {
+      final response = await http.get(url, headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      });
+
+      
+      var data = jsonDecode(response.body);
+      logger.d("get all app banner : ${data}");
+
+      return ProductTermResponse.fromJson(data);
+
+    } on SocketException catch (e) {
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+      logger.e("get Product Term : Tidak ada koneksi internet");
+      return ProductTermResponse(error: true, message: "Tidak ada koneksi internet");
+    } catch (e) {
+      logger.e("get Product Term : Terjadi kesalahan $e");
+      return ProductTermResponse(error: true, message: "Terjadi kesalahan");
+    }
+  }
+
+  
 
 }

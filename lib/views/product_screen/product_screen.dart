@@ -7,12 +7,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/model/favorite.dart';
+import 'package:jahit_baju/data/model/product_term.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/data/model/cart.dart';
 import 'package:jahit_baju/data/model/order.dart';
 import 'package:jahit_baju/data/model/product.dart';
 import 'package:jahit_baju/data/source/remote/response/favorite_response.dart';
 import 'package:jahit_baju/data/source/remote/response/product_response.dart';
+import 'package:jahit_baju/data/source/remote/response/product_term_response.dart';
 import 'package:jahit_baju/data/source/remote/response/size_guide_response.dart';
 import 'package:jahit_baju/helper/app_color.dart';
 import 'package:jahit_baju/util/util.dart';
@@ -49,6 +51,8 @@ class _ProductScreenState extends State<ProductScreen> {
   late bool isFavorited;
   late int favoriteId;
 
+  late ApiService apiService;
+
   List<String> svgColor = [];
   List<String> svgFeatures = [];
 
@@ -65,6 +69,7 @@ class _ProductScreenState extends State<ProductScreen> {
 
   @override
   void initState() {
+    apiService = ApiService(context);
     isFavorited = false;
 
     if (widget.product.type == Product.CUSTOM) {
@@ -241,10 +246,12 @@ class _ProductScreenState extends State<ProductScreen> {
               SizedBox(
                 height: 20,
               ),
+              Divider(),
               Text(
-                "Deskripsi",
+                "DESKRIPSI",
                 style: TextStyle(
-                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
                 ),
               ),
               SizedBox(
@@ -259,10 +266,12 @@ class _ProductScreenState extends State<ProductScreen> {
               SizedBox(
                 height: 20,
               ),
+              Divider(),
               Text(
-                "Panduan Ukuran",
+                "PANDUAN UKURAN",
                 style: TextStyle(
-                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
                 ),
               ),
               SizedBox(
@@ -272,10 +281,12 @@ class _ProductScreenState extends State<ProductScreen> {
               SizedBox(
                 height: 20,
               ),
+              Divider(),
               Text(
-                "Pilih Ukuran",
+                "PILIH UKURAN",
                 style: TextStyle(
-                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
                 ),
               ),
               _sizeWidget(),
@@ -363,13 +374,20 @@ class _ProductScreenState extends State<ProductScreen> {
                         })
                   ],
                 ),
-                SizedBox(
-                  height: 20,
-                ),
                 Text(
-                  "Deskripsi",
+                      widget.product.designerCategory,style: TextStyle(
+                        fontSize: 15,
+                      ),
+                    ),
+                SizedBox(
+                  height: 10,
+                ),
+                Divider(),
+                Text(
+                  "DESKRIPSI",
                   style: TextStyle(
-                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                   ),
                 ),
                 SizedBox(
@@ -382,12 +400,74 @@ class _ProductScreenState extends State<ProductScreen> {
                   ),
                 ),
                 SizedBox(
+                  height: 10,
+                ),
+                Divider(),
+                Text(
+                  "KETENTUAN",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                FutureBuilder(
+                  future: apiService.getProductTerm(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+                    ProductTermResponse? response = snapshot.data;
+                    if (snapshot.data != null && !response!.error) {
+                      return Column(
+                        children: [
+                          // ketentuan warna
+                          Text(
+                            response.productTerm!.color!,
+                            style: TextStyle(
+                              fontSize: 15,
+                            ),
+                          ),
+// ketentuan ukuran
+                          SizedBox(
+                            height: 5,
+                          ),
+                          Text(
+                            response.productTerm!.size!,
+                            style: TextStyle(
+                              fontSize: 15,
+                            ),
+                          ),
+                          // ketentuan motif
+
+                          SizedBox(
+                            height: 5,
+                          ),
+                          Text(
+                            response.productTerm!.texture!,
+                            style: TextStyle(
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      );
+                    } else {
+                      return Text("Terjadi kesalahan");
+                    }
+                  },
+                ),
+                SizedBox(
                   height: 20,
                 ),
                 Text(
-                  "Panduan Ukuran",
+                  "PANDUAN UKURAN",
                   style: TextStyle(
-                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                   ),
                 ),
                 SizedBox(
@@ -398,9 +478,10 @@ class _ProductScreenState extends State<ProductScreen> {
                   height: 20,
                 ),
                 Text(
-                  "Pilih Ukuran",
+                  "PILIH UKURAN",
                   style: TextStyle(
-                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                   ),
                 ),
                 _sizeWidget()
@@ -986,31 +1067,51 @@ class _ProductScreenState extends State<ProductScreen> {
                 ),
               )
             : Container(
-              width: deviceWidth,
+                width: deviceWidth,
                 padding: EdgeInsets.all(20),
-                child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                      backgroundColor: Colors.red,
-                      disabledBackgroundColor: Colors.grey,
-                      padding:
-                          EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                    ),
-                    onPressed: currentSvg.contains("none")
-                        ? null
-                        : () {
-                            goToDesignConfirmation(htmlContent);
-                          },
-                    child: Text(
-                      "Selanjutnya",
-                      style: TextStyle(
-                        color: currentSvg.contains("none")
-                            ? Colors.black
-                            : Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ))),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          backgroundColor: Colors.white,
+                          disabledBackgroundColor: Colors.grey,
+                          padding: EdgeInsets.symmetric(vertical: 15),
+                        ),
+                        onPressed: () {
+                          //chat
+                        },
+                        child: Icon(Icons.chat)),
+                    SizedBox(width: 10),
+                    Expanded(
+                        child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                              backgroundColor: Colors.red,
+                              disabledBackgroundColor: Colors.grey,
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 15, horizontal: 10),
+                            ),
+                            onPressed: currentSvg.contains("none")
+                                ? null
+                                : () {
+                                    goToDesignConfirmation(htmlContent);
+                                  },
+                            child: Text(
+                              "Selanjutnya",
+                              style: TextStyle(
+                                color: currentSvg.contains("none")
+                                    ? Colors.black
+                                    : Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )))
+                  ],
+                )),
         widget.product.stock <= 0
             ? Positioned.fill(
                 child: Container(

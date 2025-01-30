@@ -21,6 +21,9 @@ class Order {
   final String? paymentUrl;
   final DateTime expiredDate;
   final String resi;
+  final DateTime? paymentDate;
+  final String? xenditStatus;
+  final String? paymentMethod;
 
 
   // // Status Order
@@ -57,7 +60,10 @@ class Order {
     required this.orderStatus,
     this.paymentUrl,
     DateTime? expiredDate,
-    this.resi = "-"
+    this.resi = "-",
+    this.paymentDate,
+    this.xenditStatus,
+    this.paymentMethod,
   })  : orderCreated = orderCreated ?? DateTime.now(),
         _lastUpdate = DateTime.now(),expiredDate = expiredDate ?? DateTime.now().add(Duration(hours: 23,minutes: 50));
     
@@ -89,6 +95,11 @@ class Order {
           ? DateTime.parse(json['expired_date'])
           : null,
       resi: json['resi'] ?? "-",
+      xenditStatus: json['xendit_status'] ?? "-",
+      paymentDate: json['payment_date'] != null
+          ? DateTime.parse(json['payment_date'])
+          : null,
+      paymentMethod: json['payment_method'] ?? "-",
     );
   }
 
@@ -110,7 +121,10 @@ class Order {
       'items': items.map((item) => item.toJson()).toList(),
       'payment_url' : paymentUrl ?? "",
       'expired_date': expiredDate.toIso8601String(),
-      'resi' : resi
+      'resi' : resi,
+      'payment_method' : paymentMethod,
+      'xendit_status' : xenditStatus,
+      'payment_date' : paymentDate?.toIso8601String()
     };
   }
 
@@ -145,8 +159,8 @@ class OrderItem {
   factory OrderItem.fromJson(Map<String, dynamic> json) {
     return OrderItem(
       id: json['id']?? "",
-      orderId: json['orderId']?? "",
-      productId: json['productId']?? "",
+      orderId: json['order_id']?? "",
+      productId: json['product_id']?? "",
       quantity: json['quantity']?? "",
       size: json['size']?? "",
       price: json['price']?? "",
@@ -158,8 +172,8 @@ class OrderItem {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'orderId': orderId,
-      'productId': productId,
+      'order_id': orderId,
+      'product_id': productId,
       'quantity': quantity,
       'size': size,
       'price': price,

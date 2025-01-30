@@ -1,6 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:jahit_baju/data/model/packaging.dart';
@@ -8,11 +7,9 @@ import 'package:jahit_baju/data/model/shipping.dart';
 import 'package:jahit_baju/data/source/remote/response/packaging_response.dart';
 import 'package:jahit_baju/data/source/remote/response/shipping_response.dart';
 import 'package:jahit_baju/helper/app_color.dart';
-import 'package:jahit_baju/data/model/cart.dart';
 import 'package:jahit_baju/data/model/order.dart';
 import 'package:jahit_baju/data/model/product.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
-import 'package:jahit_baju/data/source/remote/response/product_response.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/views/payment_screen/payment_screen.dart';
 import 'package:shimmer/shimmer.dart';
@@ -466,8 +463,21 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                                                   ));
                                             },
                                           )
-                                        : svgViewer(widget.order.items[index]
-                                            .customDesign!)))),
+                                        : FutureBuilder(
+                                      future: apiService.getCustomDesign(
+                                          widget.order.items[index].customDesign!),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return Center(
+                                            child: CircularProgressIndicator(),
+                                          );
+                                        }
+
+                                        return svgViewer(
+                                            snapshot.data!['data']);
+                                      },
+                                    )))),
                         Expanded(
                           child: Container(
                             color: Colors.white,
