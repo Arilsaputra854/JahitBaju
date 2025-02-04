@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/data/model/user.dart';
+import 'package:jahit_baju/data/source/remote/response/register_response.dart';
 
 class RegisterViewModel extends ChangeNotifier {
   ApiService apiService;
@@ -16,10 +17,13 @@ class RegisterViewModel extends ChangeNotifier {
 
   String? _message;
 
+  bool _isLoading = false;
+
   String? get email => _email;
   String? get password => _password;
   String? get confirmPassword => _confirmPassword;
   String? get message => _message;
+  bool get isLoading => _isLoading;
   String? get name => _name;
   String? get phoneNumber => _phoneNumber;
 
@@ -51,38 +55,63 @@ class RegisterViewModel extends ChangeNotifier {
   }
 
   Future<void> register() async {
+    _isLoading = true;
+    notifyListeners();
+
     if (_email == null || !_email!.contains('@')) {
       _message = 'Email yang kamu masukkan tidak valid!';
+      _isLoading = false;
       notifyListeners();
       return;
     }
 
     if (_password == null || _password!.length < 8) {
       _message = 'Password harus lebih dari 8 karakter!';
+      _isLoading = false;
       notifyListeners();
       return;
     }
 
     if (_password != _confirmPassword) {
       _message = 'Konfirmasi password tidak sama!';
+      _isLoading = false;
       notifyListeners();
       return;
     }
 
-    var data = await apiService.userRegister(_name!, _email!, _phoneNumber!, _password!);
+    RegisterResponse data = await apiService.userRegister(
+        _name!, _email!, _phoneNumber!, _password!);
 
-    if (data != null) {
+    if (data.error) {
+      if (data.message != null) {
+        if (data.message == RegisterResponse.EMAIL_ALREADY_EXIST) {
+          _message = "Alamat email kamu sudah terdaftar.";
+          _isLoading = false;
+          notifyListeners();
+          return;
+        } else {
+          _isLoading = false;
+          _message = null;
+          notifyListeners();
+          return;
+        }
+      }
+    } else {
       //if register successfully
-      if (data is User) {
+      if (data.user != null) {
+        _isLoading = false;
         _message = "Buat akun berhasil!";
+        notifyListeners();
+        return;
+      } else {
+        _isLoading = false;
+        _message = ApiService.SOMETHING_WAS_WRONG;
+        notifyListeners();
         return;
       }
-
-      _message = data.toString();
-      return;
     }
-
     _message = null;
+    _isLoading = false;
     notifyListeners();
     return;
   }

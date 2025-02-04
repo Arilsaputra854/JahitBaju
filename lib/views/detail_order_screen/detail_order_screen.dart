@@ -199,7 +199,7 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
             FutureBuilder(
               future: getPackagingById(),
               builder: (context, snapshot) {
-                if(snapshot.connectionState == ConnectionState.waiting){
+                if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(
                     child: CircularProgressIndicator(),
                   );
@@ -294,10 +294,34 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                       ],
                     ),
                   ));
-                } else {                  
-                return Text("Tidak dapat memuat detail pengiriman.");
+                } else {
+                  return Text("Tidak dapat memuat detail pengiriman.");
                 }
               },
+            ),
+            SizedBox(height: 5),
+            Container(
+              padding: EdgeInsets.all(5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Catatan",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: fontSize),
+                  ),
+                  Divider(
+                    color: Colors.black,
+                    thickness: 1,
+                    height: 8,
+                  ),
+                  Text(
+                    widget.order.description ?? "-",
+                    style: TextStyle(
+                        fontWeight: FontWeight.normal, fontSize: fontSize),
+                  ),
+                ],
+              ),
             ),
             SizedBox(height: 15),
             _detailPrice()
@@ -341,6 +365,7 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                           ? () {
                               //batal pesanan
                               _deleteOrder(widget.order.id);
+                              Navigator.pop(context);
                             }
                           : () {
                               //lacak pesanan
@@ -382,28 +407,36 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                               //bayar pesanan
                               _goToPaymentScreen(widget.order);
                             }
-                          : currentStatus != 3 ? null : (){
-                              //pesanan selesai
-                            },
-                  child: currentStatus != 3 && currentStatus == 0 ? Text("Bayar Sekarang",
-                    style: TextStyle(
-                      color: buttonState
-                          ? const Color.fromARGB(255, 95, 92, 92)
-                          : Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    softWrap: true, // Agar teks membungkus jika terlalu panjang
-                    textAlign: TextAlign.center,
-                  ) : Text("Pesanan Selesai",
-                    style: TextStyle(
-                      color: buttonState
-                          ? const Color.fromARGB(255, 95, 92, 92)
-                          : Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    softWrap: true, // Agar teks membungkus jika terlalu panjang
-                    textAlign: TextAlign.center,
-                  ) ,
+                          : currentStatus != 3
+                              ? null
+                              : () {
+                                  //pesanan selesai
+                                },
+                  child: currentStatus != 3 && currentStatus == 0
+                      ? Text(
+                          "Bayar Sekarang",
+                          style: TextStyle(
+                            color: buttonState
+                                ? const Color.fromARGB(255, 95, 92, 92)
+                                : Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          softWrap:
+                              true, // Agar teks membungkus jika terlalu panjang
+                          textAlign: TextAlign.center,
+                        )
+                      : Text(
+                          "Pesanan Selesai",
+                          style: TextStyle(
+                            color: buttonState
+                                ? const Color.fromARGB(255, 95, 92, 92)
+                                : Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          softWrap:
+                              true, // Agar teks membungkus jika terlalu panjang
+                          textAlign: TextAlign.center,
+                        ),
                 ),
               ),
             ],
@@ -426,6 +459,7 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                   );
                 }
                 if (snapshot.hasData || snapshot.data != null) {
+                  
                   return Card(
                     color: Colors.white,
                     elevation: 4,
@@ -464,20 +498,22 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                                             },
                                           )
                                         : FutureBuilder(
-                                      future: apiService.getCustomDesign(
-                                          widget.order.items[index].customDesign!),
-                                      builder: (context, snapshot) {
-                                        if (snapshot.connectionState ==
-                                            ConnectionState.waiting) {
-                                          return Center(
-                                            child: CircularProgressIndicator(),
-                                          );
-                                        }
+                                            future: apiService.getCustomDesign(
+                                                widget.order.items[index]
+                                                    .customDesign!),
+                                            builder: (context, snapshot) {
+                                              if (snapshot.connectionState ==
+                                                  ConnectionState.waiting) {
+                                                return Center(
+                                                  child:
+                                                      CircularProgressIndicator(),
+                                                );
+                                              }
 
-                                        return svgViewer(
-                                            snapshot.data!['data']);
-                                      },
-                                    )))),
+                                              return svgViewer(
+                                                  snapshot.data!['data']);
+                                            },
+                                          )))),
                         Expanded(
                           child: Container(
                             color: Colors.white,
@@ -528,8 +564,7 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                     ),
                   );
                 } else {
-                  
-                return Text("Tidak dapat memuat detail produk.");
+                  return Text("Tidak dapat memuat detail produk.");
                 }
               });
         });
@@ -629,6 +664,7 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
     } else {
       Fluttertoast.showToast(msg: response.message!);
       setState(() {});
+
     }
   }
 
@@ -655,16 +691,16 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
 //get packaging
   Future<Packaging?> getPackagingById() async {
     PackagingResponse response =
-          await ApiService(context).getPackaging(widget.order.packagingId);
-      if (response.error) {
-        if (response.message != null) {
-          Fluttertoast.showToast(msg: response.message!);
-        } else {
-          Fluttertoast.showToast(msg: "Terjadi kesalahan, coba lagi nanti.");
-        }
+        await ApiService(context).getPackaging(widget.order.packagingId);
+    if (response.error) {
+      if (response.message != null) {
+        Fluttertoast.showToast(msg: response.message!);
       } else {
-        return response.packaging;
+        Fluttertoast.showToast(msg: "Terjadi kesalahan, coba lagi nanti.");
       }
-      return null;
+    } else {
+      return response.packaging;
+    }
+    return null;
   }
 }

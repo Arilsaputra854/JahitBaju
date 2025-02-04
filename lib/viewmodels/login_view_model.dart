@@ -9,11 +9,11 @@ class LoginViewModel extends ChangeNotifier {
   String? _email;
   String? _password;
 
-  String? _errorMsg;
+  String? _message;
 
   String? get email => _email;
   String? get password => _password;
-  String? get errorMsg => _errorMsg;
+  String? get message => _message;
   ApiService api;
   LoginViewModel(this.api);
 
@@ -31,13 +31,13 @@ class LoginViewModel extends ChangeNotifier {
 
   Future<bool> login() async {
     if (_email == null || !_email!.contains('@')) {
-      _errorMsg = 'Email tidak valid!';
+      _message = 'Email tidak valid!';
       notifyListeners();
       return false;
     }
 
     if (_password == null || _password!.length < 8) {
-      _errorMsg = 'Password harus lebih dari 8 karakter!';
+      _message = 'Password harus lebih dari 8 karakter!';
       notifyListeners();
       return false;
     }
@@ -45,11 +45,11 @@ class LoginViewModel extends ChangeNotifier {
     var response = await api.userLogin(_email!, _password!);
 
     if (response.error) {
-      _errorMsg = response.message;
+      _message = response.message;
       notifyListeners();
       return false;
     } else {
-      _errorMsg = null;
+      _message = null;
       await _tokenStorage.saveToken(response.token!);
       notifyListeners();
 
@@ -61,7 +61,7 @@ class LoginViewModel extends ChangeNotifier {
     UserResponse response = await api.userGet();
 
       if(response.error){
-        _errorMsg = response.message;
+        _message = response.message;
         notifyListeners();
         return false;
       }else{

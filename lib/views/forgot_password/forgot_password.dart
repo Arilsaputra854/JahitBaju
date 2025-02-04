@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/viewmodels/forgot_password_view_model.dart';
 import 'package:jahit_baju/views/register/register_screen.dart';
 import 'package:jahit_baju/views/otp_screen/otp_screen.dart';
@@ -13,7 +14,7 @@ class ForgotPasswordScreen extends StatefulWidget {
   State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {  
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   var deviceWidth, deviceHeight;
   var formKey = GlobalKey<FormState>();
 
@@ -39,44 +40,49 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     deviceWidth = MediaQuery.of(context).size.width;
     deviceHeight = MediaQuery.of(context).size.height;
 
-    return ChangeNotifierProvider(
-        create: (context) => ForgotPasswordViewModel(),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Transform.scale(
-              scale: 1.3,
-              child: Container(
-                width: deviceWidth,
-                decoration: const BoxDecoration(
-                    color: Colors.black,
-                    image: DecorationImage(
-                        image: AssetImage("assets/background/bg.png"),
-                        fit: BoxFit.cover,
-                        opacity: 0.6)),
-              ),
-            ),
-            Scaffold(appBar: AppBar(
-                backgroundColor: Colors.transparent,
-                foregroundColor: Colors.white,
-              ),
-              backgroundColor: Colors.transparent,
-              body: SingleChildScrollView(child: Consumer<ForgotPasswordViewModel>(
-                  builder: (context, viewModel, child) {
-                return Center(
-                  child: SizedBox(
-                    width: deviceWidth * 0.8,
-                    child: forgotPasswordForm(),
+    return GestureDetector(
+        child: ChangeNotifierProvider(
+            create: (context) => ForgotPasswordViewModel(),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Transform.scale(
+                  scale: 1.3,
+                  child: Container(
+                    width: deviceWidth,
+                    decoration: const BoxDecoration(
+                        color: Colors.black,
+                        image: DecorationImage(
+                            image: AssetImage("assets/background/bg.png"),
+                            fit: BoxFit.cover,
+                            opacity: 0.6)),
                   ),
-                );
-              }),)
-            )
-          ],
-        ));
+                ),
+                Scaffold(
+                    appBar: AppBar(
+                      backgroundColor: Colors.transparent,
+                      foregroundColor: Colors.white,
+                    ),
+                    backgroundColor: Colors.transparent,
+                    body: SingleChildScrollView(
+                      child: Consumer<ForgotPasswordViewModel>(
+                          builder: (context, viewModel, child) {
+                        return Center(
+                          child: SizedBox(
+                            width: deviceWidth * 0.8,
+                            child: forgotPasswordForm(),
+                          ),
+                        );
+                      }),
+                    ))
+              ],
+            )),
+        onTap: () => FocusScope.of(context).unfocus());
   }
 
   forgotPasswordForm() {
-    return Consumer<ForgotPasswordViewModel>(builder: (context, viewModel, child) {
+    return Consumer<ForgotPasswordViewModel>(
+        builder: (context, viewModel, child) {
       return Container(
           padding: const EdgeInsets.all(16),
           child: Form(
@@ -92,7 +98,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       fontWeight: FontWeight.bold,
                       color: Colors.white),
                 ),
-
                 const Text(
                   "Tenang, kami bantu reset.",
                   textAlign: TextAlign.start,
@@ -118,7 +123,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 const SizedBox(
                   height: 30,
                 ),
-                
                 Column(
                   children: [
                     SizedBox(
@@ -128,13 +132,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(5)),
                               backgroundColor: Colors.white),
-                          onPressed: () {
+                          onPressed: () async {
                             if (formKey.currentState!.validate()) {
-                              viewModel.resetPassword();
+                              await viewModel.resetPassword();
                               if (viewModel.errorMsg != null) {
                                 Fluttertoast.showToast(
                                     msg: viewModel.errorMsg.toString());
-                              }else{
+                              } else {
                                 goToOtpPage(viewModel.email);
                               }
                             }
@@ -145,7 +149,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                 fontWeight: FontWeight.bold, fontSize: 20),
                           )),
                     ),
-                    
                   ],
                 ),
               ],
@@ -167,6 +170,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   goToOtpPage(String? email) {
     Navigator.push(
-        context, MaterialPageRoute(builder: (context) => OtpScreen(email!,OtpScreen.RESET_PASSWORD)));
+        context,
+        MaterialPageRoute(
+            builder: (context) => OtpScreen(email!, OtpScreen.RESET_PASSWORD)));
   }
 }

@@ -11,7 +11,6 @@ import 'package:jahit_baju/viewmodels/register_view_model.dart';
 import 'package:jahit_baju/viewmodels/reset_password_view_model.dart';
 import 'package:jahit_baju/viewmodels/search_view_model.dart';
 import 'package:jahit_baju/viewmodels/shipping_view_model.dart';
-import 'package:jahit_baju/views/home_screen/home_screen.dart';
 import 'package:jahit_baju/views/splash_screen.dart';
 import 'package:provider/provider.dart';
 
@@ -38,7 +37,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
     return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Jahit Baju Apps',
       theme: ThemeData(

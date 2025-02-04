@@ -423,7 +423,7 @@ class _HomePageState extends State<HomePage> {
                                             mainAxisAlignment:
                                                 MainAxisAlignment.center,
                                             children: [
-                                              Icon(Icons.lock_outline_rounded),
+                                              Padding(padding: EdgeInsets.all(30),child: Image.asset("assets/icon/lock.png",),),
                                               Text("Fitur ini terkunci")
                                             ],
                                           ))

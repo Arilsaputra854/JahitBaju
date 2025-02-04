@@ -5,6 +5,7 @@ import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/viewmodels/register_view_model.dart';
 import 'package:jahit_baju/views/otp_screen/otp_screen.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
 import '../term_condition_screen/term_condition_screen.dart';
@@ -20,6 +21,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isPasswordVisible = false;
   var deviceWidth, deviceHeight;
   var formKey = GlobalKey<FormState>();
+
+  Logger logger = Logger();
 
   bool init = false;
   bool isLoading = false;
@@ -47,46 +50,58 @@ class _RegisterScreenState extends State<RegisterScreen> {
     deviceWidth = MediaQuery.of(context).size.width;
     deviceHeight = MediaQuery.of(context).size.height;
 
-    return ChangeNotifierProvider(
-        create: (context) => RegisterViewModel(ApiService(context)),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Transform.scale(
-              scale: 1.3,
-              child: Container(
-                width: deviceWidth,
-                decoration: const BoxDecoration(
-                    color: Colors.black,
-                    image: DecorationImage(
-                        image: AssetImage("assets/background/bg.png"),
-                        fit: BoxFit.cover,
-                        opacity: 0.6)),
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: ChangeNotifierProvider(
+          create: (context) => RegisterViewModel(ApiService(context)),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Transform.scale(
+                scale: 1.3,
+                child: Container(
+                  width: deviceWidth,
+                  decoration: const BoxDecoration(
+                      color: Colors.black,
+                      image: DecorationImage(
+                          image: AssetImage("assets/background/bg.png"),
+                          fit: BoxFit.cover,
+                          opacity: 0.6)),
+                ),
               ),
-            ),
-            Scaffold(
-              appBar: AppBar(
+              Scaffold(
+                appBar: AppBar(
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                ),
                 backgroundColor: Colors.transparent,
-                foregroundColor: Colors.white,
+                body: SingleChildScrollView(
+                  child: Consumer<RegisterViewModel>(
+                      builder: (context, viewModel, child) {
+                    return Center(
+                      child: SizedBox(
+                        width: deviceWidth * 0.8,
+                        child: registerForm(),
+                      ),
+                    );
+                  }),
+                ),
               ),
-              backgroundColor: Colors.transparent,
-              body: SingleChildScrollView(
-                child: Consumer<RegisterViewModel>(
-                    builder: (context, viewModel, child) {
-                  return Center(
-                    child: SizedBox(
-                      width: deviceWidth * 0.8,
-                      child: registerForm(),
-                    ),
-                  );
-                }),
-              ),
-            ),
-            if (isLoading)
-              LoadingAnimationWidget.staggeredDotsWave(
-                  color: Colors.black, size: 50)
-          ],
-        ));
+              if (isLoading)
+                Container(
+                  color: const Color.fromARGB(92, 0, 0, 0),
+                  width: double.infinity,
+                  height: double.infinity,
+                  child: Center(
+                    child: LoadingAnimationWidget.staggeredDotsWave(
+                        color: Colors.white, size: 50),
+                  ),
+                )
+            ],
+          )),
+    );
   }
 
   registerForm() {
@@ -240,7 +255,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       await viewModel.register();
                                       if (viewModel.message != null) {
                                         if (viewModel.message ==
-                                            "Register Success!") {
+                                            "Buat akun berhasil!") {
                                           Navigator.pop(context);
                                         }
                                         Fluttertoast.showToast(

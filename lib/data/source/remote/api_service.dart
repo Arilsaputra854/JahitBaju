@@ -8,6 +8,7 @@ import 'package:jahit_baju/data/source/remote/response/app_banner_response.dart'
 import 'package:jahit_baju/data/source/remote/response/custom_design_response.dart';
 import 'package:jahit_baju/data/source/remote/response/packaging_response.dart';
 import 'package:jahit_baju/data/source/remote/response/product_term_response.dart';
+import 'package:jahit_baju/data/source/remote/response/register_response.dart';
 import 'package:jahit_baju/data/source/remote/response/shipping_response.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
 import 'package:jahit_baju/data/model/cart.dart';
@@ -32,13 +33,15 @@ import 'response/term_condition_response.dart';
 import 'response/user_response.dart';
 
 class ApiService {
-  // final String baseUrl =
-  //     "https://jahit-baju-backend-936228436122.asia-east1.run.app/api/";
   final String baseUrl =
-    "http://192.168.1.171:3000/api/";
+      "https://8759-114-79-7-81.ngrok-free.app/api/";
+  // final String baseUrl =
+  //   "http://192.168.1.171:3000/api/";
   TokenStorage tokenStorage = TokenStorage();
   Logger logger = Logger();
   final BuildContext context;
+
+  static const String SOMETHING_WAS_WRONG = "Maaf, Saat ini terjadi kesalahan pada server kami.";
 
   ApiService(this.context);
 
@@ -59,13 +62,19 @@ class ApiService {
       LoginResponse responseBody = LoginResponse.fromJson(data);
 
       return responseBody;
+      } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
+
+      logger.e("User Register : Tidak ada koneksi internet");
+      
+      return LoginResponse(error: true);
     } catch (e) {
       logger.e("User Login : $e");
       return LoginResponse(message: "Network error : $e", error: true);
     }
   }
 
-  Future<dynamic> userRegister(
+  Future<RegisterResponse> userRegister(
       String name, String email, String phoneNumber, String password) async {
     final url = Uri.parse("${baseUrl}users/register");
 
@@ -81,21 +90,20 @@ class ApiService {
         }),
       );
 
-      var data = jsonDecode(response.body);
-      dynamic message;
+      var data = jsonDecode(response.body);      
 
       logger.d("User Register : $data");
 
-      if (response.statusCode == 200) {
-        message = User.fromJson(data["data"]);
-      } else {
-        message = data["message"] ?? "Unknown error occurred";
-      }
+      return RegisterResponse.fromJson(data);
+    } on SocketException catch (e){
+      showSnackBar(context,"Tidak ada koneksi internet",isError: true);
 
-      return message;
+      logger.e("User Register : Tidak ada koneksi internet");
+      
+      return RegisterResponse(error: true, message: "Tidak ada koneksi internet");
     } catch (e) {
-      logger.e("User Register : $e");
-      return "Network error : $e";
+      logger.e("User Register : $e");      
+      return RegisterResponse(error: true, message: SOMETHING_WAS_WRONG);
     }
   }
 
@@ -354,7 +362,8 @@ class ApiService {
           'size': order.size,
           'order_status': order.orderStatus,
           'shipping_id': order.shippingId,
-          'packaging_id': order.packagingId
+          'packaging_id': order.packagingId,
+          'description' : order.description!.isNotEmpty ? order.description : null
         }),
       );
 

@@ -1,6 +1,6 @@
 
 class OtpResponse {
-  bool? error;
+  bool error;
   String? message;
   String? token;
 

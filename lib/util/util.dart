@@ -13,6 +13,7 @@ import 'package:jahit_baju/data/source/remote/response/product_response.dart';
 import 'package:jahit_baju/data/source/remote/response/survei_response.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
 import 'package:jahit_baju/views/login/login_screen.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:logger/web.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -164,4 +165,16 @@ Future<bool> checkInternetConnection() async {
   } on SocketException catch (_) {
     return false;
   }
+}
+
+Widget loadingWidget(){
+  return Container(
+                color: const Color.fromARGB(92, 0, 0, 0),
+                width: double.infinity,
+                height: double.infinity,
+                child: Center(
+                  child: LoadingAnimationWidget.staggeredDotsWave(
+                      color: Colors.white, size: 50),
+                ),
+              );
 }

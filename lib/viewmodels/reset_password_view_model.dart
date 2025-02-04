@@ -28,7 +28,9 @@ class ResetPasswordViewModel extends ChangeNotifier {
 
   Future<void> changePassword(String token) async {
 
-      _errorMsg = null;
+    _errorMsg = null;
+    notifyListeners();
+    
     if (_password == null || _confirmPassword == null) {
       _errorMsg = 'Password tidak boleh kosong!';
       notifyListeners();
@@ -52,8 +54,8 @@ class ResetPasswordViewModel extends ChangeNotifier {
 
     if(userResponse.error){
       _errorMsg = userResponse.message!;
+      notifyListeners();
+      return;
     }
-    
-    notifyListeners();
   }
 }

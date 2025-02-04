@@ -24,14 +24,8 @@ class Order {
   final DateTime? paymentDate;
   final String? xenditStatus;
   final String? paymentMethod;
+  final String? description;
 
-
-  // // Status Order
-  // static const String WAITING_FOR_PAYMENT = "Menunggu Pembayaran";
-  // static const String DONE = "Pesanan Selesai";
-  // static const String PROCESS = "Pesanan sedang disiapkan";
-  // static const String ON_DELIVERY = "Dalam Pengiriman";
-  // static const String CANCEL = "Pesanan Dibatalkan";
 
   static const String WAITING_FOR_PAYMENT = "WAITING FOR PAYMENT";
   static const String DONE = "DONE";
@@ -64,6 +58,7 @@ class Order {
     this.paymentDate,
     this.xenditStatus,
     this.paymentMethod,
+    this.description
   })  : orderCreated = orderCreated ?? DateTime.now(),
         _lastUpdate = DateTime.now(),expiredDate = expiredDate ?? DateTime.now().add(Duration(hours: 23,minutes: 50));
     
@@ -84,7 +79,7 @@ class Order {
       packagingPrice: json['packaging_price'] ?? 0,
       discount: json['discount'] ?? 0,
       orderCreated: json['order_created'] != null
-          ? DateTime.parse(json['order_created'])
+          ? DateTime.parse(json['order_created']).toLocal()
           : null,
       orderStatus: json['order_status'] ?? "",
       items: (json['items'] as List<dynamic>)
@@ -92,14 +87,15 @@ class Order {
           .toList(), // Parsing daftar items
       paymentUrl: json['payment_url'] ?? "",
       expiredDate: json['expired_date'] != null
-          ? DateTime.parse(json['expired_date'])
+          ? DateTime.parse(json['expired_date']).toLocal()
           : null,
       resi: json['resi'] ?? "-",
       xenditStatus: json['xendit_status'] ?? "-",
       paymentDate: json['payment_date'] != null
-          ? DateTime.parse(json['payment_date'])
+          ? DateTime.parse(json['payment_date']).toLocal()
           : null,
       paymentMethod: json['payment_method'] ?? "-",
+      description: json['description'],
     );
   }
 
@@ -124,7 +120,8 @@ class Order {
       'resi' : resi,
       'payment_method' : paymentMethod,
       'xendit_status' : xenditStatus,
-      'payment_date' : paymentDate?.toIso8601String()
+      'payment_date' : paymentDate?.toIso8601String(),
+      'description' : description
     };
   }
 
@@ -164,7 +161,7 @@ class OrderItem {
       quantity: json['quantity']?? "",
       size: json['size']?? "",
       price: json['price']?? "",
-      customDesign: json['custom_design']
+      customDesign: json['custom_design'],
     );
   }
 
@@ -177,7 +174,7 @@ class OrderItem {
       'quantity': quantity,
       'size': size,
       'price': price,
-      'custom_design' : customDesign
+      'custom_design' : customDesign,
     };
   }
 }

@@ -65,6 +65,7 @@ dependencies:
   path: ^1.9.0
   flutter_carousel_widget:
 
+
 icons_launcher:
   image_path: "assets/logo/jahit_baju_logo.png"
   platforms:
@@ -104,6 +105,7 @@ flutter:
     - assets/onboarding/onboarding_3.png
     - assets/background/bg.png
     - assets/icon/profile.png
+    - assets/icon/lock.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -125,25 +125,32 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   Map<String, List<Order?>> sortOrderWithDate(List<Order?> orders) {
-    Map<String, List<Order?>> sortedOrders = {};
+  Map<String, List<Order?>> sortedOrders = {};
 
-    for (var order in orders) {
-      if (order != null) {
-        String dateKey = DateFormat('yyyy-MM-dd').format(order.orderCreated);
+  for (var order in orders) {
+    if (order != null) {
+      String dateKey = DateFormat('yyyy-MM-dd').format(order.orderCreated);
 
-        if (!sortedOrders.containsKey(dateKey)) {
-          sortedOrders[dateKey] = [];
-        }
-        sortedOrders[dateKey]!.add(order);
+      if (!sortedOrders.containsKey(dateKey)) {
+        sortedOrders[dateKey] = [];
       }
+      sortedOrders[dateKey]!.add(order);
     }
-
-    Map<String, List<Order?>> sortedDescending = Map.fromEntries(
-      sortedOrders.entries.toList()..sort((a, b) => b.key.compareTo(a.key)),
-    );
-
-    return sortedDescending;
   }
+
+  // Urutkan setiap grup berdasarkan orderCreated secara descending
+  for (var entry in sortedOrders.entries) {
+    entry.value.sort((a, b) => b!.orderCreated.compareTo(a!.orderCreated));
+  }
+
+  // Urutkan tanggal secara descending
+  Map<String, List<Order?>> sortedDescending = Map.fromEntries(
+    sortedOrders.entries.toList()..sort((a, b) => b.key.compareTo(a.key)),
+  );
+
+  return sortedDescending;
+}
+
 
   Widget itemCartShimmer() {
     return ListView.builder(
@@ -202,11 +209,8 @@ class _HistoryPageState extends State<HistoryPage> {
             borderRadius: BorderRadius.circular(8), color: Colors.white),
         child: InkWell(
             onTap: () {
-              // if (order.orderStatus == Order.WAITING_FOR_PAYMENT) {
-              //   _goToPaymentScreen(order);
-              // } else {
+              
                 _goToDetailOrderScreen(order);
-              //}
             },
             child: Card(
                 color: Colors.white,

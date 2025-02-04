@@ -27,6 +27,7 @@ import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:swipe_image_gallery/swipe_image_gallery.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class ProductScreen extends StatefulWidget {
@@ -375,10 +376,11 @@ class _ProductScreenState extends State<ProductScreen> {
                   ],
                 ),
                 Text(
-                      widget.product.designerCategory,style: TextStyle(
-                        fontSize: 15,
-                      ),
-                    ),
+                  widget.product.designerCategory,
+                  style: TextStyle(
+                    fontSize: 15,
+                  ),
+                ),
                 SizedBox(
                   height: 10,
                 ),
@@ -1081,8 +1083,16 @@ class _ProductScreenState extends State<ProductScreen> {
                           disabledBackgroundColor: Colors.grey,
                           padding: EdgeInsets.symmetric(vertical: 15),
                         ),
-                        onPressed: () {
-                          //chat
+                        onPressed: () async {
+                          Uri url = Uri.parse("http://wa.me/+6281284844428");
+                          try {
+                            await launchUrl(url,
+                                    mode: LaunchMode.externalApplication);
+                          } catch (e) {
+                            Fluttertoast.showToast(
+                                msg:
+                                    "Terjadi kesalahan, silakan coba lagi nanti.");
+                          }
                         },
                         child: Icon(Icons.chat)),
                     SizedBox(width: 10),

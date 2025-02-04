@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/data/source/remote/response/order_response.dart';
+import 'package:jahit_baju/helper/app_color.dart';
 import 'package:jahit_baju/viewmodels/shipping_view_model.dart';
 import 'package:jahit_baju/data/model/cart.dart';
 import 'package:jahit_baju/data/model/order.dart';
@@ -26,6 +27,7 @@ class ShippingScreen extends StatefulWidget {
 }
 
 class _ShippingScreenState extends State<ShippingScreen> {
+  TextEditingController _descriptionController = TextEditingController();
   var deliveryChoosedIndex = -1;
   var packagingChoosedIndex = -1;
 
@@ -33,6 +35,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
   Packaging? packaging;
 
   int discount = 0;
+  bool loading = false;
 
   var deviceWidth, deviceHeight;
 
@@ -53,28 +56,43 @@ class _ShippingScreenState extends State<ShippingScreen> {
                         TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                 centerTitle: true,
               ),
-              body: SingleChildScrollView(
-                  child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _addressWidget(viewModel),
-                  const SizedBox(height: 15),
-                  _deliveryWidget(viewModel),
-                  const SizedBox(height: 15),
-                  _packagingWidget(viewModel)
-                ],
-              )),
+              body: GestureDetector(
+                  onTap: () {
+                    FocusScope.of(context).unfocus();
+                  },
+                  child: Stack(
+                    children: [
+                      SingleChildScrollView(
+                          child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _addressWidget(viewModel),
+                          const SizedBox(height: 15),
+                          _deliveryWidget(viewModel),
+                          const SizedBox(height: 15),
+                          _packagingWidget(viewModel),
+                          const SizedBox(height: 15),
+                          _descriptionWidget()
+                        ],
+                      )),
+                      loading ? Center(child: CircularProgressIndicator(),): SizedBox(),
+                    ],
+                  )),
               bottomNavigationBar: _bottomNavBar(viewModel));
         }));
   }
 
   _goToPaymentScreen(ShippingViewModel viewModel) async {
+    setState(() {
+      loading = true;
+    });
     if ((deliveryChoosedIndex != -1 && shipping != "") &&
         (packagingChoosedIndex != -1 && packaging != "")) {
       if (widget.cart != null) {
         int customPrice = 0, rtwPrice = 0;
         for (var cart in widget.cart!.items) {
-          Product? product = await getProductById(cart.productId, ApiService(context));
+          Product? product =
+              await getProductById(cart.productId, ApiService(context));
 
           if (product!.type == Product.CUSTOM) {
             customPrice += product.price.toInt();
@@ -93,6 +111,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
             shippingId: shipping!.id,
             packagingId: packaging!.id,
             cartId: widget.cart!.id,
+            description: _descriptionController.text.isNotEmpty ? _descriptionController.text : "-",
             totalPrice:
                 (shipping!.price + widget.cart!.totalPrice + packaging!.price)
                     .toInt(),
@@ -106,10 +125,14 @@ class _ShippingScreenState extends State<ShippingScreen> {
                   builder: (context) => PaymentScreen(order: orderFromServer)),
               (route) => route.settings.name == "Home",
             );
+
+            setState(() {
+              loading = false;
+            });
           }
         });
       } else {
-        int customPrice = 0, rtwPrice = 0;        
+        int customPrice = 0, rtwPrice = 0;
 
         if (widget.product!.type == Product.CUSTOM) {
           customPrice = widget.product!.price.toInt();
@@ -125,6 +148,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
             packagingId: packaging!.id,
             size: widget.size,
             quantity: 1,
+            description: _descriptionController.text.isNotEmpty ? _descriptionController.text : "-",
             product: widget.product,
             totalPrice:
                 (shipping!.price + widget.product!.price + packaging!.price)
@@ -142,10 +166,16 @@ class _ShippingScreenState extends State<ShippingScreen> {
                   builder: (context) => PaymentScreen(order: orderFromServer)),
               (route) => route.settings.name == "Home",
             );
+            setState(() {
+              loading = false;
+            });
           }
         });
       }
     } else {
+      setState(() {
+        loading = false;
+      });
       Fluttertoast.showToast(
           msg: "Silakan pilih jasa pengiriman dan tipe packaging.");
     }
@@ -345,7 +375,8 @@ class _ShippingScreenState extends State<ShippingScreen> {
                         vertical: 15,
                         horizontal: 30), // Padding agar tombol lebih besar
                   ),
-                  onPressed: () => _goToPaymentScreen(viewModel),
+                  onPressed:
+                      loading ? null : () => _goToPaymentScreen(viewModel),
                   child: const Text(
                     "Bayar",
                     style: TextStyle(
@@ -478,6 +509,37 @@ class _ShippingScreenState extends State<ShippingScreen> {
                           child: Text("Tidak ada expedisi."),
                         );
                 })
+          ],
+        ));
+  }
+
+  _descriptionWidget() {
+    return Container(
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Catatan",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            const SizedBox(height: 5),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _descriptionController,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    hintText: "Catatan untuk order. (opsional)",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ));
   }

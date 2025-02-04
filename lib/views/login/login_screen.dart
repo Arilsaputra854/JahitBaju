@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/viewmodels/login_view_model.dart';
 import 'package:jahit_baju/viewmodels/register_view_model.dart';
 import 'package:jahit_baju/views/forgot_password/forgot_password.dart';
@@ -48,7 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
     deviceWidth = MediaQuery.of(context).size.width;
     deviceHeight = MediaQuery.of(context).size.height;
 
-    return ChangeNotifierProvider(
+    return GestureDetector(child: ChangeNotifierProvider(
         create: (context) => LoginViewModel(new ApiService(context)),
         child: Stack(
           alignment: Alignment.center,
@@ -80,10 +81,11 @@ class _LoginScreenState extends State<LoginScreen> {
               )),
             ),
             if (isLoading)
-              LoadingAnimationWidget.staggeredDotsWave(
-                  color: Colors.white, size: 50)
+              loadingWidget()
           ],
-        ));
+        )),onTap: (){
+          FocusScope.of(context).unfocus(); 
+        },);
   }
 
   loginForm() {
@@ -245,8 +247,8 @@ class _LoginScreenState extends State<LoginScreen> {
       isLoading = true;
     });
     await viewModel.login().then((isSuccess) async {
-      if (viewModel.errorMsg != null) {
-        Fluttertoast.showToast(msg: viewModel.errorMsg.toString());
+      if (viewModel.message != null) {
+        Fluttertoast.showToast(msg: viewModel.message.toString());
       }
       if (isSuccess) {
         await viewModel.emailVerified().then((isVerified) {
