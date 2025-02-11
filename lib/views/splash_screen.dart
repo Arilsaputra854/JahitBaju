@@ -16,8 +16,7 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   var init = true;
-
-
+  String? version;
 
   @override
   void didChangeDependencies() {
@@ -33,15 +32,14 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     readUserToken();
-    _initDeepLinkListener();
+    getAppVersion();
     super.initState();
 
   }
 
-  void _initDeepLinkListener() {
-    
+  getAppVersion()  {
+     version = "1.0.1";
   }
-
 
   @override
   void dispose() {
@@ -50,10 +48,13 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     var deviceWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
         body: Container(
+          width: double.infinity,
+          height: double.infinity,
       decoration: const BoxDecoration(
           gradient: LinearGradient(colors: [
         Color(0xFF57AFF9),
@@ -62,12 +63,15 @@ class _SplashScreenState extends State<SplashScreen> {
         Color(0xFFFDCA8A),
         Color(0xFFFEAEA9),
       ], begin: Alignment.topRight, end: Alignment.bottomLeft)),
-      child: Center(
-        child: SizedBox(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [SizedBox(
             width: deviceWidth * 0.6,
             height: deviceWidth * 0.6,
             child: Image.asset("assets/logo/jahit_baju_logo.png")),
-      ),
+            Text("v${version ?? "0.0.0"}")],
+      )
     ));
   }
 

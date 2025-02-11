@@ -45,9 +45,20 @@ class LoginViewModel extends ChangeNotifier {
     var response = await api.userLogin(_email!, _password!);
 
     if (response.error) {
-      _message = response.message;
-      notifyListeners();
-      return false;
+      if(response.message == "User not found"){
+        _message = "Alamat email yang kamu masukkan tidak ditemukan.";
+        notifyListeners();
+        return false;
+      }else if(response.message == "Email or password is invalid"){
+        _message = "Email atau password yang kamu masukkan salah.";
+        notifyListeners();
+        return false;
+      }else{
+        _message = ApiService.SOMETHING_WAS_WRONG;
+        notifyListeners();
+        return false;
+    }
+      
     } else {
       _message = null;
       await _tokenStorage.saveToken(response.token!);
