@@ -1,8 +1,6 @@
-
 import 'dart:convert';
 
 class Product {
-
   static const READY_TO_WEAR = 1;
   static const CUSTOM = 2;
 
@@ -20,7 +18,10 @@ class Product {
   final List<String>? category;
   final List<String> size;
   final List<String>? colors;
-  final List<String>? features;  
+  final List<String>? features;
+  final List<String>? materials;
+  final String? productCode;
+  final int? weight;
   final String lastUpdate;
   final String designerCategory;
 
@@ -40,8 +41,11 @@ class Product {
     required this.size,
     this.colors,
     this.features,
+    this.materials,
+    this.productCode,
+    this.weight,
     required this.lastUpdate,
-    required this.designerCategory
+    required this.designerCategory,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -50,28 +54,27 @@ class Product {
       name: json['name'] ?? "",
       description: json['description'] ?? "",
       price: (json['price'] as num).toDouble(),
-      stock: json['stock'] ?? "",
+      stock: json['stock'] ?? 0,
       sold: json['sold'] ?? 0,
       seen: json['seen'] ?? 0,
       favorite: json['favorite'] ?? 0,
       type: json['type'] ?? 1,
-      imageUrl: List<String>.from(json['images_url']?? []),
-      tags: List<String>.from(json['tags'])?? [],           
-      category: json['category'] != null ? List<String>.from(json['category']) : [],           
-      size: List<String>.from(json['size'])?? [], 
+      imageUrl: List<String>.from(json['images_url'] ?? []),
+      tags: List<String>.from(json['tags'] ?? []),
+      category: json['category'] != null ? List<String>.from(json['category']) : [],
+      size: List<String>.from(json['size'] ?? []),
       colors: json['colors'] != null ? List<String>.from(json['colors']) : [],
-      features: json['features'] != null ? List<String>.from(json['features']): [],
-      lastUpdate: json['last_update'] ?? DateTime.now().toString(),
-      designerCategory: json['designer_category'] 
+      features: json['features'] != null ? List<String>.from(json['features']) : [],
+      materials: json['materials'] != null ? List<String>.from(json['materials']) : [],
+      productCode: json['product_code'],
+      weight: json['weight'] ?? 0,
+      lastUpdate: json['last_update'] ?? DateTime.now().toIso8601String(),
+      designerCategory: json['designer_category'] ?? "Basic",
     );
   }
 
-   static List<Product> fromJsonList(String jsonString) {
+  static List<Product> fromJsonList(String jsonString) {
     final List<dynamic> jsonList = jsonDecode(jsonString);
-    jsonList.map((json) {
-       return Product.fromJson(json);
-    });
-    
     return jsonList.map((json) => Product.fromJson(json)).toList();
   }
 
@@ -92,8 +95,11 @@ class Product {
       'size': size,
       'colors': colors,
       'features': features,
-      'last_update' : lastUpdate,
-      'designer_category' : designerCategory
+      'materials': materials,
+      'product_code': productCode,
+      'weight': weight,
+      'last_update': lastUpdate,
+      'designer_category': designerCategory,
     };
   }
 }

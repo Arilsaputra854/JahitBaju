@@ -26,7 +26,7 @@ class _TermConditionScreenState extends State<TermConditionScreen> {
         
     return  Scaffold(
       appBar: AppBar(
-        title: Text("Term & Condition"),
+        title: Text("Term & Condition",style: TextStyle(fontWeight: FontWeight.bold),),
         centerTitle: true,
                 backgroundColor: Colors.transparent,
               ),
@@ -46,7 +46,7 @@ class _TermConditionScreenState extends State<TermConditionScreen> {
     TermConditionResponse response =  await apiService.termCondition();
 
     if(response.error){
-      return "Terjadi Kesalahan";
+      return response.data!;
     }else{
       return response.data!;
     }

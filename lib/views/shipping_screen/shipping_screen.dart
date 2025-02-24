@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/data/source/remote/response/order_response.dart';
@@ -48,37 +49,34 @@ class _ShippingScreenState extends State<ShippingScreen> {
         create: (context) => ShippingViewModel(ApiService(context)),
         child:
             Consumer<ShippingViewModel>(builder: (context, viewModel, child) {
-          return Scaffold(
-              appBar: AppBar(
-                elevation: 0,
-                title: const Text("Pengiriman",
-                    style:
-                        TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                centerTitle: true,
-              ),
-              body: GestureDetector(
-                  onTap: () {
-                    FocusScope.of(context).unfocus();
-                  },
-                  child: Stack(
-                    children: [
-                      SingleChildScrollView(
-                          child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _addressWidget(viewModel),
-                          const SizedBox(height: 15),
-                          _deliveryWidget(viewModel),
-                          const SizedBox(height: 15),
-                          _packagingWidget(viewModel),
-                          const SizedBox(height: 15),
-                          _descriptionWidget()
-                        ],
-                      )),
-                      loading ? Center(child: CircularProgressIndicator(),): SizedBox(),
-                    ],
-                  )),
-              bottomNavigationBar: _bottomNavBar(viewModel));
+          return Stack(children: [
+            Scaffold(
+                appBar: AppBar(
+                  elevation: 0,
+                  title: const Text("Pengiriman",
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  centerTitle: true,
+                ),
+                body: GestureDetector(
+                    onTap: () {
+                      FocusScope.of(context).unfocus();
+                    },
+                    child: SingleChildScrollView(
+                        child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _addressWidget(viewModel),
+                        const SizedBox(height: 15),
+                        _deliveryWidget(viewModel),
+                        const SizedBox(height: 15),
+                        _packagingWidget(viewModel),
+                        const SizedBox(height: 15),
+                        _descriptionWidget()
+                      ],
+                    ))),
+                bottomNavigationBar: _bottomNavBar(viewModel)),
+            if (loading) loadingWidget()
+          ]);
         }));
   }
 
@@ -111,7 +109,9 @@ class _ShippingScreenState extends State<ShippingScreen> {
             shippingId: shipping!.id,
             packagingId: packaging!.id,
             cartId: widget.cart!.id,
-            description: _descriptionController.text.isNotEmpty ? _descriptionController.text : "-",
+            description: _descriptionController.text.isNotEmpty
+                ? _descriptionController.text
+                : "-",
             totalPrice:
                 (shipping!.price + widget.cart!.totalPrice + packaging!.price)
                     .toInt(),
@@ -148,7 +148,9 @@ class _ShippingScreenState extends State<ShippingScreen> {
             packagingId: packaging!.id,
             size: widget.size,
             quantity: 1,
-            description: _descriptionController.text.isNotEmpty ? _descriptionController.text : "-",
+            description: _descriptionController.text.isNotEmpty
+                ? _descriptionController.text
+                : "-",
             product: widget.product,
             totalPrice:
                 (shipping!.price + widget.product!.price + packaging!.price)
@@ -188,9 +190,9 @@ class _ShippingScreenState extends State<ShippingScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               "Pakaian",
-              style: TextStyle(fontSize: 15),
+              style: TextStyle(fontSize: 14.sp),
             ),
             Text(
               widget.cart != null
@@ -198,20 +200,20 @@ class _ShippingScreenState extends State<ShippingScreen> {
                   : widget.product != null
                       ? convertToRupiah(widget.product?.price)
                       : "Rp 0.00",
-              style: const TextStyle(fontSize: 15),
+              style: TextStyle(fontSize: 14.sp),
             ),
           ],
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               "Shipping",
-              style: TextStyle(fontSize: 15),
+              style: TextStyle(fontSize: 14.sp),
             ),
             Text(
               shipping != null ? convertToRupiah(shipping!.price) : "Rp 0.00",
-              style: const TextStyle(fontSize: 15),
+              style: TextStyle(fontSize: 14.sp),
             ),
           ],
         ),
@@ -220,11 +222,11 @@ class _ShippingScreenState extends State<ShippingScreen> {
           children: [
             Text(
               "Packaging",
-              style: TextStyle(fontSize: 15),
+              style: TextStyle(fontSize: 14.sp),
             ),
             Text(
               packaging != null ? convertToRupiah(packaging!.price) : "Rp 0.00",
-              style: TextStyle(fontSize: 15),
+              style: TextStyle(fontSize: 14.sp),
             ),
           ],
         ),
@@ -232,9 +234,9 @@ class _ShippingScreenState extends State<ShippingScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               "Total",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
             ),
             Text(
               shipping != null && packaging != null
@@ -248,7 +250,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
                               packaging!.price)
                           : "Rp 0.00"
                   : "Rp 0.00",
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
             ),
           ],
         ),
@@ -297,7 +299,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
                       children: [
                         Text(data[index].name,
                             style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16)),
+                                fontWeight: FontWeight.bold, fontSize: 14.sp)),
                         Text(convertToRupiah(data[index].price))
                       ],
                     )
@@ -309,7 +311,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
 
   Widget packaginglist(var data) {
     return Container(
-        height: 100,
+        height: 80.h,
         child: ListView.builder(
             shrinkWrap: true,
             scrollDirection: Axis.horizontal,
@@ -341,11 +343,12 @@ class _ShippingScreenState extends State<ShippingScreen> {
                           children: [
                             Text(data[index].name,
                                 style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16)),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14.sp)),
                             Text(data[index].description,
                                 style: TextStyle(
                                     fontWeight: FontWeight.normal,
-                                    fontSize: 12)),
+                                    fontSize: 12.sp)),
                             Text(convertToRupiah(data[index].price))
                           ],
                         )
@@ -377,9 +380,10 @@ class _ShippingScreenState extends State<ShippingScreen> {
                   ),
                   onPressed:
                       loading ? null : () => _goToPaymentScreen(viewModel),
-                  child: const Text(
+                  child: Text(
                     "Bayar",
                     style: TextStyle(
+                      fontSize: 14.sp,
                       color: Colors.white, // Warna teks putih
                       fontWeight: FontWeight.bold,
                     ),
@@ -404,7 +408,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
           children: [
             Text(
               "Alamat",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
             ),
             const SizedBox(height: 5),
             FutureBuilder(
@@ -443,7 +447,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
                                       maxLines: 1,
                                       style: TextStyle(
                                           fontWeight: FontWeight.normal,
-                                          fontSize: 16)))));
+                                          fontSize: 14.sp)))));
                     },
                   );
                 })
@@ -459,7 +463,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
           children: [
             Text(
               "Packaging",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
             ),
             const SizedBox(height: 5),
             FutureBuilder(
@@ -475,7 +479,10 @@ class _ShippingScreenState extends State<ShippingScreen> {
                   return data.isNotEmpty
                       ? packaginglist(data)
                       : Center(
-                          child: Text("Tidak ada packaging."),
+                          child: Text(
+                            "Tidak ada packaging.",
+                            style: TextStyle(fontSize: 12.sp),
+                          ),
                         );
                 })
           ],
@@ -490,7 +497,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
           children: [
             Text(
               "Jasa Ekpedisi",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
             ),
             const SizedBox(height: 5),
             FutureBuilder(
@@ -506,7 +513,10 @@ class _ShippingScreenState extends State<ShippingScreen> {
                   return data.isNotEmpty
                       ? deliveryList(data)
                       : Center(
-                          child: Text("Tidak ada expedisi."),
+                          child: Text(
+                            "Tidak ada expedisi.",
+                            style: TextStyle(fontSize: 12.sp),
+                          ),
                         );
                 })
           ],
@@ -521,7 +531,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
           children: [
             Text(
               "Catatan",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
             ),
             const SizedBox(height: 5),
             Column(

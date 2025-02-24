@@ -43,13 +43,6 @@ class _SearchPageState extends State<SearchPage> {
 
   var deviceWidth;
 
-  @override
-  void initState() {
-    loadAccessCustom(new ApiService(context)).then((value) {
-      accessCustom = value;
-    });
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -396,9 +389,6 @@ class _SearchPageState extends State<SearchPage> {
                                   goToProductScreen(filteredCustom![index]);
                                 }
                               : () async {
-                                  if (await checkInternetConnection()) {
-                                    customSurvey(context, viewmodel);
-                                  }
                                 },
                           child: Container(
                               width: 150,
@@ -491,159 +481,6 @@ class _SearchPageState extends State<SearchPage> {
                 child: Center(
                   child: Text("Tidak ada produk Custom"),
                 )));
-  }
-
-  void customSurvey(BuildContext context, SearchViewModel viewmodel) {
-    String field1Answer = '';
-    String field2Answer = '';
-    String sourceAnswer = '';
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Survei Aplikasi'),
-          content: StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Apakah kamu tahu kain ulos?'),
-                      Row(
-                        children: [
-                          Radio<String>(
-                            value: 'Ya',
-                            groupValue: field1Answer,
-                            onChanged: (value) {
-                              setState(() {
-                                field1Answer = value!;
-                              });
-                            },
-                          ),
-                          const Text('Ya'),
-                          Radio<String>(
-                            value: 'Tidak',
-                            groupValue: field1Answer,
-                            onChanged: (value) {
-                              setState(() {
-                                field1Answer = value!;
-                              });
-                            },
-                          ),
-                          const Text('Tidak'),
-                        ],
-                      ),
-                    ],
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                          'Apakah pernah membeli atau memiliki kain ulos?'),
-                      Row(
-                        children: [
-                          Radio<String>(
-                            value: 'Pernah',
-                            groupValue: field2Answer,
-                            onChanged: (value) {
-                              setState(() {
-                                field2Answer = value!;
-                              });
-                            },
-                          ),
-                          const Text('Pernah'),
-                          Radio<String>(
-                            value: 'Tidak Pernah',
-                            groupValue: field2Answer,
-                            onChanged: (value) {
-                              setState(() {
-                                field2Answer = value!;
-                              });
-                            },
-                          ),
-                          const Text('Tidak Pernah'),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  const Text('Darimana kamu tahu JahitBaju?'),
-                  Row(
-                    children: [
-                      Radio<String>(
-                        value: 'Teman',
-                        groupValue: sourceAnswer,
-                        onChanged: (value) {
-                          setState(() {
-                            sourceAnswer = value!;
-                          });
-                        },
-                      ),
-                      const Text('Teman'),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Radio<String>(
-                        value: 'Sosial Media',
-                        groupValue: sourceAnswer,
-                        onChanged: (value) {
-                          setState(() {
-                            sourceAnswer = value!;
-                          });
-                        },
-                      ),
-                      const Text('Sosial Media'),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Radio<String>(
-                        value: 'Website',
-                        groupValue: sourceAnswer,
-                        onChanged: (value) {
-                          setState(() {
-                            sourceAnswer = value!;
-                          });
-                        },
-                      ),
-                      const Text('Website'),
-                    ],
-                  ),
-                ],
-              );
-            },
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () {
-                if (sourceAnswer != "" &&
-                    field1Answer != "" &&
-                    field2Answer != "") {
-                  sentSurveiData(sourceAnswer, field1Answer, field2Answer,
-                          ApiService(context))
-                      .then((isSuccess) {
-                    if (isSuccess) {
-                      Fluttertoast.showToast(msg: "Survei berhasil disimpan.");
-                      Navigator.of(context).pop();
-                    } else {
-                      Fluttertoast.showToast(
-                          msg: "Terjadi kesalahan, coba lagi.");
-                    }
-                  });
-
-                  setState(() {});
-                }
-              },
-              child: const Text('Kirim'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   Future<List<String>?> getAllCategoryFromProduct(ApiService apiService) async {

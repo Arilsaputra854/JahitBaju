@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/util/util.dart';
@@ -98,11 +99,11 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   "MASUK",
                   textAlign: TextAlign.start,
                   style: TextStyle(
-                      fontSize: 30,
+                      fontSize: 20.sp,
                       fontWeight: FontWeight.bold,
                       color: Colors.white),
                 ),
@@ -110,6 +111,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 10,
                 ),
                 TextFormField(
+                  style: TextStyle(
+                      fontSize: 14.sp,),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return "Kolom ini tidak boleh kosong!";
@@ -124,6 +127,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 10,
                 ),
                 TextFormField(
+                  style: TextStyle(
+                      fontSize: 14.sp,),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return "Kolom ini tidak boleh kosong!";
@@ -146,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         recognizer: TapGestureRecognizer()
                           ..onTap = () => goToForgotPassword(),
                         text: "Lupa password?",
-                        style: TextStyle(fontSize: 12, color: Colors.white),
+                        style: TextStyle(fontSize: 12.sp, color: Colors.white),
                       ),
                     ]))
                   ],
@@ -168,10 +173,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               login(viewModel);
                             }
                           },
-                          child: const Text(
+                          child: Text(
                             "Login",
                             style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 20),
+                                fontWeight: FontWeight.bold, fontSize: 16.sp),
                           )),
                     ),
                     const SizedBox(
@@ -183,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         recognizer: TapGestureRecognizer()
                           ..onTap = () => goToRegisterScreen(),
                         text: "Ga punya akun? Buat sekarang!",
-                        style: TextStyle(fontSize: 12, color: Colors.white),
+                        style: TextStyle(fontSize: 12.sp, color: Colors.white),
                       ),
                     ]))
                   ],

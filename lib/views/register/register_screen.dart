@@ -1,7 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/viewmodels/register_view_model.dart';
 import 'package:jahit_baju/views/otp_screen/otp_screen.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -90,15 +92,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               if (isLoading)
-                Container(
-                  color: const Color.fromARGB(92, 0, 0, 0),
-                  width: double.infinity,
-                  height: double.infinity,
-                  child: Center(
-                    child: LoadingAnimationWidget.staggeredDotsWave(
-                        color: Colors.white, size: 50),
-                  ),
-                )
+                loadingWidget()
             ],
           )),
     );
@@ -114,11 +108,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                  Text(
                     "BUAT AKUN",
                     textAlign: TextAlign.start,
                     style: TextStyle(
-                        fontSize: 30,
+                        fontSize: 20.sp,
                         fontWeight: FontWeight.bold,
                         color: Colors.white),
                   ),
@@ -126,6 +120,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     height: 20,
                   ),
                   TextFormField(
+
+                  style: TextStyle(
+                      fontSize: 14.sp,),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return "Kolom ini tidak boleh kosong!";
@@ -139,6 +136,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     height: 10,
                   ),
                   TextFormField(
+
+                  style: TextStyle(
+                      fontSize: 14.sp,),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return "Kolom ini tidak boleh kosong!";
@@ -153,6 +153,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     height: 10,
                   ),
                   TextFormField(
+
+                  style: TextStyle(
+                      fontSize: 14.sp,),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return "Kolom ini tidak boleh kosong!";
@@ -167,6 +170,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     height: 10,
                   ),
                   TextFormField(
+
+                  style: TextStyle(
+                      fontSize: 14.sp,),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return "Kolom ini tidak boleh kosong!";
@@ -181,6 +187,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     height: 10,
                   ),
                   TextFormField(
+
+                  style: TextStyle(
+                      fontSize: 14.sp,),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return "Kolom ini tidak boleh kosong!";
@@ -216,11 +225,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             TextSpan(
                                 text: "By signing up, you‘re agree to our ",
                                 style: TextStyle(
-                                    fontSize: 12, color: Colors.white),
+                                    fontSize: 12.sp, color: Colors.white),
                                 children: [
                                   TextSpan(
                                       style: TextStyle(
-                                          fontSize: 12,
+                                          fontSize: 12.sp,
                                           decoration: TextDecoration.underline,
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold),
@@ -268,10 +277,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     }
                                   }
                                 : null,
-                            child: const Text(
+                            child:  Text(
                               "Register",
                               style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 20),
+                                  fontWeight: FontWeight.bold, fontSize: 16.sp),
                             )),
                       ),
                     ],

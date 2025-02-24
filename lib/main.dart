@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:jahit_baju/data/repository/repository.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
@@ -29,7 +30,9 @@ void main() async {
     ChangeNotifierProvider(create: (context) => ShippingViewModel(ApiService(context))),
     ChangeNotifierProvider(create: (context) => HomeScreenViewModel(ApiService(context))),
   ],
-  child: const MyApp(),));
+  child: ScreenUtilInit(
+    designSize: Size(360, 640), // Replace with your design dimensions
+    builder: (context, child) => const MyApp(),)));
 }
 
 class MyApp extends StatelessWidget {
@@ -37,9 +40,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
     return MaterialApp(
-      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Jahit Baju Apps',
       theme: ThemeData(

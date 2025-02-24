@@ -2,11 +2,13 @@ import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/model/favorite.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/data/model/product.dart';
 import 'package:jahit_baju/data/source/remote/response/favorite_response.dart';
+import 'package:jahit_baju/data/source/remote/response/product_note_response.dart';
 import 'package:jahit_baju/data/source/remote/response/product_response.dart';
 import 'package:jahit_baju/data/source/remote/response/product_term_response.dart';
 import 'package:jahit_baju/data/source/remote/response/size_guide_response.dart';
@@ -21,6 +23,8 @@ import 'package:swipe_image_gallery/swipe_image_gallery.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+
+import '../../data/source/remote/response/care_guide_response.dart';
 
 class ProductScreen extends StatefulWidget {
   final Product product;
@@ -88,7 +92,7 @@ class _ProductScreenState extends State<ProductScreen> {
         centerTitle: true,
         title: Text(widget.product.type == Product.READY_TO_WEAR
             ? "Siap Pakai"
-            : "Custom Produk"),
+            : "Kostum Produk",style: TextStyle(fontWeight: FontWeight.bold),),
       ),
       body: SingleChildScrollView(
           child: widget.product.type == Product.READY_TO_WEAR
@@ -132,9 +136,9 @@ class _ProductScreenState extends State<ProductScreen> {
                           borderRadius: BorderRadius.circular(5)),
                       child: Text(
                         '${widget.product.imageUrl.length} Foto',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
-                          fontSize: 12,
+                          fontSize: 12.sp,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -148,6 +152,11 @@ class _ProductScreenState extends State<ProductScreen> {
               context: context,
               itemBuilder: (context, indexImage) {
                 return CachedNetworkImage(
+                  placeholder: (context, url) => Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                    ),
+                  ),
                   errorWidget: (context, url, error) {
                     return Icon(
                       Icons.image_not_supported,
@@ -168,7 +177,7 @@ class _ProductScreenState extends State<ProductScreen> {
             children: [
               Text(
                 widget.product.name,
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.sp),
               ),
               SizedBox(
                 height: 10,
@@ -194,7 +203,7 @@ class _ProductScreenState extends State<ProductScreen> {
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
-                              fontSize: 12,
+                              fontSize: 12.sp,
                             ),
                           ),
                         );
@@ -206,7 +215,7 @@ class _ProductScreenState extends State<ProductScreen> {
                     convertToRupiah(widget.product.price),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: 16.sp,
                     ),
                   ),
                 ],
@@ -220,7 +229,7 @@ class _ProductScreenState extends State<ProductScreen> {
                   Text(
                     "${widget.product.sold} Terjual | ${widget.product.seen} Favorit | ${widget.product.stock} Stok \n${widget.product.seen} Orang melihat produk ini",
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 15.sp,
                     ),
                   ),
                   FutureBuilder(
@@ -243,77 +252,31 @@ class _ProductScreenState extends State<ProductScreen> {
               SizedBox(
                 height: 20,
               ),
-              Divider(),
-              Text(
-                "DESKRIPSI",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Text(
-                widget.product.description,
-                style: TextStyle(
-                  fontSize: 15,
-                ),
-              ),
+              _materialWidget(),
               SizedBox(
                 height: 20,
               ),
-              Divider(),
-              Text(
-                "PANDUAN UKURAN",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
+              _descriptionWidget(),
               SizedBox(
-                height: 10,
+                height: 20,
               ),
               sizeGuideWidget(),
               SizedBox(
                 height: 20,
               ),
-              Divider(),
-              Text(
-                "PILIH UKURAN",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+              _careGuideWidget(),
+              SizedBox(
+                height: 20,
+              ),
+              _noteWidget(),
+              SizedBox(
+                height: 20,
               ),
               _sizeWidget(),
-              Text(
-                "Tags",
-                style: TextStyle(
-                  fontSize: 16,
-                ),
+              SizedBox(
+                height: 10,
               ),
-              Wrap(
-                spacing: 5, // Jarak horizontal antar tag
-                runSpacing: 5, // Jarak vertikal antara baris tag
-                children: widget.product.tags!.map((tag) {
-                  return Container(
-                    padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                    decoration: BoxDecoration(
-                      color: AppColor.tag,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      tag,
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10,
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
+              _tagsWidget(),
             ],
           ),
         )
@@ -340,7 +303,8 @@ class _ProductScreenState extends State<ProductScreen> {
               children: [
                 Text(
                   widget.product.name,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+                  style:
+                      TextStyle(fontWeight: FontWeight.bold, fontSize: 25.sp),
                 ),
                 SizedBox(
                   height: 10,
@@ -351,7 +315,7 @@ class _ProductScreenState extends State<ProductScreen> {
                     Text(
                       "${widget.product.sold} Terjual | ${widget.product.seen} Favorit | ${widget.product.stock} Stok \n${widget.product.seen} Orang melihat produk ini",
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 15.sp,
                       ),
                     ),
                     FutureBuilder(
@@ -371,118 +335,53 @@ class _ProductScreenState extends State<ProductScreen> {
                         })
                   ],
                 ),
-                Text(
-                  widget.product.designerCategory,
-                  style: TextStyle(
-                    fontSize: 15,
-                  ),
-                ),
                 SizedBox(
                   height: 10,
                 ),
-                Divider(),
-                Text(
-                  "DESKRIPSI",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Text(
-                  widget.product.description,
-                  style: TextStyle(
-                    fontSize: 15,
-                  ),
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Divider(),
-                Text(
-                  "KETENTUAN",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                FutureBuilder(
-                  future: apiService.getProductTerm(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    }
-                    ProductTermResponse? response = snapshot.data;
-                    if (snapshot.data != null && !response!.error) {
-                      return Column(
-                        children: [
-                          // ketentuan warna
-                          Text(
-                            response.productTerm!.color!,
+                Container(
+                          padding:
+                              EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            widget.product.designerCategory,
                             style: TextStyle(
-                              fontSize: 15,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12.sp,
                             ),
                           ),
-// ketentuan ukuran
-                          SizedBox(
-                            height: 5,
-                          ),
-                          Text(
-                            response.productTerm!.size!,
-                            style: TextStyle(
-                              fontSize: 15,
-                            ),
-                          ),
-                          // ketentuan motif
-
-                          SizedBox(
-                            height: 5,
-                          ),
-                          Text(
-                            response.productTerm!.texture!,
-                            style: TextStyle(
-                              fontSize: 15,
-                            ),
-                          ),
-                        ],
-                      );
-                    } else {
-                      return Text("Terjadi kesalahan");
-                    }
-                  },
-                ),
-                SizedBox(
-                  height: 20,
-                ),
-                Text(
-                  "PANDUAN UKURAN",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
+                        ),
                 SizedBox(
                   height: 10,
                 ),
-                sizeGuideWidget(),
-                SizedBox(
-                  height: 20,
-                ),
-                Text(
-                  "PILIH UKURAN",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                _sizeWidget()
+                 _materialWidget(),
+              SizedBox(
+                height: 20,
+              ),
+              _descriptionWidget(),
+              SizedBox(
+                height: 20,
+              ),
+              sizeGuideWidget(),
+              SizedBox(
+                height: 20,
+              ),
+              _careGuideWidget(),
+              SizedBox(
+                height: 20,
+              ),
+              _noteWidget(),
+              SizedBox(
+                height: 20,
+              ),
+              _sizeWidget(),
+              SizedBox(
+                height: 10,
+              ),
+              _tagsWidget(),
               ],
             ))
       ],
@@ -682,18 +581,19 @@ class _ProductScreenState extends State<ProductScreen> {
       ),
     );
   }
+
   String addPatternToSvg(String svg, String base64, String patternId) {
-  // Regex untuk menemukan dan menghapus pattern yang sudah ada
-  final patternRegex = RegExp(
-    r'<pattern id="' + patternId + r'".*?</pattern>',
-    dotAll: true,
-  );
+    // Regex untuk menemukan dan menghapus pattern yang sudah ada
+    final patternRegex = RegExp(
+      r'<pattern id="' + patternId + r'".*?</pattern>',
+      dotAll: true,
+    );
 
-  // Hapus pattern lama jika ada
-  var updatedSvg = svg.replaceAll(patternRegex, '');
+    // Hapus pattern lama jika ada
+    var updatedSvg = svg.replaceAll(patternRegex, '');
 
-  // Definisi pola baru
-  final patternDefinition = '''
+    // Definisi pola baru
+    final patternDefinition = '''
     <defs>
       <pattern id="$patternId" patternUnits="userSpaceOnUse" width="200" height="500">
         <image href="data:image/png;base64,$base64" x="0" y="0" width="200" height="500" />
@@ -701,15 +601,15 @@ class _ProductScreenState extends State<ProductScreen> {
     </defs>
   ''';
 
-  // Masukkan pattern sebelum tag <g>
-  updatedSvg = updatedSvg.replaceFirst(RegExp(r'<g'), '$patternDefinition<g');
+    // Masukkan pattern sebelum tag <g>
+    updatedSvg = updatedSvg.replaceFirst(RegExp(r'<g'), '$patternDefinition<g');
 
-  // Ganti fill pada elemen dengan ID yang sesuai
-  var updatedSvgWithPattern =
-      updateFillColorByIdWithPattern(updatedSvg, patternId, patternId);
+    // Ganti fill pada elemen dengan ID yang sesuai
+    var updatedSvgWithPattern =
+        updateFillColorByIdWithPattern(updatedSvg, patternId, patternId);
 
-  return updatedSvgWithPattern;
-}
+    return updatedSvgWithPattern;
+  }
 
   customPreview() {
     //dari server
@@ -719,8 +619,8 @@ class _ProductScreenState extends State<ProductScreen> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Container(
-                  width: deviceWidth * 0.65,
-                  height: 400,
+                  width: 260.w,
+                  height: 400.h,
                   child: Center(
                     child: CircularProgressIndicator(),
                   ));
@@ -887,7 +787,7 @@ class _ProductScreenState extends State<ProductScreen> {
   _featureWidget() {
     return Container(
       padding: EdgeInsets.all(5),
-      width: deviceWidth * 0.35,
+      width: 120.w,
       child: ListView.builder(
           itemCount: svgFeatures.length,
           itemBuilder: (context, index) {
@@ -906,7 +806,7 @@ class _ProductScreenState extends State<ProductScreen> {
                           });
                         }
                       : null,
-                  child: Text(
+                  child: Text(style: TextStyle(fontSize: 12.sp),
                       textAlign: TextAlign.center,
                       svgFeatures[index].toString().replaceAll("-", " "))),
             );
@@ -915,50 +815,63 @@ class _ProductScreenState extends State<ProductScreen> {
   }
 
   _sizeWidget() {
-    return Container(
-      margin: EdgeInsets.only(bottom: 10),
-      height: 60,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: widget.product.size.length,
-        itemBuilder: (context, index) {
-          final size = widget.product.size[index];
-          final isSelected = _selectedSize == size;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Divider(),
+        Text(
+          "PILIH UKURAN",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16.sp,
+          ),
+        ),
+        Container(
+          margin: EdgeInsets.only(bottom: 10),
+          height: 50.h,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: widget.product.size.length,
+            itemBuilder: (context, index) {
+              final size = widget.product.size[index];
+              final isSelected = _selectedSize == size;
 
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                purchaseLoading = false;
-                _selectedSize = size; // Update ukuran yang dipilih
-              });
-            },
-            child: Container(
-              padding: EdgeInsets.all(5),
-              width: 50,
-              height: 50,
-              margin: EdgeInsets.symmetric(horizontal: 6),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isSelected ? Colors.red : Color(0xFFFFAAAA),
-                border: isSelected
-                    ? Border.all(color: Colors.black, width: 2)
-                    : null,
-              ),
-              child: Center(
-                child: Text(
-                  textAlign: TextAlign.center,
-                  size,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: isSelected ? Colors.white : Colors.black,
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    purchaseLoading = false;
+                    _selectedSize = size; // Update ukuran yang dipilih
+                  });
+                },
+                child: Container(
+                  padding: EdgeInsets.all(5),
+                  width: 50.h,
+                  height: 50.h,
+                  margin: EdgeInsets.symmetric(horizontal: 6),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isSelected ? Colors.red : Color(0xFFFFAAAA),
+                    border: isSelected
+                        ? Border.all(color: Colors.black, width: 2)
+                        : null,
+                  ),
+                  child: Center(
+                    child: Text(
+                      textAlign: TextAlign.center,
+                      size,
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.bold,
+                        color: isSelected ? Colors.white : Colors.black,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-          );
-        },
-      ),
+              );
+            },
+          ),
+        )
+      ],
     );
   }
 
@@ -996,28 +909,147 @@ class _ProductScreenState extends State<ProductScreen> {
     }
   }
 
+  Future<String> getNoteProduct(int type) async {
+    ApiService apiService = ApiService(context);
+    ProductNoteResponse response = await apiService.getNoteProduct(type);
+
+    if (response.error) {
+      return "Terjadi Kesalahan";
+    } else {
+      return response.data!;
+    }
+  }
+
+  Future<String> getCareGuide() async {
+    ApiService apiService = ApiService(context);
+    CareGuideResponse response = await apiService.getCareGuide();
+
+    if (response.error) {
+      return "Terjadi Kesalahan";
+    } else {
+      return response.data!;
+    }
+  }
+
   sizeGuideWidget() {
-    return FutureBuilder(
-        future: getSizeGuide(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-          if (snapshot.hasData) {
-            return CachedNetworkImage(
-              imageUrl: snapshot.data!,
-              errorWidget: (context, url, error) {
-                return Icon(Icons.image_not_supported);
-              },
-            );
-          } else {
-            return Center(
-              child: Icon(Icons.image_not_supported),
-            );
-          }
-        });
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Divider(),
+        Text(
+          "PANDUAN UKURAN",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16.sp,
+          ),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        FutureBuilder(
+            future: getSizeGuide(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+              if (snapshot.hasData) {
+                return CachedNetworkImage(
+                  imageUrl: snapshot.data!,
+                  errorWidget: (context, url, error) {
+                    return Icon(Icons.image_not_supported);
+                  },
+                );
+              } else {
+                return Center(
+                  child: Icon(Icons.image_not_supported),
+                );
+              }
+            })
+      ],
+    );
+  }
+
+  _careGuideWidget() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Divider(),
+        Text(
+          "PANDUAN PERAWATAN",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16.sp,
+          ),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        FutureBuilder(
+            future: getCareGuide(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+              if (snapshot.hasData && snapshot.data != null) {
+                return Text(
+                  snapshot.data!,
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                  ),
+                );
+              } else {
+                return Center(
+                  child: Icon(Icons.image_not_supported),
+                );
+              }
+            })
+      ],
+    );
+  }
+
+  _noteWidget() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Divider(),
+        Text(
+          "CATATAN",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16.sp,
+          ),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        FutureBuilder(
+            future: widget.product.type == Product.READY_TO_WEAR
+                ? getNoteProduct(Product.READY_TO_WEAR)
+                : getNoteProduct(Product.CUSTOM),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+              if (snapshot.hasData && snapshot.data != null) {
+                return Text(
+                  snapshot.data!,
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                  ),);
+              } else {
+                return Center(
+                  child: Icon(Icons.image_not_supported),
+                );
+              }
+            })
+      ],
+    );
   }
 
   _bottomNavigationWidget() {
@@ -1057,6 +1089,7 @@ class _ProductScreenState extends State<ProductScreen> {
                             Text(
                               "Tambah ke Keranjang",
                               style: TextStyle(
+                                fontSize: 12.sp,
                                 color: purchaseLoading
                                     ? const Color.fromARGB(255, 95, 92, 92)
                                     : Colors.black,
@@ -1087,6 +1120,7 @@ class _ProductScreenState extends State<ProductScreen> {
                         child: Text(
                           "Beli Sekarang",
                           style: TextStyle(
+                                fontSize: 12.sp,
                             color: purchaseLoading
                                 ? const Color.fromARGB(255, 95, 92, 92)
                                 : Colors.white,
@@ -1166,6 +1200,7 @@ class _ProductScreenState extends State<ProductScreen> {
                         style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
+                          fontSize: 14.sp
                         ),
                       ),
                     )),
@@ -1173,6 +1208,100 @@ class _ProductScreenState extends State<ProductScreen> {
             : SizedBox()
       ],
     );
+  }
+
+  _descriptionWidget() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Divider(),
+        Text(
+          "DESKRIPSI",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16.sp,
+          ),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        Text(
+          widget.product.description,
+          style: TextStyle(
+            fontSize: 15.sp,
+          ),
+        )
+      ],
+    );
+  }
+
+  _materialWidget() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Divider(),
+        Text(
+          "MATERIAL",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16.sp,
+          ),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        if (widget.product.materials != null)
+          ListView.builder(
+            shrinkWrap: true,
+            itemCount: widget.product.materials!.length,
+            itemBuilder: (context, index) {
+              return Text(
+                "-${widget.product.materials![index]}",
+                style: TextStyle(
+                  fontSize: 15.sp,
+                ),
+              );
+            },
+          ),
+      ],
+    );
+  }
+  
+  _tagsWidget() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Divider(),
+        Text(
+                "Tags",
+                style: TextStyle(                  
+                  fontSize: 16.sp,
+                ),
+              ),
+              SizedBox(
+                height: 5,
+              ),
+              Wrap(
+                spacing: 5, // Jarak horizontal antar tag
+                runSpacing: 5, // Jarak vertikal antara baris tag
+                children: widget.product.tags!.map((tag) {
+                  return Container(
+                    padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: AppColor.tag,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      tag,
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10.sp,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),],);
   }
 }
 

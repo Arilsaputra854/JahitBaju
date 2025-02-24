@@ -31,30 +31,6 @@ String convertToRupiah(dynamic value) {
 }
 
 
-Future<bool> sentSurveiData(
-    String sourceAnswer, String field1answer, String field2answer,ApiService apiService) async {    
-
-  SurveiResponse response =
-      await apiService.sendSurveiData(sourceAnswer, field1answer, field2answer);
-  if (response.error) {
-    return false;
-  } else {
-    return true;
-  }
-}
-
-
-  Future<bool> loadAccessCustom(ApiService apiService) async {
-    SurveiResponse response =
-        await apiService.getSurveiData();
-    if (response.error) {
-      return false;
-    } else {
-      return true;
-    }
-  }
-
-
 Future<Product?> getProductById(productId, ApiService apiService) async {
     ProductResponse response = await apiService.productsGetById(productId);
     if (response.error) {

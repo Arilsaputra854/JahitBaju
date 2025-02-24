@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
@@ -43,7 +44,9 @@ class _CartScreenState extends State<CartScreen> {
         child: Consumer<CartViewModel>(builder: (context, viewModel, child) {
           return Scaffold(
               appBar: AppBar(
-                title: const Text("Cart"),
+                title: const Text("Cart",style: TextStyle(                      
+                      fontWeight: FontWeight.bold,
+                    ),),
                 centerTitle: true,
               ),
               bottomNavigationBar: Container(
@@ -58,11 +61,12 @@ class _CartScreenState extends State<CartScreen> {
                         horizontal: 30), // Padding agar tombol lebih besar
                   ),
                   onPressed: () => goToShippingScreen(cart),
-                  child: const Text(
+                  child: Text(
                     "Selanjutnya",
                     style: TextStyle(
                       color: Colors.white, // Warna teks putih
                       fontWeight: FontWeight.bold,
+                      fontSize: 14.sp
                     ),
                   ),
                 ),
@@ -142,16 +146,16 @@ class _CartScreenState extends State<CartScreen> {
                             children: [
                               Text(
                                 item.name,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16),
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 14.sp),
                               ),
                               Text(
                                 convertToRupiah(item.price),
-                                style: const TextStyle(fontSize: 15),
+                                style: TextStyle(fontSize: 12.sp),
                               ),
                               Text(
                                 '${cartItem.size}',
-                                style: const TextStyle(fontSize: 15),
+                                style: TextStyle(fontSize: 12.sp),
                               )
                             ],
                           ),
@@ -163,13 +167,13 @@ class _CartScreenState extends State<CartScreen> {
                                 children: [
                                   Text(
                                     "${cartItem.quantity} pcs",
-                                    style: const TextStyle(
-                                        fontSize: 15,
+                                    style: TextStyle(
+                                        fontSize: 12.sp,
                                         fontWeight: FontWeight.bold),
                                   ),
                                   IconButton(
                                       onPressed: () => deleteCartItem(cartItem),
-                                      icon: Icon(Icons.delete_rounded))
+                                      icon: Icon(Icons.delete_rounded,size: 16.w,))
                                 ],
                               ))
                         ],
@@ -270,10 +274,10 @@ class _CartScreenState extends State<CartScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                       Text(
                         "Siap Pakai",
                         style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 18),
+                            fontWeight: FontWeight.bold, fontSize: 16.sp),
                       ),
                       const SizedBox(height: 10),
                       FutureBuilder<List<MapEntry<CartItem, Product>>?>(
@@ -301,18 +305,18 @@ class _CartScreenState extends State<CartScreen> {
                           } else {
                             return Container(
                               height: 100,
-                              child: const Center(
-                                child: Text("Tidak ada produk"),
+                              child: Center(
+                                child: Text("Tidak ada produk",style: TextStyle(fontSize: 12.sp),),
                               ),
                             );
                           }
                         },
                       ),
                       const SizedBox(height: 10),
-                      const Text(
-                        "Custom Produk",
+                      Text(
+                        "Kustom Produk",
                         style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 18),
+                            fontWeight: FontWeight.bold, fontSize: 16.sp),
                       ),
                       const SizedBox(height: 10),
                       FutureBuilder<List<MapEntry<CartItem, Product>>?>(
@@ -344,8 +348,8 @@ class _CartScreenState extends State<CartScreen> {
                           } else {
                             return Container(
                               height: 100,
-                              child: const Center(
-                                child: Text("Tidak ada produk"),
+                              child:  Center(
+                                child: Text("Tidak ada produk",style: TextStyle(fontSize: 12.sp),),
                               ),
                             );
                           }
@@ -359,24 +363,24 @@ class _CartScreenState extends State<CartScreen> {
                             children: [
                               Text(
                                 "Siap pakai",
-                                style: TextStyle(fontSize: 15),
+                                style: TextStyle(fontSize: 14.sp),
                               ),
                               Text(
                                 convertToRupiah(cart?.rtwPrice ?? 0),
-                                style: TextStyle(fontSize: 15),
+                                style: TextStyle(fontSize: 14.sp),
                               ),
                             ],
                           ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
-                                "Custom",
-                                style: TextStyle(fontSize: 15),
+                               Text(
+                                "Kostum",
+                                style: TextStyle(fontSize: 14.sp),
                               ),
                               Text(
                                 convertToRupiah(cart?.customPrice ?? 0),
-                                style: const TextStyle(fontSize: 15),
+                                style: TextStyle(fontSize: 14.sp),
                               ),
                             ],
                           ),
@@ -384,17 +388,17 @@ class _CartScreenState extends State<CartScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
+                               Text(
                                 "Total",
                                 style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 20),
+                                    fontWeight: FontWeight.bold, fontSize: 16.sp),
                               ),
                               Text(
                                 cart?.totalPrice != null
                                     ? convertToRupiah(cart!.totalPrice)
                                     : "Rp 0",
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 20),
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 16.sp),
                               ),
                             ],
                           ),
