@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 
@@ -51,7 +52,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           return Scaffold(
             appBar: AppBar(
               centerTitle: true,
-              title: Text("Pembayaran"),
+              title: Text("Pembayaran",style: TextStyle(fontWeight: FontWeight.bold),),
             ),
             body: isPaymentSuccess
                 ? paymentSuccess()
@@ -70,23 +71,25 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         ),
                         Text("Menunggu proses pembayaran",
                             style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 18)),
+                                fontWeight: FontWeight.bold, fontSize: 14.sp)),
                         SizedBox(
                           height: 5,
                         ),
                         Text("Id : ${widget.order?.id ?? ""}",
                             style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 12)),
+                                fontWeight: FontWeight.bold, fontSize: 12.sp)),
                         SizedBox(
                           height: 10,
                         ),
                         Text(
-                            "Total Harga : ${convertToRupiah(widget.order?.totalPrice)}"),
+                            "Total Harga : ${convertToRupiah(widget.order?.totalPrice)}",style: TextStyle(
+                                 fontSize: 12.sp)),
                         SizedBox(
                           height: 10,
                         ),
                         Text(
-                            "Bayar sebelum ${customFormatDate(widget.order!.expiredDate)}"),
+                            "Bayar sebelum ${customFormatDate(widget.order!.expiredDate)}",style: TextStyle(
+                                 fontSize: 12.sp)),
                         SizedBox(
                           height: 40,
                         ),
@@ -98,7 +101,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             },
                             child: Text(
                               "Bayar Sekarang",
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(color: Colors.white,fontSize: 12.sp),
                             ),
                             style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(
@@ -123,7 +126,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                               },
                               child: Text(
                                 "Sudah Bayar",
-                                style: TextStyle(color: Colors.white),
+                                style: TextStyle(color: Colors.white,fontSize: 12.sp),
                               ),
                               style: ElevatedButton.styleFrom(
                                 shape: RoundedRectangleBorder(

@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/viewmodels/forgot_password_view_model.dart';
@@ -69,7 +70,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           builder: (context, viewModel, child) {
                         return Center(
                           child: SizedBox(
-                            width: deviceWidth * 0.8,
+                            width: 300.w,
                             child: forgotPasswordForm(),
                           ),
                         );
@@ -90,19 +91,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   "LUPA PASSWORD?",
                   textAlign: TextAlign.start,
                   style: TextStyle(
-                      fontSize: 30,
+                      fontSize: 20.sp,
                       fontWeight: FontWeight.bold,
                       color: Colors.white),
                 ),
-                const Text(
+                Text(
                   "Tenang, kami bantu reset.",
                   textAlign: TextAlign.start,
                   style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 12.sp,
                       fontWeight: FontWeight.normal,
                       color: Colors.white),
                 ),
@@ -110,6 +111,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   height: 30,
                 ),
                 TextFormField(
+                  style: TextStyle(
+                      fontSize: 14.sp,),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return "Kolom ini tidak boleh kosong!";
@@ -143,10 +146,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               }
                             }
                           },
-                          child: const Text(
+                          child: Text(
                             "Selanjutnya",
                             style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 20),
+                                fontWeight: FontWeight.bold, fontSize: 14.sp),
                           )),
                     ),
                   ],
@@ -163,7 +166,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         filled: true,
         errorStyle: TextStyle(color: Colors.white),
         hintText: "janedoe@gmail.com",
-        hintStyle: TextStyle(color: Colors.grey, fontWeight: FontWeight.normal),
+        hintStyle: TextStyle(color: Colors.grey),
         border: OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(10))));
   }

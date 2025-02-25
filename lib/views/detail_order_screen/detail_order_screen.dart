@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:jahit_baju/data/model/packaging.dart';
@@ -30,8 +31,6 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
   bool buttonState = false;
 
   late ApiService apiService;
-
-  var fontSize;
 
   List<String> status = [
     "Bayar Pesanan",
@@ -71,8 +70,6 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
     deviceWidth = MediaQuery.of(context).size.width;
     deviceHeight = MediaQuery.of(context).size.height;
 
-    fontSize = deviceWidth * 0.035;
-
     return Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
@@ -93,19 +90,19 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                     DateFormat('HH:mm, EEEE, dd MMMM yyyy').format(
                         DateTime.parse(
                             widget.order.orderCreated.toIso8601String())),
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.sp),
                   ),
                   const SizedBox(height: 5),
                   Text(
-                    "Order Id :\n ${widget.order.id}",
+                    "Order id :\n ${widget.order.id}",
                     style:
-                        TextStyle(fontWeight: FontWeight.normal, fontSize: 12),
+                        TextStyle(fontWeight: FontWeight.normal, fontSize: 12.sp),
                   ),
                   const SizedBox(height: 10),
                   Text(
                     "Status",
                     style: TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: fontSize),
+                        fontWeight: FontWeight.bold, fontSize:14.sp),
                   ),
                   Divider(
                     color: Colors.black,
@@ -128,7 +125,7 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                               child: Text(
                                 status[index],
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 12.sp,
                                   fontWeight: FontWeight.bold,
                                   color: index <= currentStatus
                                       ? Colors.black
@@ -146,12 +143,12 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                   Text(
                     "Resi:",
                     style: TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: fontSize * 0.8),
+                        fontWeight: FontWeight.bold, fontSize: 12.sp),
                   ),
                   Text(
                     widget.order.resi,
                     style: TextStyle(
-                        fontWeight: FontWeight.normal, fontSize: fontSize),
+                        fontWeight: FontWeight.normal, fontSize:12.sp),
                   ),
                 ],
               ),
@@ -165,7 +162,7 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                   Text(
                     "Detail Produk",
                     style: TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: fontSize),
+                        fontWeight: FontWeight.bold, fontSize:14.sp,)
                   ),
                   Divider(
                     color: Colors.black,
@@ -186,7 +183,7 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                   Text(
                     "Detail Kemasan",
                     style: TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: fontSize),
+                        fontWeight: FontWeight.bold, fontSize:14.sp),
                   ),
                   Divider(
                     color: Colors.black,
@@ -219,19 +216,21 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                           children: [
                             Text(snapshot.data!.name,
                                 style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16)),
+                                    fontWeight: FontWeight.bold, fontSize: 12.sp)),
                             Text(snapshot.data!.description,
                                 style: TextStyle(
                                     fontWeight: FontWeight.normal,
-                                    fontSize: 12)),
-                            Text(convertToRupiah(widget.order.packagingPrice))
+                                    fontSize: 12.sp)),
+                            Text(convertToRupiah(widget.order.packagingPrice),
+                                style: TextStyle(
+                                    fontWeight: FontWeight.normal, fontSize: 12.sp))
                           ],
                         )
                       ],
                     ),
                   ));
                 }
-                return Text("Tidak dapat memuat detail kemasan.");
+                return Text("Tidak dapat memuat detail kemasan.", style: TextStyle(fontSize: 14.sp),);
               },
             ),
             SizedBox(height: 5),
@@ -243,7 +242,7 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                   Text(
                     "Detail Pengiriman",
                     style: TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: fontSize),
+                        fontWeight: FontWeight.bold, fontSize:14.sp),
                   ),
                   Divider(
                     color: Colors.black,
@@ -287,7 +286,7 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                           children: [
                             Text(snapshot.data!.name,
                                 style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16)),
+                                    fontWeight: FontWeight.bold, fontSize: 14.sp)),
                             Text(convertToRupiah(snapshot.data!.price))
                           ],
                         )
@@ -295,7 +294,7 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                     ),
                   ));
                 } else {
-                  return Text("Tidak dapat memuat detail pengiriman.");
+                  return Text("Tidak dapat memuat detail pengiriman.", style: TextStyle(fontSize: 14.sp),);
                 }
               },
             ),
@@ -308,7 +307,7 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                   Text(
                     "Catatan",
                     style: TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: fontSize),
+                        fontWeight: FontWeight.bold, fontSize:14.sp),
                   ),
                   Divider(
                     color: Colors.black,
@@ -318,7 +317,7 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                   Text(
                     widget.order.description ?? "-",
                     style: TextStyle(
-                        fontWeight: FontWeight.normal, fontSize: fontSize),
+                        fontWeight: FontWeight.normal, fontSize:14.sp,)
                   ),
                 ],
               ),
@@ -347,7 +346,7 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                       : () {
                           //chat
                         },
-                  child: Icon(Icons.chat)),
+                  child: Icon(Icons.chat,size: 14.w,)),
               SizedBox(width: 10),
               Expanded(
                 child: OutlinedButton(
@@ -382,6 +381,8 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                               ? const Color.fromARGB(255, 95, 92, 92)
                               : Colors.black,
                           fontWeight: FontWeight.bold,
+
+                            fontSize: 12.sp
                         ),
                         softWrap: true,
                         textAlign: TextAlign.center,
@@ -420,6 +421,7 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                                 ? const Color.fromARGB(255, 95, 92, 92)
                                 : Colors.white,
                             fontWeight: FontWeight.bold,
+                            fontSize: 12.sp
                           ),
                           softWrap:
                               true, // Agar teks membungkus jika terlalu panjang
@@ -432,6 +434,7 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                                 ? const Color.fromARGB(255, 95, 92, 92)
                                 : Colors.white,
                             fontWeight: FontWeight.bold,
+                            fontSize: 14.sp
                           ),
                           softWrap:
                               true, // Agar teks membungkus jika terlalu panjang
@@ -470,7 +473,7 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Container(
-                            height: deviceWidth * 0.3,
+                            height: 130.h,
                             padding: const EdgeInsets.all(5),
                             color: Colors.white,
                             child: ClipRRect(
@@ -527,18 +530,18 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                                   children: [
                                     Text(
                                       snapshot.data?.name ?? "Nama Produk",
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 14),
+                                          fontSize: 12.sp),
                                     ),
                                     Text(
                                       convertToRupiah(
                                           widget.order.items[index].price),
-                                      style: const TextStyle(fontSize: 12),
+                                      style:  TextStyle(fontSize: 12.sp),
                                     ),
                                     Text(
                                       '${widget.order.items[index].size}',
-                                      style: const TextStyle(fontSize: 12),
+                                      style:  TextStyle(fontSize: 12.sp),
                                     )
                                   ],
                                 ),
@@ -550,8 +553,8 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                                       children: [
                                         Text(
                                           "${widget.order.items[index].quantity} pcs",
-                                          style: const TextStyle(
-                                              fontSize: 12,
+                                          style: TextStyle(
+                                              fontSize: 12.sp,
                                               fontWeight: FontWeight.bold),
                                         ),
                                       ],
@@ -564,7 +567,10 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                     ),
                   );
                 } else {
-                  return Text("Tidak dapat memuat detail produk.");
+                  return Text("Tidak dapat memuat detail produk.",
+                                          style: TextStyle(
+                                              fontSize: 14.sp,
+                                              fontWeight: FontWeight.bold),);
                 }
               });
         });
@@ -578,11 +584,11 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
           children: [
             Text(
               "Siap pakai",
-              style: TextStyle(fontSize: fontSize),
+              style: TextStyle(fontSize:12.sp),
             ),
             Text(
               convertToRupiah(widget.order.rtwPrice),
-              style: TextStyle(fontSize: fontSize),
+              style: TextStyle(fontSize:12.sp),
             ),
           ],
         ),
@@ -590,12 +596,12 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "Custom",
-              style: TextStyle(fontSize: fontSize),
+              "Kustom",
+              style: TextStyle(fontSize:12.sp),
             ),
             Text(
               convertToRupiah(widget.order.customPrice),
-              style: TextStyle(fontSize: fontSize),
+              style: TextStyle(fontSize:12.sp),
             ),
           ],
         ),
@@ -604,11 +610,11 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
           children: [
             Text(
               "Jasa Pengiriman",
-              style: TextStyle(fontSize: fontSize),
+              style: TextStyle(fontSize:12.sp,)
             ),
             Text(
               convertToRupiah(widget.order.shippingPrice),
-              style: TextStyle(fontSize: fontSize),
+              style: TextStyle(fontSize:12.sp),
             ),
           ],
         ),
@@ -617,11 +623,11 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
           children: [
             Text(
               "Packaging",
-              style: TextStyle(fontSize: fontSize),
+              style: TextStyle(fontSize:12.sp),
             ),
             Text(
               convertToRupiah(widget.order.packagingPrice),
-              style: TextStyle(fontSize: fontSize),
+              style: TextStyle(fontSize:12.sp),
             ),
           ],
         ),
@@ -631,11 +637,11 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
           children: [
             Text(
               "Diskon",
-              style: TextStyle(fontSize: fontSize),
+              style: TextStyle(fontSize:12.sp),
             ),
             Text(
               "-" + convertToRupiah(widget.order.discount),
-              style: TextStyle(fontSize: fontSize),
+              style: TextStyle(fontSize:12.sp),
             ),
           ],
         ),
@@ -644,11 +650,11 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
           children: [
             Text(
               "Total",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize:14.sp),
             ),
             Text(
               convertToRupiah(widget.order.totalPrice),
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize:14.sp),
             ),
           ],
         ),

@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
@@ -43,7 +44,7 @@ class _HistoryPageState extends State<HistoryPage> {
               children: [
                 Text(
                   "Riwayat",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.sp),
                 ),
                 SizedBox(height: 5),
                 FutureBuilder(
@@ -74,9 +75,9 @@ class _HistoryPageState extends State<HistoryPage> {
                                   child: Text(
                                     DateFormat('EEEE, dd MMMM yyyy')
                                         .format(DateTime.parse(dateKey)),
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         fontWeight: FontWeight.normal,
-                                        fontSize: 16),
+                                        fontSize: 14.sp),
                                   ),
                                 ),
                                 ListView.builder(
@@ -95,9 +96,12 @@ class _HistoryPageState extends State<HistoryPage> {
                       } else {
                         //if data is empty
                         return Container(
-                          height: deviceHeight * 0.5,
-                          child: const Center(
-                            child: Text("Tidak ada riwayat."),
+                          height: 100.h,
+                          child: Center(
+                            child: Text("Tidak ada riwayat.",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.normal,
+                                        fontSize: 14.sp),),
                           ),
                         );
                       }
@@ -107,9 +111,12 @@ class _HistoryPageState extends State<HistoryPage> {
                       return itemCartShimmer();
                     } else {
                       return Container(
-                        height: deviceHeight * 0.5,
-                        child: const Center(
-                          child: Text("Tidak ada riwayat."),
+                          height: 100.h,
+                        child: Center(
+                            child: Text("Tidak ada riwayat.",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.normal,
+                                        fontSize: 14.sp),),
                         ),
                       );
                     }
@@ -172,8 +179,8 @@ class _HistoryPageState extends State<HistoryPage> {
             child: Row(
               children: [
                 Container(
-                  width: 80,
-                  height: 80,
+                  width: 80.w,
+                  height: 80.w,
                   color: Colors.grey[400],
                 ),
                 const SizedBox(width: 10),
@@ -181,14 +188,14 @@ class _HistoryPageState extends State<HistoryPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: 150,
-                      height: 15,
+                      width: 150.w,
+                      height: 15.h,
                       color: Colors.grey[400],
                     ),
                     const SizedBox(height: 10),
                     Container(
-                      width: 100,
-                      height: 12,
+                      width: 100.w,
+                      height: 12.h,
                       color: Colors.grey[400],
                     ),
                   ],
@@ -228,18 +235,18 @@ class _HistoryPageState extends State<HistoryPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Order Id: ${order.id}",
-                              style: const TextStyle(
-                                  fontSize: 8, fontWeight: FontWeight.bold),
+                              "Order id: ${order.id}",
+                              style: TextStyle(
+                                  fontSize: 8.sp, fontWeight: FontWeight.bold),
                             ),
                             order.orderStatus == Order.WAITING_FOR_PAYMENT
                                 ? InkWell(
                                     onTap: () => _deleteOrder(order.id),
                                     child: Text(
                                       "Batal",
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                           color: AppColor.primary,
-                                          fontSize: 12,
+                                          fontSize: 10.sp,
                                           fontWeight: FontWeight.bold),
                                     ))
                                 : Container()
@@ -260,7 +267,7 @@ class _HistoryPageState extends State<HistoryPage> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Container(
-                                          height: deviceWidth * 0.2,
+                                          height: 120.h,
                                           padding: const EdgeInsets.all(5),
                                           color: Colors.white,
                                           child: ClipRRect(
@@ -273,10 +280,7 @@ class _HistoryPageState extends State<HistoryPage> {
                                               child: AspectRatio(
                                                   aspectRatio: 4 / 5,
                                                   child:
-                                                      product.type ==
-                                                              Product
-                                                                  .READY_TO_WEAR
-                                                          ? CachedNetworkImage(
+                                                      CachedNetworkImage(
                                                               imageUrl: product
                                                                   .imageUrl
                                                                   .first,
@@ -284,30 +288,6 @@ class _HistoryPageState extends State<HistoryPage> {
                                                               placeholder:
                                                                   (context,
                                                                       url) {
-                                                                return Shimmer
-                                                                    .fromColors(
-                                                                        baseColor:
-                                                                            Colors.grey[
-                                                                                300]!,
-                                                                        highlightColor:
-                                                                            Colors.grey[
-                                                                                100]!,
-                                                                        child:
-                                                                            Container(
-                                                                          width:
-                                                                              double.infinity,
-                                                                          height:
-                                                                              double.infinity,
-                                                                          color:
-                                                                              Colors.grey,
-                                                                        ));
-                                                              },
-                                                            )
-                                                          : SvgPicture.network(
-                                                              product.imageUrl
-                                                                  .first,
-                                                              placeholderBuilder:
-                                                                  (context) {
                                                                 return Shimmer
                                                                     .fromColors(
                                                                         baseColor:
@@ -343,22 +323,22 @@ class _HistoryPageState extends State<HistoryPage> {
                                                 children: [
                                                   Text(
                                                     product.name,
-                                                    style: const TextStyle(
+                                                    style: TextStyle(
                                                         fontWeight:
                                                             FontWeight.bold,
-                                                        fontSize: 16),
+                                                        fontSize: 14.sp),
                                                   ),
                                                   Text(
                                                     '${order.items[index].size}',
-                                                    style: const TextStyle(
-                                                        fontSize: 15),
+                                                    style: TextStyle(
+                                                        fontSize: 14.sp),
                                                   )
                                                 ],
                                               ),
                                               Text(
                                                 "${order.items[index].quantity} pcs",
-                                                style: const TextStyle(
-                                                    fontSize: 12,
+                                                style: TextStyle(
+                                                    fontSize: 12.sp,
                                                     fontWeight:
                                                         FontWeight.bold),
                                               ),
@@ -378,12 +358,12 @@ class _HistoryPageState extends State<HistoryPage> {
                         }),                    
                     Text(
                       convertToRupiah(order.totalPrice),
-                      style: const TextStyle(fontSize: 15),
+                      style: TextStyle(fontSize: 14.sp),
                     ),
                     Text(
                       "${order.orderStatus}",
-                      style: const TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontSize: 12.sp, fontWeight: FontWeight.bold),
                     )
                   ],
                 )))));

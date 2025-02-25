@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/repository/repository.dart';
@@ -43,7 +44,6 @@ class _SearchPageState extends State<SearchPage> {
 
   var deviceWidth;
 
-
   @override
   Widget build(BuildContext context) {
     initializeSort();
@@ -68,6 +68,7 @@ class _SearchPageState extends State<SearchPage> {
                           // TextField untuk Input Pencarian
                           Expanded(
                             child: TextField(
+                              style: TextStyle(fontSize: 14.sp),
                               controller: searchController,
                               decoration: InputDecoration(
                                 hintText: "Search",
@@ -82,8 +83,7 @@ class _SearchPageState extends State<SearchPage> {
                               ),
                             ),
                           ),
-                          const SizedBox(
-                              width: 8), // Jarak antara TextField dan Icon
+                          const SizedBox(width: 8),
 
                           Material(
                             shape: CircleBorder(side: BorderSide(width: 1)),
@@ -103,11 +103,15 @@ class _SearchPageState extends State<SearchPage> {
                           child: Row(
                             children: [
                               DropdownButton(
-                                hint: Text("Kategori"),
+                                hint: Text(
+                                  "Kategori",
+                                  style: TextStyle(fontSize: 12.sp),
+                                ),
                                 value: _selectedCategory,
                                 items: categories.map((value) {
                                   return DropdownMenuItem(
-                                    child: Text(value),
+                                    child: Text(value,
+                                        style: TextStyle(fontSize: 12.sp)),
                                     value: value,
                                   );
                                 }).toList(),
@@ -121,11 +125,15 @@ class _SearchPageState extends State<SearchPage> {
                                 width: 10,
                               ),
                               DropdownButton(
-                                hint: Text("Tag Produk"),
+                                hint: Text(
+                                  "Tag",
+                                  style: TextStyle(fontSize: 12.sp),
+                                ),
                                 value: _selectedTags,
                                 items: tags.map((value) {
                                   return DropdownMenuItem(
-                                    child: Text(value),
+                                    child: Text(value,
+                                        style: TextStyle(fontSize: 12.sp)),
                                     value: value,
                                   );
                                 }).toList(),
@@ -230,29 +238,9 @@ class _SearchPageState extends State<SearchPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Center(
-                              child: Text("Siap Pakai",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: deviceWidth * 0.04)),
-                            )),
-                        Container(
                           margin: const EdgeInsets.symmetric(horizontal: 10),
                           child: widgetListRTW(),
                         ),
-                        Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Center(
-                              child: Text("Custom Produk",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: deviceWidth * 0.04)),
-                            )),
-                        Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 10),
-                          child: widgetListCustom(viewModel),
-                        )
                       ],
                     ));
                   }
@@ -296,8 +284,7 @@ class _SearchPageState extends State<SearchPage> {
                     shrinkWrap: true,
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         childAspectRatio: 0.7,
-                        crossAxisSpacing:
-                            10.0, // Jarak antar item di sumbu horizontal (kanan)
+                        crossAxisSpacing: 10.0,
                         mainAxisSpacing: 10.0,
                         crossAxisCount: 2),
                     itemCount: filteredRTW?.length,
@@ -342,13 +329,12 @@ class _SearchPageState extends State<SearchPage> {
                                           filteredRTW![index].name,
                                           style: TextStyle(
                                               fontWeight: FontWeight.bold,
-                                              fontSize: deviceWidth * 0.04),
+                                              fontSize: 12.sp),
                                         ),
                                         Text(
                                           convertToRupiah(
                                               filteredRTW?[index].price),
-                                          style: TextStyle(
-                                              fontSize: deviceWidth * 0.03),
+                                          style: TextStyle(fontSize: 12.sp),
                                         ),
                                       ],
                                     ))
@@ -356,131 +342,22 @@ class _SearchPageState extends State<SearchPage> {
                             ),
                           ));
                     })
-                : const SizedBox(
-                    height: 100,
+                : SizedBox(
+                    height: 100.h,
                     child: Center(
-                      child: Text("Tidak ada produk Siap Pakai"),
+                      child: Text(
+                        "Tidak ada produk.",
+                        style: TextStyle(fontSize: 12.sp),
+                      ),
                     ))
-            : const SizedBox(
-                height: 100,
-                child: Center(
-                  child: Text("Tidak ada produk Siap pakai"),
-                )));
-  }
-
-  widgetListCustom(SearchViewModel viewmodel) {
-    return Container(
-        margin: const EdgeInsets.all(10),
-        child: filteredCustom != null
-            ? filteredCustom!.isNotEmpty
-                ? GridView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        childAspectRatio: 0.7,
-                        crossAxisSpacing: 10.0,
-                        mainAxisSpacing: 10.0,
-                        crossAxisCount: 2),
-                    itemCount: filteredCustom?.length,
-                    itemBuilder: (context, index) {
-                      return InkWell(
-                          onTap: accessCustom
-                              ? () {
-                                  goToProductScreen(filteredCustom![index]);
-                                }
-                              : () async {
-                                },
-                          child: Container(
-                              width: 150,
-                              decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  border: Border.all(width: 1)),
-                              child: Stack(
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: Container(
-                                          width: double.infinity,
-                                          padding: const EdgeInsets.all(5),
-                                          child: SvgPicture.network(
-                                            filteredCustom![index]
-                                                .imageUrl
-                                                .first,
-                                            placeholderBuilder: (BuildContext
-                                                    context) =>
-                                                Shimmer.fromColors(
-                                                    baseColor:
-                                                        Colors.grey[300]!,
-                                                    highlightColor:
-                                                        Colors.grey[100]!,
-                                                    child: Container(
-                                                      width: double.infinity,
-                                                      height: double.infinity,
-                                                      color: Colors.grey,
-                                                    )),
-                                            width: 200,
-                                            height: 200,
-                                          ),
-                                        ),
-                                      ),
-                                      Container(
-                                          margin: const EdgeInsets.all(5),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                filteredCustom![index].name,
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize:
-                                                        deviceWidth * 0.04),
-                                              ),
-                                              Text(
-                                                convertToRupiah(
-                                                    productsCustom?[index]
-                                                        .price),
-                                                style: TextStyle(
-                                                    fontSize:
-                                                        deviceWidth * 0.03),
-                                              ),
-                                            ],
-                                          ))
-                                    ],
-                                  ),
-                                  accessCustom
-                                      ? SizedBox()
-                                      : Container(
-                                          color: const Color.fromARGB(
-                                              226, 255, 255, 255),
-                                          width: double.infinity,
-                                          height: double.infinity,
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Icon(Icons.lock_outline_rounded),
-                                              Text("Fitur ini terkunci")
-                                            ],
-                                          ))
-                                ],
-                              )));
-                    })
-                : const SizedBox(
-                    height: 100,
+            : SizedBox(
+                    height: 100.h,
                     child: Center(
-                      child: Text("Tidak ada produk Custom"),
-                    ))
-            : const SizedBox(
-                height: 100,
-                child: Center(
-                  child: Text("Tidak ada produk Custom"),
-                )));
+                      child: Text(
+                        "Tidak ada produk.",
+                        style: TextStyle(fontSize: 12.sp),
+                      ),
+                    )));
   }
 
   Future<List<String>?> getAllCategoryFromProduct(ApiService apiService) async {

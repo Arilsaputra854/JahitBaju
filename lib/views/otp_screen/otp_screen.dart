@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/data/source/remote/response/login_response.dart';
 import 'package:jahit_baju/data/source/remote/response/otp_response.dart';
+import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/views/home_screen/home_screen.dart';
 import 'package:jahit_baju/views/reset_password/reset_password.dart';
 
@@ -35,6 +37,8 @@ class _ResetPasswordState extends State<OtpScreen> {
 
   late Timer _timer;
   int _secondsRemaining = 300;
+
+  bool loading = false;
 
   @override
   void initState() {
@@ -80,13 +84,14 @@ class _ResetPasswordState extends State<OtpScreen> {
             backgroundColor: Colors.transparent,
             body: Center(
               child: SizedBox(
-                width: deviceWidth * 0.8,
-                height: deviceHeight * 0.8,
+                width: 300.w,
+                height: 500.h,
                 child: SingleChildScrollView(
                   child: _otpWidget(),
                 ),
               ),
-            ))
+            )),
+            if(loading) loadingWidget()
       ],
     );
   }
@@ -97,17 +102,17 @@ class _ResetPasswordState extends State<OtpScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             "Kode OTP",
             textAlign: TextAlign.start,
             style: TextStyle(
-                fontSize: 30, fontWeight: FontWeight.bold, color: Colors.white),
+                fontSize: 20.sp, fontWeight: FontWeight.bold, color: Colors.white),
           ),
           Text(
             "Kami telah kirim kode ke ${widget.email} kamu.\njika tidak ada, cek juga folder SPAM.",
             textAlign: TextAlign.start,
-            style: const TextStyle(
-                fontSize: 15,
+            style: TextStyle(
+                fontSize: 12.sp,
                 fontWeight: FontWeight.normal,
                 color: Colors.white),
           ),
@@ -145,6 +150,9 @@ class _ResetPasswordState extends State<OtpScreen> {
                         backgroundColor: Colors.white),
                     onPressed: requestOTP
                         ? () async {
+                          setState(() {
+                            loading = true;
+                          });
                             if (widget.type == OtpScreen.RESET_PASSWORD) {
                               var response = await apiService
                                   .userResetRequestOtp(widget.email);
@@ -172,6 +180,7 @@ class _ResetPasswordState extends State<OtpScreen> {
                                     requestOTP = true;
                                   });
                                 }
+                                
                               } else {
                                 if (response.message!.contains(
                                     "OTP has been successfully sent to your email.")) {
@@ -182,7 +191,7 @@ class _ResetPasswordState extends State<OtpScreen> {
                                   });
                                 }
                                 startCountdown();
-                              }
+                              }                              
                             } else if (widget.type == OtpScreen.REGISTER) {
                               OtpResponse response =
                                   await apiService.userRequestOtp();
@@ -222,8 +231,14 @@ class _ResetPasswordState extends State<OtpScreen> {
                                 startCountdown();
                               }
                             }
+                            setState(() {
+                            loading = false;
+                          });
                           }
                         : () async {
+                          setState(() {
+                            loading = true;
+                          });
                             if (widget.type == OtpScreen.RESET_PASSWORD) {
                               OtpResponse response =
                                   await apiService.userResetEmailVerify(
@@ -264,11 +279,14 @@ class _ResetPasswordState extends State<OtpScreen> {
                                 goToHomeScreen();
                               }
                             }
+                            setState(() {
+                            loading = false;
+                          });
                           },
                     child: Text(
                       requestOTP ? "Minta Kode" : "Aktivasi",
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 20),
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 14.sp),
                     )),
               ),
             ],
@@ -325,8 +343,8 @@ class _ResetPasswordState extends State<OtpScreen> {
     return Center(
       child: Text(
         formatTime(_secondsRemaining),
-        style: const TextStyle(
-            fontSize: 20, fontWeight: FontWeight.normal, color: Colors.white),
+        style: TextStyle(
+            fontSize: 14.sp, fontWeight: FontWeight.normal, color: Colors.white),
       ),
     );
   }

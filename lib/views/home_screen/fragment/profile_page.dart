@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
@@ -109,14 +110,15 @@ class _HomePageState extends State<ProfilePage> {
                         width: deviceWidth,
                         child: Text(
                           onEdit ? "Simpan Data" : "Ubah Data",
-                          style: const TextStyle(
-                              fontSize: 15,
+                          style: TextStyle(
+                              fontSize: 14.sp,
                               color: Color.fromARGB(255, 141, 120, 119)),
                         ),
                       ),
                     ),
                     const SizedBox(height: 10),
                     TextFormField(
+                      style: TextStyle(fontSize: 12.sp),
                       controller: nameController,
                       enabled: onEdit,
                       validator: (value) {
@@ -131,6 +133,7 @@ class _HomePageState extends State<ProfilePage> {
                     ),
                     const SizedBox(height: 10),
                     TextFormField(
+                      style: TextStyle(fontSize: 12.sp),
                       controller: emailController,
                       enabled: false,
                       validator: (value) {
@@ -145,6 +148,7 @@ class _HomePageState extends State<ProfilePage> {
                     ),
                     const SizedBox(height: 10),
                     TextFormField(
+                      style: TextStyle(fontSize: 12.sp),
                       controller: phoneController,
                       enabled: onEdit,
                       validator: (value) {
@@ -162,6 +166,7 @@ class _HomePageState extends State<ProfilePage> {
                     ),
                     const SizedBox(height: 10),
                     TextFormField(
+                      style: TextStyle(fontSize: 12.sp),
                       controller: addressController,
                       enabled: onEdit,
                       validator: (value) {
@@ -178,6 +183,7 @@ class _HomePageState extends State<ProfilePage> {
                     ),
                     const SizedBox(height: 10),
                     TextFormField(
+                      style: TextStyle(fontSize: 12.sp),
                       controller: passwordController,
                       enabled: onEdit,
                       validator: (value) {
@@ -202,7 +208,7 @@ class _HomePageState extends State<ProfilePage> {
                           Text(
                             "Logout",
                             style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 15),
+                                fontWeight: FontWeight.bold, fontSize: 14.sp),
                           ),
                           SizedBox(width: 10),
                           Icon(Icons.logout)

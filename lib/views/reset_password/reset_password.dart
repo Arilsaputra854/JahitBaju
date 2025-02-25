@@ -1,7 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/viewmodels/reset_password_view_model.dart';
 import 'package:jahit_baju/views/login/login_screen.dart';
 import 'package:provider/provider.dart';
@@ -20,6 +22,7 @@ class _ResetPasswordState extends State<ResetPassword> {
   var formKey = GlobalKey<FormState>();
 
   bool init = false;
+  bool loading = false;
 
   @override
   void initState() {
@@ -38,7 +41,6 @@ class _ResetPasswordState extends State<ResetPassword> {
 
   @override
   Widget build(BuildContext context) {
-
     deviceWidth = MediaQuery.of(context).size.width;
     deviceHeight = MediaQuery.of(context).size.height;
 
@@ -67,14 +69,17 @@ class _ResetPasswordState extends State<ResetPassword> {
               backgroundColor: Colors.transparent,
               body: Consumer<ResetPasswordViewModel>(
                   builder: (context, viewModel, child) {
-                return SingleChildScrollView(child: Center(
-                  child: SizedBox(
-                    width: deviceWidth * 0.8,
-                    child: registerForm(),
+                return SingleChildScrollView(
+                  child: Center(
+                    child: SizedBox(
+                      width: deviceWidth * 0.8,
+                      child: registerForm(),
+                    ),
                   ),
-                ),);
+                );
               }),
-            )
+            ),
+            if (loading) loadingWidget()
           ],
         ));
   }
@@ -90,11 +95,11 @@ class _ResetPasswordState extends State<ResetPassword> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                  Text(
                     "Ganti Password",
                     textAlign: TextAlign.start,
                     style: TextStyle(
-                        fontSize: 30,
+                        fontSize: 20.sp,
                         fontWeight: FontWeight.bold,
                         color: Colors.white),
                   ),
@@ -102,6 +107,9 @@ class _ResetPasswordState extends State<ResetPassword> {
                     height: 30,
                   ),
                   TextFormField(
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                    ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return "Kolom ini tidak boleh kosong!";
@@ -110,12 +118,15 @@ class _ResetPasswordState extends State<ResetPassword> {
                     },
                     onChanged: viewModel.setPassword,
                     obscureText: !_isPasswordVisible,
-                    decoration: inputPasswordDecoration("New password"),
+                    decoration: inputPasswordDecoration("password baru"),
                   ),
                   const SizedBox(
                     height: 10,
                   ),
                   TextFormField(
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                    ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return "Kolom ini tidak boleh kosong!";
@@ -124,7 +135,8 @@ class _ResetPasswordState extends State<ResetPassword> {
                     },
                     onChanged: viewModel.setConfirmPassword,
                     obscureText: !_isPasswordVisible,
-                    decoration: inputPasswordDecoration("Confirm New password"),
+                    decoration:
+                        inputPasswordDecoration("konfirmasi password baru"),
                   ),
                   const SizedBox(
                     height: 30,
@@ -137,21 +149,31 @@ class _ResetPasswordState extends State<ResetPassword> {
                                 borderRadius: BorderRadius.circular(5)),
                             backgroundColor: Colors.white),
                         onPressed: () {
+                          setState(() {
+                            loading = true;
+                          });
                           if (formKey.currentState!.validate()) {
                             viewModel.changePassword(widget.token);
                             if (viewModel.errorMsg != null) {
                               Fluttertoast.showToast(
                                   msg: viewModel.errorMsg.toString());
-                            }else{
-                              Fluttertoast.showToast(msg:"Password berhasil diganti!");
+                            } else {
+                              Fluttertoast.showToast(
+                                  msg: "Password berhasil diganti!");
+
                               goToLoginScreen();
                             }
+                            setState(() {
+                              loading = false;
+                            });
                           }
                         },
-                        child: const Text(
+                        child: Text(
                           "Ganti Password",
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 20),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14.sp,
+                          ),
                         )),
                   ),
                 ]),
@@ -179,9 +201,11 @@ class _ResetPasswordState extends State<ResetPassword> {
             borderRadius: BorderRadius.all(Radius.circular(10))));
   }
 
-  goToLoginScreen(){
-     Navigator.pushAndRemoveUntil(
-        context, MaterialPageRoute(builder: (context) => LoginScreen()),
-        (route) => false,);
+  goToLoginScreen() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+      (route) => false,
+    );
   }
 }

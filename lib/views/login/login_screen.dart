@@ -176,7 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Text(
                             "Login",
                             style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16.sp),
+                                fontWeight: FontWeight.bold, fontSize: 14.sp),
                           )),
                     ),
                     const SizedBox(

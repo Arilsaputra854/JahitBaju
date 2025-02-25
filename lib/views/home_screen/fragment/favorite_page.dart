@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/model/favorite.dart';
@@ -36,7 +37,7 @@ class _HomePageState extends State<FavoritePage> {
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Text(
                 "Favorite",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.sp),
               ),
             ),
             SizedBox(height: 5),
@@ -55,14 +56,16 @@ class _HomePageState extends State<FavoritePage> {
                       } else {
                         return Container(
                           child: Center(
-                            child: Text("Tidak ada produk."),
+                            child: Text("Tidak ada produk.",style:  TextStyle(
+                                                    fontSize: 12.sp),),
                           ),
                         );
                       }
                     } else {
                       return Container(
                         child: Center(
-                          child: Text("Tidak ada produk."),
+                          child: Text("Tidak ada produk.",style:  TextStyle(
+                                                    fontSize: 12.sp),),
                         ),
                       );
                     }
@@ -226,22 +229,22 @@ class _HomePageState extends State<FavoritePage> {
                                             children: [
                                               Text(
                                                 product.name,
-                                                style: const TextStyle(
+                                                style:  TextStyle(
                                                     fontWeight: FontWeight.bold,
-                                                    fontSize: 16),
+                                                    fontSize: 14.sp),
                                               ),
                                               Text(
                                                 convertToRupiah(product.price),
-                                                style: const TextStyle(
-                                                    fontSize: 15),
+                                                style:  TextStyle(
+                                                    fontSize: 12.sp),
                                               ),
                                               SizedBox(height: 5),
                                               Text(
                                                 product.description,   
                                                 maxLines: 2, // Batas jumlah baris yang ditampilkan
               overflow: TextOverflow.ellipsis,                                             
-                                                style: const TextStyle(
-                                                    fontSize: 12),
+                                                style:  TextStyle(
+                                                    fontSize: 12.sp),
                                               ),
                                               Row(
                                                 mainAxisAlignment:

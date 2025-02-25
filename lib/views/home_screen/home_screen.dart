@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:jahit_baju/viewmodels/home_screen_view_model.dart';
 import 'package:jahit_baju/views/cart_screen/cart_screen.dart';
 import 'package:jahit_baju/views/home_screen/fragment/favorite_page.dart';
@@ -67,6 +68,8 @@ Widget build(BuildContext context) {
       onTap: onItemTapped,
       type: BottomNavigationBarType.fixed,
       currentIndex: _indexPage,
+      selectedLabelStyle: TextStyle(fontSize: 12.sp),
+      unselectedFontSize: 10.sp,
       items: [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
         BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),

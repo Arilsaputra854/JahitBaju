@@ -998,7 +998,7 @@ class _ProductScreenState extends State<ProductScreen> {
                 return Text(
                   snapshot.data!,
                   style: TextStyle(
-                    fontSize: 12.sp,
+                    fontSize: 14.sp,
                   ),
                 );
               } else {
@@ -1040,7 +1040,7 @@ class _ProductScreenState extends State<ProductScreen> {
                 return Text(
                   snapshot.data!,
                   style: TextStyle(
-                    fontSize: 12.sp,
+                    fontSize: 14.sp,
                   ),);
               } else {
                 return Center(
@@ -1228,7 +1228,7 @@ class _ProductScreenState extends State<ProductScreen> {
         Text(
           widget.product.description,
           style: TextStyle(
-            fontSize: 15.sp,
+            fontSize: 14.sp,
           ),
         )
       ],
@@ -1258,7 +1258,7 @@ class _ProductScreenState extends State<ProductScreen> {
               return Text(
                 "-${widget.product.materials![index]}",
                 style: TextStyle(
-                  fontSize: 15.sp,
+                  fontSize: 14.sp,
                 ),
               );
             },
