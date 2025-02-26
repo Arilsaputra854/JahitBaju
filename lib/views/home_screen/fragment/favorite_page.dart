@@ -9,7 +9,7 @@ import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/data/source/remote/response/favorite_response.dart';
 import 'package:jahit_baju/data/source/remote/response/product_response.dart';
 import 'package:jahit_baju/util/util.dart';
-import 'package:jahit_baju/views/product_screen/product_screen.dart';
+import 'package:jahit_baju/views/product_screen/rtw_product_screen.dart';
 import 'package:shimmer/shimmer.dart';
 
 class FavoritePage extends StatefulWidget {
@@ -163,37 +163,12 @@ class _HomePageState extends State<FavoritePage> {
                                               bottomLeft: Radius.circular(8)),
                                           child: AspectRatio(
                                               aspectRatio: 4 / 5,
-                                              child: product.type ==
-                                                      Product.READY_TO_WEAR
-                                                  ? CachedNetworkImage(
+                                              child: CachedNetworkImage(
                                                       imageUrl: product
                                                           .imageUrl.first,
                                                       fit: BoxFit.cover,
                                                       placeholder:
                                                           (context, url) {
-                                                        return Shimmer
-                                                            .fromColors(
-                                                                baseColor:
-                                                                    Colors.grey[
-                                                                        300]!,
-                                                                highlightColor:
-                                                                    Colors.grey[
-                                                                        100]!,
-                                                                child:
-                                                                    Container(
-                                                                  width: double
-                                                                      .infinity,
-                                                                  height: double
-                                                                      .infinity,
-                                                                  color: Colors
-                                                                      .grey,
-                                                                ));
-                                                      },
-                                                    )
-                                                  : SvgPicture.network(
-                                                      product.imageUrl.first,
-                                                      placeholderBuilder:
-                                                          (context) {
                                                         return Shimmer
                                                             .fromColors(
                                                                 baseColor:

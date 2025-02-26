@@ -4,7 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:jahit_baju/data/model/look.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/data/source/remote/response/look_response.dart';
 import 'package:jahit_baju/helper/app_color.dart';
 import 'package:jahit_baju/data/model/order.dart';
 import 'package:jahit_baju/data/model/product.dart';
@@ -12,7 +14,9 @@ import 'package:jahit_baju/data/source/remote/response/order_response.dart';
 import 'package:jahit_baju/data/source/remote/response/product_response.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/views/payment_screen/payment_screen.dart';
+import 'package:logger/web.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../detail_order_screen/detail_order_screen.dart';
 
@@ -25,10 +29,12 @@ class HistoryPage extends StatefulWidget {
 
 class _HistoryPageState extends State<HistoryPage> {
   var deviceWidth, deviceHeight;
+  late ApiService apiService;
   List<Order?> orders = [];
 
   @override
   Widget build(BuildContext context) {
+    apiService = ApiService(context);
     deviceWidth = MediaQuery.of(context).size.width;
     deviceHeight = MediaQuery.of(context).size.height;
 
@@ -44,7 +50,8 @@ class _HistoryPageState extends State<HistoryPage> {
               children: [
                 Text(
                   "Riwayat",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.sp),
+                  style:
+                      TextStyle(fontWeight: FontWeight.bold, fontSize: 20.sp),
                 ),
                 SizedBox(height: 5),
                 FutureBuilder(
@@ -98,10 +105,12 @@ class _HistoryPageState extends State<HistoryPage> {
                         return Container(
                           height: 100.h,
                           child: Center(
-                            child: Text("Tidak ada riwayat.",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.normal,
-                                        fontSize: 14.sp),),
+                            child: Text(
+                              "Tidak ada riwayat.",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.normal,
+                                  fontSize: 14.sp),
+                            ),
                           ),
                         );
                       }
@@ -111,12 +120,13 @@ class _HistoryPageState extends State<HistoryPage> {
                       return itemCartShimmer();
                     } else {
                       return Container(
-                          height: 100.h,
+                        height: 100.h,
                         child: Center(
-                            child: Text("Tidak ada riwayat.",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.normal,
-                                        fontSize: 14.sp),),
+                          child: Text(
+                            "Tidak ada riwayat.",
+                            style: TextStyle(
+                                fontWeight: FontWeight.normal, fontSize: 14.sp),
+                          ),
                         ),
                       );
                     }
@@ -132,32 +142,31 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   Map<String, List<Order?>> sortOrderWithDate(List<Order?> orders) {
-  Map<String, List<Order?>> sortedOrders = {};
+    Map<String, List<Order?>> sortedOrders = {};
 
-  for (var order in orders) {
-    if (order != null) {
-      String dateKey = DateFormat('yyyy-MM-dd').format(order.orderCreated);
+    for (var order in orders) {
+      if (order != null) {
+        String dateKey = DateFormat('yyyy-MM-dd').format(order.orderCreated);
 
-      if (!sortedOrders.containsKey(dateKey)) {
-        sortedOrders[dateKey] = [];
+        if (!sortedOrders.containsKey(dateKey)) {
+          sortedOrders[dateKey] = [];
+        }
+        sortedOrders[dateKey]!.add(order);
       }
-      sortedOrders[dateKey]!.add(order);
     }
+
+    // Urutkan setiap grup berdasarkan orderCreated secara descending
+    for (var entry in sortedOrders.entries) {
+      entry.value.sort((a, b) => b!.orderCreated.compareTo(a!.orderCreated));
+    }
+
+    // Urutkan tanggal secara descending
+    Map<String, List<Order?>> sortedDescending = Map.fromEntries(
+      sortedOrders.entries.toList()..sort((a, b) => b.key.compareTo(a.key)),
+    );
+
+    return sortedDescending;
   }
-
-  // Urutkan setiap grup berdasarkan orderCreated secara descending
-  for (var entry in sortedOrders.entries) {
-    entry.value.sort((a, b) => b!.orderCreated.compareTo(a!.orderCreated));
-  }
-
-  // Urutkan tanggal secara descending
-  Map<String, List<Order?>> sortedDescending = Map.fromEntries(
-    sortedOrders.entries.toList()..sort((a, b) => b.key.compareTo(a.key)),
-  );
-
-  return sortedDescending;
-}
-
 
   Widget itemCartShimmer() {
     return ListView.builder(
@@ -216,8 +225,7 @@ class _HistoryPageState extends State<HistoryPage> {
             borderRadius: BorderRadius.circular(8), color: Colors.white),
         child: InkWell(
             onTap: () {
-              
-                _goToDetailOrderScreen(order);
+              _goToDetailOrderScreen(order);
             },
             child: Card(
                 color: Colors.white,
@@ -227,11 +235,11 @@ class _HistoryPageState extends State<HistoryPage> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
@@ -252,121 +260,230 @@ class _HistoryPageState extends State<HistoryPage> {
                                 : Container()
                           ],
                         ),
-                    ListView.builder(
-                        physics: NeverScrollableScrollPhysics(),
-                        itemCount: order.items.length,
-                        shrinkWrap: true,
-                        itemBuilder: (context, index) {
-                          return FutureBuilder<Product?>(
-                              future: getProduct(order.items[index].productId),
-                              builder: (context, snapshot) {
-                                if (snapshot.hasData) {
-                                  Product product = snapshot.data!;
-                                  return Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                          height: 120.h,
-                                          padding: const EdgeInsets.all(5),
-                                          color: Colors.white,
-                                          child: ClipRRect(
-                                              borderRadius:
-                                                  const BorderRadius.only(
-                                                      topLeft:
-                                                          Radius.circular(8),
-                                                      bottomLeft:
-                                                          Radius.circular(8)),
-                                              child: AspectRatio(
-                                                  aspectRatio: 4 / 5,
-                                                  child:
-                                                      CachedNetworkImage(
-                                                              imageUrl: product
-                                                                  .imageUrl
-                                                                  .first,
-                                                              fit: BoxFit.cover,
-                                                              placeholder:
-                                                                  (context,
-                                                                      url) {
-                                                                return Shimmer
-                                                                    .fromColors(
-                                                                        baseColor:
-                                                                            Colors.grey[
-                                                                                300]!,
-                                                                        highlightColor:
-                                                                            Colors.grey[
-                                                                                100]!,
-                                                                        child:
-                                                                            Container(
-                                                                          width:
-                                                                              double.infinity,
-                                                                          height:
-                                                                              double.infinity,
-                                                                          color:
-                                                                              Colors.grey,
-                                                                        ));
-                                                              },
-                                                            )))),
-                                      Expanded(
-                                        child: Container(
-                                          color: Colors.white,
-                                          margin: const EdgeInsets.all(10),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.start,
-                                            children: [
-                                              Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    product.name,
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 14.sp),
-                                                  ),
-                                                  Text(
-                                                    '${order.items[index].size}',
-                                                    style: TextStyle(
-                                                        fontSize: 14.sp),
-                                                  )
-                                                ],
+                        ListView.builder(
+                            physics: NeverScrollableScrollPhysics(),
+                            itemCount: order.items.length,
+                            shrinkWrap: true,
+                            itemBuilder: (context, index) {
+                              if (order.items[index].lookId != null) {
+                                return FutureBuilder<Look?>(
+                                    future: getLook(order.items[index].lookId!),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasData) {
+                                        Look look = snapshot.data!;
+                                        return Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                                height: 120.h,
+                                                padding:
+                                                    const EdgeInsets.all(5),
+                                                color: Colors.white,
+                                                child: ClipRRect(
+                                                    borderRadius:
+                                                        const BorderRadius.only(
+                                                            topLeft:
+                                                                Radius.circular(
+                                                                    8),
+                                                            bottomLeft:
+                                                                Radius.circular(
+                                                                    8)),
+                                                    child: AspectRatio(
+                                                        aspectRatio: 4 / 5,
+                                                        child:
+                                                            FutureBuilder(future: apiService.getCustomDesign(order.items[index].customDesign!), builder: (context, snapshot) {
+                                                              if(snapshot.hasData){
+                                                                return svgViewer(snapshot.data!['data']);                                                                
+                                                              }
+
+                                                              return Shimmer
+                                                                .fromColors(
+                                                                    baseColor:
+                                                                        Colors.grey[
+                                                                            300]!,
+                                                                    highlightColor:
+                                                                        Colors.grey[
+                                                                            100]!,
+                                                                    child:
+                                                                        Container(
+                                                                      width: double
+                                                                          .infinity,
+                                                                      height: double
+                                                                          .infinity,
+                                                                      color: Colors
+                                                                          .grey,
+                                                                    ));
+                                                            },)
+                                                        ))),
+                                            Expanded(
+                                              child: Container(
+                                                color: Colors.white,
+                                                margin:
+                                                    const EdgeInsets.all(10),
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.start,
+                                                  children: [
+                                                    Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          look.name,
+                                                          style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize: 14.sp),
+                                                        ),
+                                                        Text(
+                                                          '${order.items[index].size}',
+                                                          style: TextStyle(
+                                                              fontSize: 14.sp),
+                                                        )
+                                                      ],
+                                                    ),
+                                                    Text(
+                                                      "${order.items[index].quantity} pcs",
+                                                      style: TextStyle(
+                                                          fontSize: 12.sp,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
-                                              Text(
-                                                "${order.items[index].quantity} pcs",
-                                                style: TextStyle(
-                                                    fontSize: 12.sp,
-                                                    fontWeight:
-                                                        FontWeight.bold),
+                                            )
+                                          ],
+                                        );
+                                      } else if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return itemCartShimmer();
+                                      } else {
+                                        return Container();
+                                      }
+                                    });
+                              } else {
+                                return FutureBuilder<Product?>(
+                                    future: getProduct(
+                                        order.items[index].productId!),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasData) {
+                                        Product product = snapshot.data!;
+                                        return Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                                height: 120.h,
+                                                padding:
+                                                    const EdgeInsets.all(5),
+                                                color: Colors.white,
+                                                child: ClipRRect(
+                                                    borderRadius:
+                                                        const BorderRadius.only(
+                                                            topLeft:
+                                                                Radius.circular(
+                                                                    8),
+                                                            bottomLeft:
+                                                                Radius.circular(
+                                                                    8)),
+                                                    child: AspectRatio(
+                                                        aspectRatio: 4 / 5,
+                                                        child:
+                                                            CachedNetworkImage(
+                                                          imageUrl: product
+                                                              .imageUrl.first,
+                                                          fit: BoxFit.cover,
+                                                          placeholder:
+                                                              (context, url) {
+                                                            return Shimmer
+                                                                .fromColors(
+                                                                    baseColor:
+                                                                        Colors.grey[
+                                                                            300]!,
+                                                                    highlightColor:
+                                                                        Colors.grey[
+                                                                            100]!,
+                                                                    child:
+                                                                        Container(
+                                                                      width: double
+                                                                          .infinity,
+                                                                      height: double
+                                                                          .infinity,
+                                                                      color: Colors
+                                                                          .grey,
+                                                                    ));
+                                                          },
+                                                        )))),
+                                            Expanded(
+                                              child: Container(
+                                                color: Colors.white,
+                                                margin:
+                                                    const EdgeInsets.all(10),
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.start,
+                                                  children: [
+                                                    Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          product.name,
+                                                          style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize: 14.sp),
+                                                        ),
+                                                        Text(
+                                                          '${order.items[index].size}',
+                                                          style: TextStyle(
+                                                              fontSize: 14.sp),
+                                                        )
+                                                      ],
+                                                    ),
+                                                    Text(
+                                                      "${order.items[index].quantity} pcs",
+                                                      style: TextStyle(
+                                                          fontSize: 12.sp,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
-                                            ],
-                                          ),
-                                        ),
-                                      )
-                                    ],
-                                  );
-                                } else if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return itemCartShimmer();
-                                } else {
-                                  return Container();
-                                }
-                              });
-                        }),                    
-                    Text(
-                      convertToRupiah(order.totalPrice),
-                      style: TextStyle(fontSize: 14.sp),
-                    ),
-                    Text(
-                      "${order.orderStatus}",
-                      style: TextStyle(
-                          fontSize: 12.sp, fontWeight: FontWeight.bold),
-                    )
-                  ],
-                )))));
+                                            )
+                                          ],
+                                        );
+                                      } else if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return itemCartShimmer();
+                                      } else {
+                                        return Container();
+                                      }
+                                    });
+                              }
+                            }),
+                        Text(
+                          convertToRupiah(order.totalPrice),
+                          style: TextStyle(fontSize: 14.sp),
+                        ),
+                        Text(
+                          "${order.orderStatus}",
+                          style: TextStyle(
+                              fontSize: 12.sp, fontWeight: FontWeight.bold),
+                        )
+                      ],
+                    )))));
   }
 
   Future<List<Order?>> getOrder() async {
@@ -381,6 +498,16 @@ class _HistoryPageState extends State<HistoryPage> {
     }
   }
 
+  Future<Look?> getLook(String lookId) async {
+    ApiService apiService = ApiService(context);
+    LookResponse response = await apiService.getLookGetById(lookId);
+    if (response.error) {
+      Fluttertoast.showToast(msg: response.message!);
+    } else {
+      return response.look!;
+    }
+  }
+
   Future<Product?> getProduct(String productId) async {
     ApiService apiService = ApiService(context);
     ProductResponse response = await apiService.productsGetById(productId);
@@ -390,7 +517,6 @@ class _HistoryPageState extends State<HistoryPage> {
       return response.product!;
     }
   }
-
 
   _deleteOrder(String? id) async {
     ApiService apiService = ApiService(context);

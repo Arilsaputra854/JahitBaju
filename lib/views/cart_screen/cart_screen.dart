@@ -4,14 +4,16 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:jahit_baju/data/model/look.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/data/source/remote/response/look_response.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
 import 'package:jahit_baju/viewmodels/cart_view_model.dart';
 import 'package:jahit_baju/data/model/cart.dart';
 import 'package:jahit_baju/data/model/order.dart';
 import 'package:jahit_baju/data/model/product.dart';
 import 'package:jahit_baju/util/util.dart';
-import 'package:jahit_baju/views/product_screen/product_screen.dart';
+import 'package:jahit_baju/views/product_screen/rtw_product_screen.dart';
 import 'package:jahit_baju/views/shipping_screen/shipping_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
@@ -76,7 +78,7 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   //widget setiap item di cart
-  Widget _buildCartItem(CartItem cartItem, Product item) {
+  Widget _buildCartItemRTW(CartItem cartItem, Product item) {
     return Container(
         width: deviceWidth,
         margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
@@ -103,7 +105,7 @@ class _CartScreenState extends State<CartScreen> {
                               bottomLeft: Radius.circular(8)),
                           child: AspectRatio(
                               aspectRatio: 4 / 5,
-                              child: item.type == Product.READY_TO_WEAR
+                              child: cartItem.productId != null
                                   ? CachedNetworkImage(
                                       imageUrl: item.imageUrl.first,
                                       fit: BoxFit.cover,
@@ -185,6 +187,103 @@ class _CartScreenState extends State<CartScreen> {
             )));
   }
 
+
+  //widget setiap item di cart
+  Widget _buildCartItemCustom(CartItem cartItem, Look item) {
+    return Container(
+        width: deviceWidth,
+        margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8), color: Colors.white),
+        child: InkWell(
+            onTap: () {},
+            child: Card(
+              color: Colors.white,
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                      height: deviceWidth * 0.3,
+                      padding: const EdgeInsets.all(5),
+                      color: Colors.white,
+                      child: ClipRRect(
+                          borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(8),
+                              bottomLeft: Radius.circular(8)),
+                          child: AspectRatio(
+                              aspectRatio: 4 / 5,
+                              child:  FutureBuilder(
+                                      future: apiService.getCustomDesign(
+                                          cartItem.customDesign!),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return Center(
+                                            child: CircularProgressIndicator(),
+                                          );
+                                        }
+
+                                        return svgViewer(
+                                            snapshot.data!['data']);
+                                      },
+                                    )))),
+                  Expanded(
+                    child: Container(
+                      color: Colors.white,
+                      margin: const EdgeInsets.all(10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.name,
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 14.sp),
+                              ),
+                              Text(
+                                convertToRupiah(item.price),
+                                style: TextStyle(fontSize: 12.sp),
+                              ),
+                              Text(
+                                '${cartItem.size}',
+                                style: TextStyle(fontSize: 12.sp),
+                              )
+                            ],
+                          ),
+                          Container(
+                              padding: const EdgeInsets.all(3),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "${cartItem.quantity} pcs",
+                                    style: TextStyle(
+                                        fontSize: 12.sp,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  IconButton(
+                                      onPressed: () => deleteCartItem(cartItem),
+                                      icon: Icon(Icons.delete_rounded,size: 16.w,))
+                                ],
+                              ))
+                        ],
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            )));
+  }
+
+
   Widget itemCartShimmer() {
     return ListView.builder(
       physics: const NeverScrollableScrollPhysics(),
@@ -256,7 +355,7 @@ class _CartScreenState extends State<CartScreen> {
     }
   }
 
-  Widget _body(var viewModel) {
+  Widget _body(CartViewModel viewModel) {
     return FutureBuilder(
         future: viewModel.getCart(),
         builder: (context, snapshot) {
@@ -282,7 +381,7 @@ class _CartScreenState extends State<CartScreen> {
                       const SizedBox(height: 10),
                       FutureBuilder<List<MapEntry<CartItem, Product>>?>(
                         future: viewModel.getCartItems(
-                            cart?.items, Product.READY_TO_WEAR),
+                            cart?.items),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
@@ -299,7 +398,7 @@ class _CartScreenState extends State<CartScreen> {
                                 CartItem cartItem = entry.key;
                                 Product product = entry.value;
 
-                                return _buildCartItem(cartItem, product);
+                                return _buildCartItemRTW(cartItem, product);
                               },
                             );
                           } else {
@@ -319,9 +418,9 @@ class _CartScreenState extends State<CartScreen> {
                             fontWeight: FontWeight.bold, fontSize: 16.sp),
                       ),
                       const SizedBox(height: 10),
-                      FutureBuilder<List<MapEntry<CartItem, Product>>?>(
+                      FutureBuilder<List<MapEntry<CartItem, Look>>?>(
                         future:
-                            viewModel.getCartItems(cart?.items, Product.CUSTOM),
+                            viewModel.getLooksCartItems(cart?.items),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
@@ -330,7 +429,7 @@ class _CartScreenState extends State<CartScreen> {
                           if (snapshot.hasError) {
                             return itemCartShimmer();
                           } else if (snapshot.data != null) {
-                            List<MapEntry<CartItem, Product>>? data =
+                            List<MapEntry<CartItem, Look>>? data =
                                 snapshot.data;
 
                             return ListView.builder(
@@ -340,9 +439,9 @@ class _CartScreenState extends State<CartScreen> {
                               itemBuilder: (context, index) {
                                 var entry = snapshot.data![index];
                                 CartItem cartItem = entry.key;
-                                Product product = entry.value;
+                                Look product = entry.value;
 
-                                return _buildCartItem(cartItem, product);
+                                return _buildCartItemCustom(cartItem, product);
                               },
                             );
                           } else {
@@ -412,4 +511,5 @@ class _CartScreenState extends State<CartScreen> {
           );
         });
   }
+
 }

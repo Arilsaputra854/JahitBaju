@@ -23,7 +23,7 @@ class ShippingViewModel extends ChangeNotifier {
     } else if (data is String) {
       _errorMsg = data;
     } else {
-      return null;
+      return [];
     }
   }
 
@@ -46,7 +46,7 @@ class ShippingViewModel extends ChangeNotifier {
     } else if (data is String) {
       _errorMsg = data as String?;
     } else {
-      return null;
+      return [];
     }
   }
 
@@ -64,11 +64,11 @@ class ShippingViewModel extends ChangeNotifier {
     return null;
   }
 
-  Future<Order?> buyNow(Order? order) async {
+  Future<Order?> buyNow(Order? order, String? filename) async {
     
     if (order != null) {
 
-      OrderResponse orderResponse = await apiService.buyNow(order);
+      OrderResponse orderResponse = await apiService.buyNow(order,filename: filename);
       if (orderResponse.error) {        
         _errorMsg = orderResponse.message;
         return null;

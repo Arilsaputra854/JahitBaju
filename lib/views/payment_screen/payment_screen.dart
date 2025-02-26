@@ -202,19 +202,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisSize: MainAxisSize.min, // Card akan menyesuaikan ukuran dengan konten
           children: [
+                SizedBox(height: 20.h,),
             Image.asset(
               "assets/logo/jahit_baju_logo.png",
-              width: deviceHeight * 0.1,
+              width: 80.h,
             ),
             SizedBox(height: 25),
             Text(
               "Pembayaran Berhasil!",
-              style: TextStyle(fontWeight: FontWeight.normal, fontSize: 16),
+              style: TextStyle(fontWeight: FontWeight.normal, fontSize: 14.sp),
             ),
             SizedBox(height: 5),
             Text(
               "${convertToRupiah(paidOrder?.totalPrice)}",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
             ),
             SizedBox(height: 15),
             Padding(padding: EdgeInsets.only(left: 20, right: 20),child: Divider(),),
@@ -226,8 +227,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Order ID:", style: TextStyle(fontSize: 14)),
-                    Text("${paidOrder?.id ?? ""}", style: TextStyle(fontSize: 12)),
+                    Text("Order ID:", style: TextStyle(fontSize: 12.sp)),
+                    Text("${paidOrder?.id ?? ""}", style: TextStyle(fontSize: 12.sp)),
                   ],
                 ),
                 SizedBox(height: 8),
@@ -235,8 +236,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Tanggal pembayaran:", style: TextStyle(fontSize: 14)),
-                    Text("${paidOrder?.paymentDate}", style: TextStyle(fontSize: 12)),
+                    Text("Tanggal pembayaran:", style: TextStyle(fontSize: 12.sp)),
+                    Text("${paidOrder?.paymentDate}", style: TextStyle(fontSize: 12.sp)),
                   ],
                 ),
                 SizedBox(height: 8),
@@ -244,8 +245,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Status Pembayaran:", style: TextStyle(fontSize: 14)),
-                    Text("${paidOrder?.xenditStatus ?? "-"}", style: TextStyle(fontSize: 12)),
+                    Text("Status Pembayaran:", style: TextStyle(fontSize: 12.sp)),
+                    Text("${paidOrder?.xenditStatus ?? "-"}", style: TextStyle(fontSize: 12.sp)),
                   ],
                 ),
                 SizedBox(height: 8),
@@ -253,8 +254,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Metode pembayaran:", style: TextStyle(fontSize: 14)),
-                    Text("${paidOrder?.paymentMethod ?? "-"}", style: TextStyle(fontSize: 12)),
+                    Text("Metode pembayaran:", style: TextStyle(fontSize: 12.sp)),
+                    Text("${paidOrder?.paymentMethod ?? "-"}", style: TextStyle(fontSize: 12.sp)),
                   ],
                 ),
                 SizedBox(height: 20),
@@ -271,7 +272,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               },
               child: Text(
                 "Selesai",
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: Colors.white,fontSize: 12.sp),
               ),
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
@@ -279,7 +280,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 backgroundColor: Colors.red, // Latar belakang merah
                 padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30), // Padding agar tombol lebih besar
               ),
-            )
+            ),
+            SizedBox(height: 20.h,)
           ],
         ),
       ),

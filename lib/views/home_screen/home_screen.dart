@@ -45,8 +45,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
 Widget build(BuildContext context) {
-  //checkConnection(context);
-
   return Scaffold(
     appBar: AppBar(
       leading: Image.asset(

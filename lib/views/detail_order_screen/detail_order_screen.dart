@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:jahit_baju/data/model/look.dart';
 import 'package:jahit_baju/data/model/packaging.dart';
 import 'package:jahit_baju/data/model/shipping.dart';
+import 'package:jahit_baju/data/source/remote/response/look_response.dart';
 import 'package:jahit_baju/data/source/remote/response/packaging_response.dart';
 import 'package:jahit_baju/data/source/remote/response/shipping_response.dart';
 import 'package:jahit_baju/helper/app_color.dart';
@@ -452,9 +454,12 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
         itemCount: widget.order.items.length,
         shrinkWrap: true,
         itemBuilder: (context, index) {
-          return FutureBuilder<Product?>(
-              future: getProductById(
-                  widget.order.items[index].productId, ApiService(context)),
+          if(widget.order.items[index].customDesign != null){
+             
+
+                  return FutureBuilder<Look?>(
+              future: getLook(
+                  widget.order.items[index].customDesign!),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(
@@ -482,25 +487,7 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                                     bottomLeft: Radius.circular(8)),
                                 child: AspectRatio(
                                     aspectRatio: 4 / 5,
-                                    child: snapshot.data!.type ==
-                                            Product.READY_TO_WEAR
-                                        ? CachedNetworkImage(
-                                            imageUrl:
-                                                snapshot.data!.imageUrl.first,
-                                            fit: BoxFit.cover,
-                                            placeholder: (context, url) {
-                                              return Shimmer.fromColors(
-                                                  baseColor: Colors.grey[300]!,
-                                                  highlightColor:
-                                                      Colors.grey[100]!,
-                                                  child: Container(
-                                                    width: double.infinity,
-                                                    height: double.infinity,
-                                                    color: Colors.grey,
-                                                  ));
-                                            },
-                                          )
-                                        : FutureBuilder(
+                                    child: FutureBuilder(
                                             future: apiService.getCustomDesign(
                                                 widget.order.items[index]
                                                     .customDesign!),
@@ -569,8 +556,111 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                 } else {
                   return Text("Tidak dapat memuat detail produk.",
                                           style: TextStyle(
-                                              fontSize: 14.sp,
-                                              fontWeight: FontWeight.bold),);
+                                              fontSize: 12.sp,));
+                }
+              });
+        
+          }
+          return FutureBuilder<Product?>(
+              future: getProductById(
+                  widget.order.items[index].productId, ApiService(context)),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+                if (snapshot.hasData || snapshot.data != null) {
+                  
+                  return Card(
+                    color: Colors.white,
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(width: 2)),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                            height: 130.h,
+                            padding: const EdgeInsets.all(5),
+                            color: Colors.white,
+                            child: ClipRRect(
+                                borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(8),
+                                    bottomLeft: Radius.circular(8)),
+                                child: AspectRatio(
+                                    aspectRatio: 4 / 5,
+                                    child: CachedNetworkImage(
+                                            imageUrl:
+                                                snapshot.data!.imageUrl.first,
+                                            fit: BoxFit.cover,
+                                            placeholder: (context, url) {
+                                              return Shimmer.fromColors(
+                                                  baseColor: Colors.grey[300]!,
+                                                  highlightColor:
+                                                      Colors.grey[100]!,
+                                                  child: Container(
+                                                    width: double.infinity,
+                                                    height: double.infinity,
+                                                    color: Colors.grey,
+                                                  ));
+                                            },
+                                          )
+                                        ))),
+                        Expanded(
+                          child: Container(
+                            color: Colors.white,
+                            margin: const EdgeInsets.all(10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      snapshot.data?.name ?? "Nama Produk",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12.sp),
+                                    ),
+                                    Text(
+                                      convertToRupiah(
+                                          widget.order.items[index].price),
+                                      style:  TextStyle(fontSize: 12.sp),
+                                    ),
+                                    Text(
+                                      '${widget.order.items[index].size}',
+                                      style:  TextStyle(fontSize: 12.sp),
+                                    )
+                                  ],
+                                ),
+                                Container(
+                                    padding: const EdgeInsets.all(3),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "${widget.order.items[index].quantity} pcs",
+                                          style: TextStyle(
+                                              fontSize: 12.sp,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ))
+                              ],
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  );
+                } else {
+                  return Text("Tidak dapat memuat detail produk.",
+                                          style: TextStyle(
+                                              fontSize: 12.sp,));
                 }
               });
         });
@@ -709,4 +799,16 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
     }
     return null;
   }
+
+  Future<Look?> getLook(String lookId) async {
+    ApiService apiService = ApiService(context);
+    LookResponse response = await apiService.getLookGetById(lookId);
+    if (response.error) {
+      Fluttertoast.showToast(msg: response.message!);
+    } else {
+      return response.look!;
+    }
+  }
 }
+
+

@@ -48,7 +48,8 @@ class Cart {
 class CartItem {
   final String id;
   final String cartId;
-  final String productId;
+  final String? productId;
+  final String? lookId;
   final String size;
   final int quantity;
   final double price;
@@ -57,7 +58,8 @@ class CartItem {
   CartItem({
     required this.id,
     required this.cartId,
-    required this.productId,
+    this.productId,
+    this.lookId,
     required this.size,
     required this.quantity,
     required this.price,
@@ -70,6 +72,7 @@ class CartItem {
       id: json['id'],
       cartId: json['cart_id'],
       productId: json['product_id'],
+      lookId: json['look_id'],
       size: json['size'],
       quantity: json['quantity'],
       price: json['price'].toDouble(),
@@ -83,6 +86,7 @@ class CartItem {
       'id': id,
       'cartId': cartId,
       'productId': productId,
+      'look_id': lookId,
       'size': size,
       'quantity': quantity,
       'price': price,

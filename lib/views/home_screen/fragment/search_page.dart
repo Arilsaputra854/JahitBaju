@@ -12,7 +12,7 @@ import 'package:jahit_baju/data/model/product.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/viewmodels/search_view_model.dart';
 import 'package:jahit_baju/views/home_screen/fragment/home_page.dart';
-import 'package:jahit_baju/views/product_screen/product_screen.dart';
+import 'package:jahit_baju/views/product_screen/rtw_product_screen.dart';
 import 'package:logger/web.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
@@ -28,13 +28,10 @@ class _SearchPageState extends State<SearchPage> {
   var searchController = TextEditingController();
 
   List<Product>? productsRTW;
-  List<Product>? productsCustom;
   List<Product>? filteredRTW;
-  List<Product>? filteredCustom;
 
   Logger logger = Logger();
 
-  bool accessCustom = false;
   String? _selectedCategory;
   String? _selectedTags;
   String? _searchQuery;
@@ -154,8 +151,6 @@ class _SearchPageState extends State<SearchPage> {
                                           _selectedTags = null;
 
                                           filteredRTW = List.from(productsRTW!);
-                                          filteredCustom =
-                                              List.from(productsCustom!);
                                         });
                                       },
                                       child: Text(
@@ -180,20 +175,10 @@ class _SearchPageState extends State<SearchPage> {
                     // Menampilkan data atau place holder
                     List<Product>? products = snapshot.data;
 
-                    productsRTW = products
-                        ?.where(
-                            (product) => product.type == Product.READY_TO_WEAR)
-                        .toList();
-                    productsCustom = products
-                        ?.where((product) => product.type == Product.CUSTOM)
-                        .toList();
+                    productsRTW = products;
 
                     if (_selectedTags != null && _selectedTags!.isNotEmpty) {
                       filteredRTW = productsRTW
-                          ?.where((product) => product.tags
-                              .any((tag) => _selectedTags!.contains(tag)))
-                          .toList();
-                      filteredCustom = productsCustom
                           ?.where((product) => product.tags
                               .any((tag) => _selectedTags!.contains(tag)))
                           .toList();
@@ -211,26 +196,14 @@ class _SearchPageState extends State<SearchPage> {
                         }
                       }).toList();
 
-                      filteredCustom = productsCustom?.where((product) {
-                        if (product.category != null &&
-                            product.category!.isNotEmpty) {
-                          return product.category!.any((category) =>
-                              _selectedCategory!.contains(category));
-                        } else {
-                          return false;
-                        }
-                      }).toList();
                     }
 
                     if (filteredRTW == null)
-                      filteredRTW = List.from(productsRTW!);
-                    if (filteredCustom == null)
-                      filteredCustom = List.from(productsCustom!);
+                      filteredRTW = List.from(productsRTW!);                    
 
                     if ((_selectedCategory == null && _selectedTags == null) &&
                         _searchQuery == null) {
                       filteredRTW = List.from(productsRTW!);
-                      filteredCustom = List.from(productsCustom!);
                     }
 
                     return SingleChildScrollView(
@@ -255,16 +228,13 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   void filterProducts(String query) {
-    if (productsRTW != null && productsCustom != null) {
+    if (productsRTW != null) {
       setState(() {
         filteredRTW = productsRTW!
             .where((product) =>
                 product.name.toLowerCase().contains(query.toLowerCase()))
             .toList();
-        filteredCustom = productsCustom!
-            .where((product) =>
-                product.name.toLowerCase().contains(query.toLowerCase()))
-            .toList();
+
       });
     }
   }

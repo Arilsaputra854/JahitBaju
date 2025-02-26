@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:jahit_baju/data/model/look.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/data/source/remote/response/look_response.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
 import 'package:jahit_baju/data/model/cart.dart';
 import 'package:jahit_baju/data/model/product.dart';
@@ -34,17 +36,15 @@ class CartViewModel extends ChangeNotifier {
   }
 
   Future<List<MapEntry<CartItem, Product>>?> getCartItems(
-      List<CartItem>? cartItems, int type) async {
+      List<CartItem>? cartItems) async {
     List<MapEntry<CartItem, Product>> result = [];
 
     if (cartItems != null) {
       for (var cartItem in cartItems) {
         try {
-          Product? product = await getProductById(cartItem.productId);
-          if (product != null) {
-            if (product!.type == type) {
+          Product? product = await getProductById(cartItem.productId!);
+          if (product != null) {            
               result.add(MapEntry(cartItem, product));
-            }
           }else{
             _errorMsg = "Terjadi Kesalahan";
           }
@@ -55,5 +55,38 @@ class CartViewModel extends ChangeNotifier {
     }
 
     return result.isNotEmpty ? result : null;
+  }
+
+
+  Future<List<MapEntry<CartItem, Look>>?> getLooksCartItems(
+      List<CartItem>? cartItems) async {
+    List<MapEntry<CartItem, Look>> result = [];
+
+    if (cartItems != null) {
+      for (var cartItem in cartItems) {
+        try {
+          Look? look = await getLook(cartItem.lookId!);
+          if (look != null) {            
+              result.add(MapEntry(cartItem, look));
+          }else{
+            _errorMsg =  ApiService.SOMETHING_WAS_WRONG;
+          }
+        } catch (e) {
+          _errorMsg = "Error fetching product ${cartItem.productId}: $e";
+        }
+      }
+    }
+
+    return result.isNotEmpty ? result : null;
+  }
+
+
+  Future<Look?> getLook(String lookId) async {
+    LookResponse response = await apiService.getLookGetById(lookId);
+    if (response.error) {
+            _errorMsg =  ApiService.SOMETHING_WAS_WRONG;
+    } else {
+      return response.look!;
+    }
   }
 }

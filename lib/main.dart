@@ -4,6 +4,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:jahit_baju/data/repository/repository.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/viewmodels/cart_view_model.dart';
+import 'package:jahit_baju/viewmodels/designer_view_model.dart';
 import 'package:jahit_baju/viewmodels/forgot_password_view_model.dart';
 import 'package:jahit_baju/viewmodels/home_screen_view_model.dart';
 import 'package:jahit_baju/viewmodels/home_view_model.dart';
@@ -29,9 +30,10 @@ void main() async {
     ChangeNotifierProvider(create: (context) => SearchViewModel(Repository(ApiService(context)))),
     ChangeNotifierProvider(create: (context) => ShippingViewModel(ApiService(context))),
     ChangeNotifierProvider(create: (context) => HomeScreenViewModel(ApiService(context))),
+    ChangeNotifierProvider(create: (context) => DesignerViewModel(ApiService(context))),
   ],
   child: ScreenUtilInit(
-    designSize: Size(360, 640), // Replace with your design dimensions
+    designSize: Size(360, 640),
     builder: (context, child) => const MyApp(),)));
 }
 

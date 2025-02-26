@@ -4,9 +4,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
+import 'package:jahit_baju/data/model/look.dart';
 import 'package:jahit_baju/data/source/remote/response/app_banner_response.dart';
 import 'package:jahit_baju/data/source/remote/response/care_guide_response.dart';
 import 'package:jahit_baju/data/source/remote/response/custom_design_response.dart';
+import 'package:jahit_baju/data/source/remote/response/designer_response.dart';
+import 'package:jahit_baju/data/source/remote/response/look_response.dart';
 import 'package:jahit_baju/data/source/remote/response/packaging_response.dart';
 import 'package:jahit_baju/data/source/remote/response/product_note_response.dart';
 import 'package:jahit_baju/data/source/remote/response/product_term_response.dart';
@@ -31,14 +34,14 @@ import 'package:logger/web.dart';
 import 'package:http_parser/http_parser.dart';  
 
 import '../../../util/util.dart';
+import 'response/cart_response.dart';
 import 'response/term_condition_response.dart';
 import 'response/user_response.dart';
 
 class ApiService {
-  // final String baseUrl =
-  //     "https://bonefish-supreme-sculpin.ngrok-free.app/api/";
   final String baseUrl =
     "http://192.168.1.156:3000/api/";
+    
   TokenStorage tokenStorage = TokenStorage();
   Logger logger = Logger();
   final BuildContext context;
@@ -343,7 +346,7 @@ class ApiService {
   }
 
 
-  Future<OrderResponse> buyNow(Order order) async {
+  Future<OrderResponse> buyNow(Order order,{String? filename}) async {
     final url = Uri.parse("${baseUrl}order");
 
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
@@ -355,13 +358,14 @@ class ApiService {
           'Content-Type': 'application/json',
           'Authorization': '${token}'
         },
-        body: jsonEncode(<String, dynamic>{
+        body: order.look != null ? jsonEncode(<String, dynamic>{
           'packaging_price': order.packagingPrice,
           'shipping_price':order.shippingPrice,
           'custom_price': order.customPrice,
           'rtw_price': order.rtwPrice,
           'discount': order.discount,
-          'product_id': order.product!.id,
+          'look_id': order.look?.id,
+          'custom_design' : filename,
           'quantity': order.quantity,
           'total_price': order.totalPrice,
           'size': order.size,
@@ -369,14 +373,27 @@ class ApiService {
           'shipping_id': order.shippingId,
           'packaging_id': order.packagingId,
           'description' : order.description!.isNotEmpty ? order.description : null
-        }),
+        }) : jsonEncode(<String, dynamic>{          
+          'packaging_price': order.packagingPrice,
+          'shipping_price':order.shippingPrice,
+          'custom_price': order.customPrice,
+          'rtw_price': order.rtwPrice,
+          'discount': order.discount,
+          'product_id': order.product?.id,
+          'quantity': order.quantity,
+          'total_price': order.totalPrice,
+          'size': order.size,
+          'order_status': order.orderStatus,
+          'shipping_id': order.shippingId,
+          'packaging_id': order.packagingId,
+          'description' : order.description!.isNotEmpty ? order.description : null
+        })
       );
 
       var data = jsonDecode(response.body);
-      logger.d("Order now : ${data}");
       OrderResponse orderResponse = OrderResponse.fromJson(data);
       logger.d("Order now : ${data}");
-      return OrderResponse.fromJson(data);
+      return orderResponse;
     } on SocketException catch (e){
       showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
 
@@ -393,11 +410,12 @@ class ApiService {
 
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
-    try {
-      final response = await http.get(url, headers: <String, String>{
+    final response = await http.get(url, headers: <String, String>{
         'Content-Type': 'application/json',
         'Authorization': '${token}'
       });
+
+    try {
 
       var data = jsonDecode(response.body);
       logger.d("Cart Get : ${data}");
@@ -410,6 +428,7 @@ class ApiService {
         message = data["message"] ?? "Unknown error occurred";
         return message;
       }
+
     } on SocketException catch (e){
       showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
 
@@ -421,12 +440,13 @@ class ApiService {
     }
   }
 
-  Future<dynamic> cartAdd(
-    Product product, int quantity, String selectedSize, String? customDesignSvg) async {
+  Future<CartResponse> cartAdd(int quantity, String selectedSize, String? customDesignSvg,{Product? product,
+    Look? look}) async {
     final url = Uri.parse("${baseUrl}cart");
 
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
+    CartResponse cartResponse;
     try {
       final response = await http.post(
         url,
@@ -434,35 +454,40 @@ class ApiService {
           'Content-Type': 'application/json',
           'Authorization': '${token}'
         },
-        body: jsonEncode(<String, dynamic>{
-          'product_id': product.id,
+        body: look != null?  jsonEncode(<String, dynamic>{
+          'look_id': look.id,
+          'quantity': quantity,
+          'price': look.price,
+          'size': selectedSize,
+          'custom_design' : customDesignSvg
+        }) : jsonEncode(<String, dynamic>{
+          'product_id': product!.id,
           'quantity': quantity,
           'price': product.price,
           'size': selectedSize,
-          'custom_design' : customDesignSvg
         }),
       );
 
       var data = jsonDecode(response.body);
       logger.d("Cart Add : ${data}");
 
-      dynamic message;
       if (response.statusCode == 200) {
-        message = data["message"];
-        return message;
-      } else {
-        message = data["message"] ?? "Unknown error occurred";
-        return message;
+        cartResponse = CartResponse.fromJson(data) ;
+      } else if(response.statusCode == 401){showDialogSession(context);
+        cartResponse = CartResponse(error: true,message: UNAUTHORIZED);        
+      }else{
+        cartResponse = CartResponse(error: true,message: SOMETHING_WAS_WRONG_SERVER);        
       }
     } on SocketException catch (e){
       showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
-      return NO_INTERNET_CONNECTION;
+      cartResponse = CartResponse(error: true,message: NO_INTERNET_CONNECTION);
     } catch (e) {
       logger.e("Cart Add : $e");
-      return "Network error : $e";
+      cartResponse = CartResponse(error: true,message: SOMETHING_WAS_WRONG);
     }
+    return cartResponse;
   }
 
   Future<dynamic> itemCartDelete(CartItem item) async {
@@ -643,7 +668,7 @@ class ApiService {
           'discount' : order.discount,
           'cart_id': order.cartId,                    
           'total_price': order.totalPrice,
-          'order_status': order.orderStatus
+          'order_status': order.orderStatus          
         }),
       );
 
@@ -760,6 +785,38 @@ class ApiService {
       return ProductResponse(error: true, message: "Network error : $e",product: null);
     }
   }
+
+
+  Future<LookResponse> getLookGetById(String lookId) async {
+    final url = Uri.parse("${baseUrl}designer/look?id=$lookId");
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+
+    LookResponse lookResponse;
+    try {
+      final response = await http.get(url, headers: <String, String>{
+        'Content-Type': 'application/json',
+        'Authorization': '${token}'
+      });
+
+      var data = jsonDecode(response.body);
+
+      logger.d("Get Product by ID : ${data}");
+      
+      lookResponse = LookResponse.fromJson(data);
+      
+    } on SocketException catch (e){
+      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+
+      logger.e("Get Favorite : Tidak ada koneksi internet");
+      
+      lookResponse = LookResponse(message:NO_INTERNET_CONNECTION, error: true);
+    } catch (e) {
+      logger.e("Get Product by ID : ${e}");
+      lookResponse =  LookResponse(error: true, message: "Network error : $e",);
+    }
+    return lookResponse;
+  }
+
 
   Future<ProductLatestResponse> productsGetByLastUpdate() async {
     final url = Uri.parse("${baseUrl}products/latest");
@@ -1153,5 +1210,44 @@ class ApiService {
     }
     return productNoteResponse;
   }
+
+
+  Future<DesignerResponse> getDesigner() async {
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+    var  url = Uri.parse("${baseUrl}designer");
+    
+    final response = await http.get(url,
+        headers: <String, String>{'Content-Type': 'application/json',
+        'Authorization': '$token',});
+
+    DesignerResponse designerResponse;
+    try {
+      var data = jsonDecode(response.body);
+      logger.d("Product Note : ${data}");
+
+      if(response.statusCode == 200){
+
+        designerResponse = DesignerResponse.fromJson(data);
+      }else if(response.statusCode >= 500){
+        designerResponse = DesignerResponse(error: true,message: SOMETHING_WAS_WRONG_SERVER);
+      }else if (response.statusCode == 401){
+        showDialogSession(context);
+        designerResponse = DesignerResponse(error: true,message: UNAUTHORIZED);
+      }else{  
+        designerResponse = DesignerResponse(error: true,message: SOMETHING_WAS_WRONG);
+      }
+
+    } on SocketException catch (e){
+      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+
+      logger.e("Product Note : Tidak ada koneksi internet");
+      designerResponse = DesignerResponse(error: true,message: NO_INTERNET_CONNECTION);
+    }  catch (e) {
+      logger.e("Product Note :  $e");
+      designerResponse = DesignerResponse(error: true,message: SOMETHING_WAS_WRONG);
+    }
+    return designerResponse;
+  }
+
 
 }

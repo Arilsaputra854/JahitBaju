@@ -12,7 +12,8 @@ import 'package:jahit_baju/data/source/remote/response/survei_response.dart';
 import 'package:jahit_baju/viewmodels/home_view_model.dart';
 import 'package:jahit_baju/data/model/product.dart';
 import 'package:jahit_baju/util/util.dart';
-import 'package:jahit_baju/views/product_screen/product_screen.dart';
+import 'package:jahit_baju/views/designer_screen/designer_screen.dart';
+import 'package:jahit_baju/views/product_screen/rtw_product_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -27,9 +28,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<Product>? products = [];
-  List<Product>? productsRTW = [];
-  List<Product>? productsCustom = [];
-  List<Product>? allProducts = [];
 
   List? tags;
 
@@ -60,28 +58,18 @@ class _HomePageState extends State<HomePage> {
                               future: viewModel.getListProducts(),
                               builder: (context, snapshot) {
                                 // Menampilkan data atau place holder
-                                List<Product>? products = snapshot.data;
+                                products = snapshot.data;
 
-                                productsRTW = products
-                                    ?.where((product) =>
-                                        product.type == Product.READY_TO_WEAR)
-                                    .toList();
-                                productsCustom = products
-                                    ?.where((product) =>
-                                        product.type == Product.CUSTOM)
-                                    .toList();
-                                allProducts = [
-                                  ...?productsRTW,
-                                  ...?productsCustom
-                                ];
-
-                                tags = allProducts
+                                tags = products
                                     ?.expand((product) => product.tags)
                                     .toSet()
                                     .toList();
                                 return Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    SizedBox(
+                                      height: 10.h,
+                                    ),
                                     tagsWidget(),
                                     SizedBox(
                                       height: 10.h,
@@ -142,7 +130,7 @@ class _HomePageState extends State<HomePage> {
                                           ),
                                         ),
                                         onTap: (){
-                                          //acess custom
+                                          goToDesignerScreen();
                                         },
                                         )),
                                     SizedBox(
@@ -160,9 +148,6 @@ class _HomePageState extends State<HomePage> {
           onRefresh: () async {
             setState(() {
               products = [];
-              productsRTW = [];
-              productsCustom = [];
-              allProducts = [];
             });
           }),
     );
@@ -236,16 +221,15 @@ class _HomePageState extends State<HomePage> {
     return Container(
         margin: const EdgeInsets.all(10),
         height: 200.h,
-        child: productsRTW != null
-            ? productsRTW!.isNotEmpty
+        child: products != null
+            ? products!.isNotEmpty
                 ? ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    itemCount: productsRTW?.length,
+                    itemCount: products?.length,
                     itemBuilder: (context, index) {
-                      productsRTW![index];
                       return InkWell(
                           onTap: () {
-                            goToProductScreen(productsRTW![index]);
+                            goToProductScreen(products![index]);
                           },
                           child: Container(
                             width: 150.w,
@@ -260,7 +244,7 @@ class _HomePageState extends State<HomePage> {
                                 Expanded(
                                     child: Center(
                                   child: CachedNetworkImage(
-                                    imageUrl: productsRTW![index].imageUrl[0],
+                                    imageUrl: products![index].imageUrl[0],
                                     placeholder: (context, url) {
                                       return Shimmer.fromColors(
                                           baseColor: Colors.grey[300]!,
@@ -282,14 +266,14 @@ class _HomePageState extends State<HomePage> {
                                       children: [
                                         Text(
                                           maxLines: 2,
-                                          productsRTW![index].name,
+                                          products![index].name,
                                           style: TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 12.sp),
                                         ),
                                         Text(
                                           convertToRupiah(
-                                              productsRTW![index].price),
+                                              products![index].price),
                                           style: TextStyle(fontSize: 12.sp),
                                         ),
                                       ],
@@ -305,104 +289,6 @@ class _HomePageState extends State<HomePage> {
                   ))
             : _shimmerItemWidget());
   }
-
-  // widgetListCustom() {
-  //   return Container(
-  //     margin: const EdgeInsets.all(10),
-  //     height: 250.h,
-  //     child: productsCustom != null
-  //         ? productsCustom!.isNotEmpty
-  //             ? ListView.builder(
-  //                 scrollDirection: Axis.horizontal,
-  //                 itemCount: productsCustom?.length,
-  //                 itemBuilder: (context, index) {
-  //                   return InkWell(
-  //                       onTap: accessCustom
-  //                           ? () {
-  //                               goToProductScreen(productsCustom![index]);
-  //                             }
-  //                           : () async {
-  //                             },
-  //                       child: Container(
-  //                           width: 150.w,
-  //                           margin: const EdgeInsets.symmetric(horizontal: 5),
-  //                           decoration: BoxDecoration(
-  //                               color: Colors.white,
-  //                               border: Border.all(width: 1)),
-  //                           child: Stack(
-  //                             children: [
-  //                               Column(
-  //                                 crossAxisAlignment: CrossAxisAlignment.start,
-  //                                 children: [
-  //                                   Expanded(
-  //                                     child: Container(
-  //                                       width: double.infinity,
-  //                                       padding: const EdgeInsets.all(5),
-  //                                       child: SvgPicture.network(
-  //                                         productsCustom![index].imageUrl.first,
-  //                                         placeholderBuilder:
-  //                                             (BuildContext context) =>
-  //                                                 Shimmer.fromColors(
-  //                                                     baseColor:
-  //                                                         Colors.grey[300]!,
-  //                                                     highlightColor:
-  //                                                         Colors.grey[100]!,
-  //                                                     child: Container(
-  //                                                       width: double.infinity,
-  //                                                       height: double.infinity,
-  //                                                       color: Colors.grey,
-  //                                                     )),
-  //                                         width: 200.w,
-  //                                         height: 200.w,
-  //                                       ),
-  //                                     ),
-  //                                   ),
-  //                                   Container(
-  //                                       margin: const EdgeInsets.all(5),
-  //                                       child: Column(
-  //                                         crossAxisAlignment:
-  //                                             CrossAxisAlignment.start,
-  //                                         children: [
-  //                                           Text(
-  //                                             productsCustom![index].name,
-  //                                             style: TextStyle(
-  //                                                 fontWeight: FontWeight.bold,
-  //                                                 fontSize: 14.sp),
-  //                                           ),
-  //                                           Text(
-  //                                             convertToRupiah(
-  //                                                 productsCustom?[index].price),
-  //                                             style:
-  //                                                  TextStyle(fontSize: 14.sp),
-  //                                           ),
-  //                                         ],
-  //                                       ))
-  //                                 ],
-  //                               ),
-  //                               accessCustom
-  //                                   ? SizedBox()
-  //                                   : Container(
-  //                                         color: const Color.fromARGB(
-  //                                             226, 255, 255, 255),
-  //                                         width: double.infinity,
-  //                                         height: double.infinity,
-  //                                         child: Column(
-  //                                           crossAxisAlignment:
-  //                                               CrossAxisAlignment.center,
-  //                                           mainAxisAlignment:
-  //                                               MainAxisAlignment.center,
-  //                                           children: [
-  //                                             Padding(padding: EdgeInsets.all(30),child: Image.asset("assets/icon/lock.png",),),
-  //                                             Text("Fitur ini terkunci",style: TextStyle(fontSize: 12.sp),)
-  //                                           ],
-  //                                         ))
-  //                             ],
-  //                           )));
-  //                 })
-  //             :  Center(child: Text("Tidak ada produk.", style: TextStyle(fontSize: 12.sp),))
-  //         : _shimmerItemWidget()
-  //   );
-  // }
 
   appBannerWidget() {
     try {
@@ -509,5 +395,10 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
+  }
+  
+  void goToDesignerScreen() {
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => DesignerScreen()));
   }
 }

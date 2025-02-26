@@ -24,7 +24,6 @@ class HomeScreenViewModel extends ChangeNotifier {
       var response = await apiService.cartGet(); 
       if (response is Cart) {
         value = response.items.length;      
-        print("Cart Size ViewModel :${value}");
       }
     }
 

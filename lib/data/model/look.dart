@@ -1,0 +1,57 @@
+
+import 'package:jahit_baju/data/model/look_texture.dart';
+
+class Look {
+  String id;
+  String designerId;
+  String name;
+  String designUrl;
+  List<String>? features;
+  String description;
+  List<String>? size;
+  final double price;
+  String lastUpdate;
+  int sold;
+  int seen;
+  List<LookTexture>? textures;
+
+  Look({
+    required this.id,
+    required this.designerId,
+    required this.name,
+    required this.designUrl,
+    this.features,
+    required this.description,
+    this.size,
+    required this.price,
+    required this.lastUpdate,
+    required this.sold,
+    required this.seen,
+    this.textures,
+  });
+
+  factory Look.fromJson(Map<String, dynamic> json) {
+    return Look(
+      id: json['id'],
+      designerId: json['designer_id'],
+      name: json['name'],
+      features: json['features'] != null
+          ? List<String>.from(json['features'])
+          : null,
+      price: (json['price'] as num).toDouble(),
+      designUrl: json['design_url'],
+      description: json['description'],
+      size: json['size'] != null
+          ? List<String>.from(json['size'])
+          : null,
+      lastUpdate: json['lastUpdate'],
+      sold: json['sold'],
+      seen: json['seen'],
+      textures: json['textures'] != null
+          ? (json['textures'] as List)
+              .map((item) => LookTexture.fromJson(item))
+              .toList()
+          : null,
+    );
+  }
+}

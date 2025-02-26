@@ -2,7 +2,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:jahit_baju/data/model/look.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/data/source/remote/response/look_response.dart';
 import 'package:jahit_baju/data/source/remote/response/order_response.dart';
 import 'package:jahit_baju/helper/app_color.dart';
 import 'package:jahit_baju/viewmodels/shipping_view_model.dart';
@@ -14,14 +16,17 @@ import 'package:jahit_baju/data/model/shipping.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/views/address_screen/address_screen.dart';
 import 'package:jahit_baju/views/payment_screen/payment_screen.dart';
+import 'package:logger/web.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
 class ShippingScreen extends StatefulWidget {
   final Cart? cart;
   final Product? product;
+  final String? filename;
+  final Look? look;
   final String? size;
-  ShippingScreen({this.cart, this.product, this.size, super.key});
+  ShippingScreen({this.cart, this.product, this.look, this.size,this.filename, super.key});
 
   @override
   State<ShippingScreen> createState() => _ShippingScreenState();
@@ -89,13 +94,16 @@ class _ShippingScreenState extends State<ShippingScreen> {
       if (widget.cart != null) {
         int customPrice = 0, rtwPrice = 0;
         for (var cart in widget.cart!.items) {
-          Product? product =
+          if(cart.productId != null){
+            Product? product =
               await getProductById(cart.productId, ApiService(context));
 
-          if (product!.type == Product.CUSTOM) {
-            customPrice += product.price.toInt();
-          } else {
-            rtwPrice += product.price.toInt();
+            rtwPrice += product!.price.toInt();
+          }else{
+            Look? look =
+              await getLook(cart.lookId!);
+
+            customPrice += look!.price.toInt();
           }
         }
 
@@ -108,7 +116,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
             shippingPrice: shipping!.price.toInt(),
             shippingId: shipping!.id,
             packagingId: packaging!.id,
-            cartId: widget.cart!.id,
+            cartId: widget.cart!.id,            
             description: _descriptionController.text.isNotEmpty
                 ? _descriptionController.text
                 : "-",
@@ -117,6 +125,9 @@ class _ShippingScreenState extends State<ShippingScreen> {
                     .toInt(),
             orderStatus: Order.WAITING_FOR_PAYMENT,
             paymentUrl: "");
+        Logger log = Logger();
+        log.d("Order Cart ${order.toJson()}");
+        
         viewModel.createOrder(order).then((orderFromServer) {
           if (orderFromServer != null) {
             Navigator.pushAndRemoveUntil(
@@ -134,8 +145,8 @@ class _ShippingScreenState extends State<ShippingScreen> {
       } else {
         int customPrice = 0, rtwPrice = 0;
 
-        if (widget.product!.type == Product.CUSTOM) {
-          customPrice = widget.product!.price.toInt();
+        if (widget.look != null) {
+          customPrice = widget.look!.price.toInt();
         } else {
           rtwPrice = widget.product!.price.toInt();
         }
@@ -151,16 +162,18 @@ class _ShippingScreenState extends State<ShippingScreen> {
             description: _descriptionController.text.isNotEmpty
                 ? _descriptionController.text
                 : "-",
-            product: widget.product,
+            product: widget.product,   
+            look: widget.look,         
             totalPrice:
-                (shipping!.price + widget.product!.price + packaging!.price)
+                (shipping!.price + (widget.product?.price ?? 0) + (widget.look?.price ?? 0) + packaging!.price)
                     .toInt(),
             orderStatus: Order.WAITING_FOR_PAYMENT,
             paymentUrl: "",
             shippingPrice: shipping!.price.toInt(),
             packagingPrice: packaging!.price.toInt(),
             discount: discount);
-        await viewModel.buyNow(order).then((orderFromServer) {
+            
+        await viewModel.buyNow(order,widget.filename).then((orderFromServer) {
           if (orderFromServer != null) {
             Navigator.pushAndRemoveUntil(
               context,
@@ -197,9 +210,9 @@ class _ShippingScreenState extends State<ShippingScreen> {
             Text(
               widget.cart != null
                   ? convertToRupiah(widget.cart?.totalPrice)
-                  : widget.product != null
-                      ? convertToRupiah(widget.product?.price)
-                      : "Rp 0.00",
+                  : widget.look != null
+                      ? convertToRupiah(widget.look?.price)
+                      : convertToRupiah(widget.product?.price),
               style: TextStyle(fontSize: 14.sp),
             ),
           ],
@@ -244,12 +257,21 @@ class _ShippingScreenState extends State<ShippingScreen> {
                       ? convertToRupiah(shipping!.price +
                           widget.cart!.totalPrice +
                           packaging!.price)
-                      : widget.product != null
+                      : widget.product != null && widget.look != null
                           ? convertToRupiah(shipping!.price +
                               widget.product!.price +
+                              widget.look!.price +
                               packaging!.price)
-                          : "Rp 0.00"
-                  : "Rp 0.00",
+                          : widget.product != null
+                              ? convertToRupiah(shipping!.price +
+                                  widget.product!.price +
+                                  packaging!.price)
+                              : widget.look != null
+                                  ? convertToRupiah(shipping!.price +
+                                      widget.look!.price +
+                                      packaging!.price)
+                                  : convertToRupiah(0)
+                  : convertToRupiah(0),
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
             ),
           ],
@@ -552,5 +574,15 @@ class _ShippingScreenState extends State<ShippingScreen> {
             ),
           ],
         ));
+  }
+
+  Future<Look?> getLook(String lookId) async {
+    ApiService apiService = ApiService(context);
+    LookResponse response = await apiService.getLookGetById(lookId);
+    if (response.error) {
+      Fluttertoast.showToast(msg: response.message!);
+    } else {
+      return response.look!;
+    }
   }
 }

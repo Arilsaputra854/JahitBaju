@@ -1,3 +1,4 @@
+import 'package:jahit_baju/data/model/look.dart';
 import 'package:jahit_baju/data/model/product.dart';
 
 class Order {
@@ -6,6 +7,7 @@ class Order {
   final String packagingId;
   final String? cartId;
   final Product? product;
+  final Look? look;
   final int totalPrice;
   final int rtwPrice;
   final int customPrice;
@@ -41,6 +43,7 @@ class Order {
     required this.packagingId,
     this.cartId,
     this.product,
+    this.look,
     this.size,
     this.quantity,
     required this.totalPrice,
@@ -82,9 +85,9 @@ class Order {
           ? DateTime.parse(json['order_created']).toLocal()
           : null,
       orderStatus: json['order_status'] ?? "",
-      items: (json['items'] as List<dynamic>)
-          .map((itemJson) => OrderItem.fromJson(itemJson))
-          .toList(), // Parsing daftar items
+      items: (json['items'] as List<dynamic>?)
+          ?.map((itemJson) => OrderItem.fromJson(itemJson))
+          .toList() ?? [],
       paymentUrl: json['payment_url'] ?? "",
       expiredDate: json['expired_date'] != null
           ? DateTime.parse(json['expired_date']).toLocal()
@@ -135,7 +138,8 @@ class Order {
 class OrderItem {
   final String id;
   final String orderId;
-  final String productId;
+  final String? productId;
+  final String? lookId;
   final int quantity;
   final String size;
   final int price;
@@ -145,7 +149,8 @@ class OrderItem {
   OrderItem({
     required this.id,
     required this.orderId,
-    required this.productId,
+    this.productId,
+    this.lookId,
     required this.quantity,
     required this.size,
     required this.price,
@@ -157,7 +162,8 @@ class OrderItem {
     return OrderItem(
       id: json['id']?? "",
       orderId: json['order_id']?? "",
-      productId: json['product_id']?? "",
+      productId: json['product_id'],
+      lookId: json['look_id'],
       quantity: json['quantity']?? "",
       size: json['size']?? "",
       price: json['price']?? "",
@@ -171,6 +177,7 @@ class OrderItem {
       'id': id,
       'order_id': orderId,
       'product_id': productId,
+      'look_id': lookId,
       'quantity': quantity,
       'size': size,
       'price': price,
