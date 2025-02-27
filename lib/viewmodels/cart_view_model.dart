@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jahit_baju/data/model/look.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/data/source/remote/response/cart_response.dart';
 import 'package:jahit_baju/data/source/remote/response/look_response.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
 import 'package:jahit_baju/data/model/cart.dart';
@@ -25,12 +26,12 @@ class CartViewModel extends ChangeNotifier {
     }
   }
 
-  Future<dynamic> getCart() async {
-    var data = await apiService.cartGet();
-    if (data is Cart) {
-      return data;
-    } else if (data is String) {
-      _errorMsg = data;
+  Future<Cart?> getCart() async {
+    CartResponse response = await apiService.cartGet();
+    if (!response.error) {
+      return response.cart;
+    } else  {
+      _errorMsg = response.message;
     }
     return null;
   }
@@ -46,7 +47,7 @@ class CartViewModel extends ChangeNotifier {
           if (product != null) {            
               result.add(MapEntry(cartItem, product));
           }else{
-            _errorMsg = "Terjadi Kesalahan";
+            _errorMsg = ApiService.SOMETHING_WAS_WRONG;
           }
         } catch (e) {
           _errorMsg = "Error fetching product ${cartItem.productId}: $e";

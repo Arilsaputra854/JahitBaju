@@ -199,9 +199,7 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
               future: getPackagingById(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
+                  return itemCartShimmer();
                 }
                 if (snapshot.hasData && snapshot.data != null) {
                   return Card(
@@ -451,20 +449,19 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
 
   Widget _listProduct() {
     return ListView.builder(
+        physics: const NeverScrollableScrollPhysics(),
         itemCount: widget.order.items.length,
         shrinkWrap: true,
         itemBuilder: (context, index) {
+
           if(widget.order.items[index].customDesign != null){
              
-
                   return FutureBuilder<Look?>(
               future: getLook(
                   widget.order.items[index].customDesign!),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
+                  return itemCartShimmer();
                 }
                 if (snapshot.hasData || snapshot.data != null) {
                   
@@ -566,9 +563,7 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                   widget.order.items[index].productId, ApiService(context)),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
+                  return itemCartShimmer();
                 }
                 if (snapshot.hasData || snapshot.data != null) {
                   

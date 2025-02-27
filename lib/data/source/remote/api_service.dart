@@ -31,7 +31,7 @@ import 'package:jahit_baju/data/source/remote/response/product_response.dart';
 import 'package:jahit_baju/data/source/remote/response/size_guide_response.dart';
 import 'package:jahit_baju/data/source/remote/response/survei_response.dart';
 import 'package:logger/web.dart';
-import 'package:http_parser/http_parser.dart';  
+import 'package:http_parser/http_parser.dart';
 
 import '../../../util/util.dart';
 import 'response/cart_response.dart';
@@ -39,15 +39,16 @@ import 'response/term_condition_response.dart';
 import 'response/user_response.dart';
 
 class ApiService {
-  final String baseUrl =
-    "http://192.168.1.156:3000/api/";
-    
+  final String baseUrl = "http://192.168.1.156:3000/api/";
+
   TokenStorage tokenStorage = TokenStorage();
   Logger logger = Logger();
   final BuildContext context;
 
-  static const String SOMETHING_WAS_WRONG = "Maaf, Terjadi kesalahan, silakan coba lagi nanti.";
-  static const String SOMETHING_WAS_WRONG_SERVER = "Maaf, terjadi kesalahan pada server kami, Silakan coba lagi nanti.";
+  static const String SOMETHING_WAS_WRONG =
+      "Maaf, Terjadi kesalahan, silakan coba lagi nanti.";
+  static const String SOMETHING_WAS_WRONG_SERVER =
+      "Maaf, terjadi kesalahan pada server kami, Silakan coba lagi nanti.";
   static const String NO_INTERNET_CONNECTION = "Tidak ada koneksi internet.";
   static const String UNAUTHORIZED = "Tidak ada koneksi internet.";
 
@@ -70,11 +71,11 @@ class ApiService {
       LoginResponse responseBody = LoginResponse.fromJson(data);
 
       return responseBody;
-      } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("User Register : Tidak ada koneksi internet");
-      
+
       return LoginResponse(error: true);
     } catch (e) {
       logger.e("User Login : $e");
@@ -98,26 +99,25 @@ class ApiService {
         }),
       );
 
-      var data = jsonDecode(response.body);      
+      var data = jsonDecode(response.body);
 
       logger.d("User Register : $data");
 
       return RegisterResponse.fromJson(data);
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("User Register : Tidak ada koneksi internet");
-      
+
       return RegisterResponse(error: true, message: NO_INTERNET_CONNECTION);
     } catch (e) {
-      logger.e("User Register : $e");      
+      logger.e("User Register : $e");
       return RegisterResponse(error: true, message: SOMETHING_WAS_WRONG);
     }
   }
 
   Future<UserResponse> userGet() async {
     final url = Uri.parse("${baseUrl}users/current");
-
 
     String? token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
@@ -129,8 +129,7 @@ class ApiService {
     try {
       var data = jsonDecode(response.body);
 
-      if(response.statusCode == 401){
-        
+      if (response.statusCode == 401) {
         logger.e("User Get : $data");
         showDialogSession(context);
         return UserResponse(message: UNAUTHORIZED, error: true);
@@ -138,8 +137,8 @@ class ApiService {
       logger.d("User Get : $data");
 
       return UserResponse.fromJson(data);
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
       return UserResponse(message: "Tidak ada internet", error: true);
@@ -150,19 +149,18 @@ class ApiService {
   }
 
   Future<UserResponse> userUpdate(String? name, String? email, String? password,
-      String? imageUrl, String? address, String? phoneNumber, {String? resetToken}) async {
+      String? imageUrl, String? address, String? phoneNumber,
+      {String? resetToken}) async {
     final url = Uri.parse("${baseUrl}users/current");
 
-    String? token = resetToken ?? await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+    String? token =
+        resetToken ?? await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
-    
     logger.d("Token: ${token}");
 
     try {
-      
       Map<String, dynamic> body = {};
 
-      
       if (name != null && name.isNotEmpty) {
         body['name'] = name;
       }
@@ -187,7 +185,6 @@ class ApiService {
         return UserResponse(message: "Field is empty", error: true);
       }
 
-      
       final response = await http.patch(
         url,
         body: jsonEncode(body),
@@ -197,19 +194,18 @@ class ApiService {
         },
       );
 
-
       var data = jsonDecode(response.body);
-      
+
       logger.d("User Update : $data");
 
       UserResponse responseBody = UserResponse.fromJson(data);
 
       return responseBody;
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
-      return UserResponse(message:NO_INTERNET_CONNECTION, error: true);
+      return UserResponse(message: NO_INTERNET_CONNECTION, error: true);
     } catch (e) {
       logger.e("User Update : $e");
       return UserResponse(message: "Network error : $e", error: true);
@@ -238,11 +234,11 @@ class ApiService {
       LoginResponse responseBody = LoginResponse.fromJson(data);
 
       return responseBody;
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
-      return LoginResponse(message:NO_INTERNET_CONNECTION, error: true);
+      return LoginResponse(message: NO_INTERNET_CONNECTION, error: true);
     } catch (e) {
       logger.e("User Email Verify : $e");
 
@@ -268,11 +264,11 @@ class ApiService {
 
       OtpResponse responseBody = OtpResponse.fromJson(data);
       return responseBody;
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
-      return OtpResponse(message:NO_INTERNET_CONNECTION, error: true);
+      return OtpResponse(message: NO_INTERNET_CONNECTION, error: true);
     } catch (e) {
       logger.e("User Request OTP : $e");
 
@@ -280,14 +276,13 @@ class ApiService {
     }
   }
 
-
   Future<OtpResponse> userResetEmailVerify(String email, String otp) async {
-    final url = Uri.parse("${baseUrl}users/verify-reset-otp");    
+    final url = Uri.parse("${baseUrl}users/verify-reset-otp");
     try {
       final response = await http.post(
         url,
         headers: <String, String>{
-          'Content-Type': 'application/json',          
+          'Content-Type': 'application/json',
         },
         body: jsonEncode(<String, String>{
           'email': email,
@@ -302,12 +297,12 @@ class ApiService {
       OtpResponse responseBody = OtpResponse.fromJson(data);
 
       return responseBody;
-    }on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
-      return OtpResponse(message:NO_INTERNET_CONNECTION, error: true);
-    }  catch (e) {
+      return OtpResponse(message: NO_INTERNET_CONNECTION, error: true);
+    } catch (e) {
       logger.e("User Reset Email Verify : $e");
 
       return OtpResponse(message: "Network error : $e", error: true);
@@ -316,28 +311,26 @@ class ApiService {
 
   Future<LoginResponse> userResetRequestOtp(String email) async {
     final url = Uri.parse("${baseUrl}users/request-reset-otp");
-    
+
     try {
-      final response = await http.post(
-        url,
-        headers: <String, String>{
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(<String,String>{
-          'email': email,
-        }
-      ));
+      final response = await http.post(url,
+          headers: <String, String>{
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode(<String, String>{
+            'email': email,
+          }));
 
       var data = jsonDecode(response.body);
       logger.d("User Reset Request OTP : ${data}");
 
       LoginResponse responseBody = LoginResponse.fromJson(data);
       return responseBody;
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
-      return LoginResponse(message:NO_INTERNET_CONNECTION, error: true);
+      return LoginResponse(message: NO_INTERNET_CONNECTION, error: true);
     } catch (e) {
       logger.e("User Reset Request OTP : $e");
 
@@ -345,103 +338,110 @@ class ApiService {
     }
   }
 
-
-  Future<OrderResponse> buyNow(Order order,{String? filename}) async {
+  Future<OrderResponse> buyNow(Order order, {String? filename}) async {
     final url = Uri.parse("${baseUrl}order");
 
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
     try {
-      final response = await http.post(
-        url,
-        headers: <String, String>{
-          'Content-Type': 'application/json',
-          'Authorization': '${token}'
-        },
-        body: order.look != null ? jsonEncode(<String, dynamic>{
-          'packaging_price': order.packagingPrice,
-          'shipping_price':order.shippingPrice,
-          'custom_price': order.customPrice,
-          'rtw_price': order.rtwPrice,
-          'discount': order.discount,
-          'look_id': order.look?.id,
-          'custom_design' : filename,
-          'quantity': order.quantity,
-          'total_price': order.totalPrice,
-          'size': order.size,
-          'order_status': order.orderStatus,
-          'shipping_id': order.shippingId,
-          'packaging_id': order.packagingId,
-          'description' : order.description!.isNotEmpty ? order.description : null
-        }) : jsonEncode(<String, dynamic>{          
-          'packaging_price': order.packagingPrice,
-          'shipping_price':order.shippingPrice,
-          'custom_price': order.customPrice,
-          'rtw_price': order.rtwPrice,
-          'discount': order.discount,
-          'product_id': order.product?.id,
-          'quantity': order.quantity,
-          'total_price': order.totalPrice,
-          'size': order.size,
-          'order_status': order.orderStatus,
-          'shipping_id': order.shippingId,
-          'packaging_id': order.packagingId,
-          'description' : order.description!.isNotEmpty ? order.description : null
-        })
-      );
+      final response = await http.post(url,
+          headers: <String, String>{
+            'Content-Type': 'application/json',
+            'Authorization': '${token}'
+          },
+          body: order.look != null
+              ? jsonEncode(<String, dynamic>{
+                  'packaging_price': order.packagingPrice,
+                  'shipping_price': order.shippingPrice,
+                  'custom_price': order.customPrice,
+                  'rtw_price': order.rtwPrice,
+                  'discount': order.discount,
+                  'look_id': order.look?.id,
+                  'custom_design': filename,
+                  'quantity': order.quantity,
+                  'total_price': order.totalPrice,
+                  'size': order.size,
+                  'order_status': order.orderStatus,
+                  'shipping_id': order.shippingId,
+                  'packaging_id': order.packagingId,
+                  'description':
+                      order.description!.isNotEmpty ? order.description : null
+                })
+              : jsonEncode(<String, dynamic>{
+                  'packaging_price': order.packagingPrice,
+                  'shipping_price': order.shippingPrice,
+                  'custom_price': order.customPrice,
+                  'rtw_price': order.rtwPrice,
+                  'discount': order.discount,
+                  'product_id': order.product?.id,
+                  'quantity': order.quantity,
+                  'total_price': order.totalPrice,
+                  'size': order.size,
+                  'order_status': order.orderStatus,
+                  'shipping_id': order.shippingId,
+                  'packaging_id': order.packagingId,
+                  'description':
+                      order.description!.isNotEmpty ? order.description : null
+                }));
 
       var data = jsonDecode(response.body);
       OrderResponse orderResponse = OrderResponse.fromJson(data);
       logger.d("Order now : ${data}");
       return orderResponse;
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
-      return OrderResponse(message:NO_INTERNET_CONNECTION, error: true);
+      return OrderResponse(message: NO_INTERNET_CONNECTION, error: true);
     } catch (e) {
       logger.e("Order now : $e");
       return OrderResponse(error: true, message: "Network error : $e");
     }
   }
 
-  Future<dynamic> cartGet() async {
+  Future<CartResponse> cartGet() async {
     final url = Uri.parse("${baseUrl}cart");
 
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
     final response = await http.get(url, headers: <String, String>{
-        'Content-Type': 'application/json',
-        'Authorization': '${token}'
-      });
+      'Content-Type': 'application/json',
+      'Authorization': '${token}'
+    });
+
+    CartResponse cartResponse;
 
     try {
-
       var data = jsonDecode(response.body);
       logger.d("Cart Get : ${data}");
 
-      dynamic message;
       if (response.statusCode == 200) {
-        Cart cartData = Cart.fromJson(data["data"]);
-        return cartData;
+        cartResponse = CartResponse.fromJson(data);
+      } else if (response.statusCode >= 500) {
+        cartResponse =
+            CartResponse(error: true, message: SOMETHING_WAS_WRONG_SERVER);
+      } else if (response.statusCode == 401) {
+        showDialogSession(context);
+        cartResponse = CartResponse(error: true, message: UNAUTHORIZED);
       } else {
-        message = data["message"] ?? "Unknown error occurred";
-        return message;
+        cartResponse = CartResponse(error: true, message: SOMETHING_WAS_WRONG);
       }
-
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
-      return NO_INTERNET_CONNECTION;
+      cartResponse = CartResponse(error: true, message: NO_INTERNET_CONNECTION);
     } catch (e) {
       logger.e("Cart Get : $e");
-      return "Network error : $e";
+      cartResponse = CartResponse(error: true, message: SOMETHING_WAS_WRONG);
     }
+
+    return cartResponse;
   }
 
-  Future<CartResponse> cartAdd(int quantity, String selectedSize, String? customDesignSvg,{Product? product,
-    Look? look}) async {
+  Future<CartResponse> cartAdd(
+      int quantity, String selectedSize, String? customDesignSvg,
+      {Product? product, Look? look}) async {
     final url = Uri.parse("${baseUrl}cart");
 
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
@@ -454,38 +454,42 @@ class ApiService {
           'Content-Type': 'application/json',
           'Authorization': '${token}'
         },
-        body: look != null?  jsonEncode(<String, dynamic>{
-          'look_id': look.id,
-          'quantity': quantity,
-          'price': look.price,
-          'size': selectedSize,
-          'custom_design' : customDesignSvg
-        }) : jsonEncode(<String, dynamic>{
-          'product_id': product!.id,
-          'quantity': quantity,
-          'price': product.price,
-          'size': selectedSize,
-        }),
+        body: look != null
+            ? jsonEncode(<String, dynamic>{
+                'look_id': look.id,
+                'quantity': quantity,
+                'price': look.price,
+                'size': selectedSize,
+                'custom_design': customDesignSvg
+              })
+            : jsonEncode(<String, dynamic>{
+                'product_id': product!.id,
+                'quantity': quantity,
+                'price': product.price,
+                'size': selectedSize,
+              }),
       );
 
       var data = jsonDecode(response.body);
       logger.d("Cart Add : ${data}");
 
       if (response.statusCode == 200) {
-        cartResponse = CartResponse.fromJson(data) ;
-      } else if(response.statusCode == 401){showDialogSession(context);
-        cartResponse = CartResponse(error: true,message: UNAUTHORIZED);        
-      }else{
-        cartResponse = CartResponse(error: true,message: SOMETHING_WAS_WRONG_SERVER);        
+        cartResponse = CartResponse.fromJson(data);
+      } else if (response.statusCode == 401) {
+        showDialogSession(context);
+        cartResponse = CartResponse(error: true, message: UNAUTHORIZED);
+      } else {
+        cartResponse =
+            CartResponse(error: true, message: SOMETHING_WAS_WRONG_SERVER);
       }
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
-      cartResponse = CartResponse(error: true,message: NO_INTERNET_CONNECTION);
+      cartResponse = CartResponse(error: true, message: NO_INTERNET_CONNECTION);
     } catch (e) {
       logger.e("Cart Add : $e");
-      cartResponse = CartResponse(error: true,message: SOMETHING_WAS_WRONG);
+      cartResponse = CartResponse(error: true, message: SOMETHING_WAS_WRONG);
     }
     return cartResponse;
   }
@@ -512,8 +516,8 @@ class ApiService {
         message = data["message"] ?? "Unknown error occurred";
         return message;
       }
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
       return NO_INTERNET_CONNECTION;
@@ -548,18 +552,16 @@ class ApiService {
         message = data["message"] ?? "Unknown error occurred";
         return message;
       }
-    }on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
       return NO_INTERNET_CONNECTION;
-    }  catch (e) {
+    } catch (e) {
       logger.e("Favorite Get : $e");
       return "error";
     }
   }
-
-
 
   Future<ShippingResponse> getShipping(String shippingId) async {
     final url = Uri.parse("${baseUrl}shipping?id=$shippingId");
@@ -577,17 +579,17 @@ class ApiService {
       ShippingResponse shippingResponse = ShippingResponse.fromJson(data);
 
       return shippingResponse;
-    }on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
-      return ShippingResponse(error: true, message: "Tidak ada koneksi internet.");
-    }  catch (e) {
+      return ShippingResponse(
+          error: true, message: "Tidak ada koneksi internet.");
+    } catch (e) {
       logger.e("Shipping Get : $e");
       return ShippingResponse(error: true, message: "Terjadi kesalahan.");
     }
   }
-
 
   Future<dynamic> getAllPackaging() async {
     final url = Uri.parse("${baseUrl}packaging");
@@ -613,8 +615,8 @@ class ApiService {
         message = data["message"] ?? "Unknown error occurred";
         return message;
       }
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
       return NO_INTERNET_CONNECTION;
@@ -623,7 +625,6 @@ class ApiService {
       return "error";
     }
   }
-
 
   Future<PackagingResponse> getPackaging(String packagingId) async {
     final url = Uri.parse("${baseUrl}packaging?id=$packagingId");
@@ -635,16 +636,18 @@ class ApiService {
 
       var data = jsonDecode(response.body);
       logger.d("Get Packaging : ${data}");
-      
+
       return PackagingResponse.fromJson(data);
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Packaging : Tidak ada koneksi internet");
-      return PackagingResponse(error: true,message: "Tidak ada koneksi internet.");
+      return PackagingResponse(
+          error: true, message: "Tidak ada koneksi internet.");
     } catch (e) {
       logger.e("Get Packaging : $e");
-      return PackagingResponse(error: true,message: "Terjadi kesalahan, Coba lagi nanti.");
+      return PackagingResponse(
+          error: true, message: "Terjadi kesalahan, Coba lagi nanti.");
     }
   }
 
@@ -663,12 +666,12 @@ class ApiService {
         body: jsonEncode(<String, dynamic>{
           'shipping_id': order.shippingId,
           'packaging_id': order.packagingId,
-          'packaging_price' : order.packagingPrice,
-          'shipping_price' : order.shippingPrice,
-          'discount' : order.discount,
-          'cart_id': order.cartId,                    
+          'packaging_price': order.packagingPrice,
+          'shipping_price': order.shippingPrice,
+          'discount': order.discount,
+          'cart_id': order.cartId,
           'total_price': order.totalPrice,
-          'order_status': order.orderStatus          
+          'order_status': order.orderStatus
         }),
       );
 
@@ -685,8 +688,8 @@ class ApiService {
       orderResponse.data = Order.fromJson(orderResponse.data);
 
       return orderResponse;
-    }on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
       return NO_INTERNET_CONNECTION;
@@ -703,32 +706,43 @@ class ApiService {
       'Content-Type': 'application/json',
       'Authorization': '${token}'
     });
+  
 
+    OrderResponse orderResponse;
     try {
       var data = jsonDecode(response.body);
-      
+
       logger.d("Get Order : ${data}");
 
-      OrderResponse orderResponse = OrderResponse.fromJson(data);
+      orderResponse = OrderResponse.fromJson(data);
 
       if (response.statusCode == 200) {
+        
         List<Order> orders = Order.listFromJson(orderResponse.data);
         orderResponse.data = orders;
+      } else if (response.statusCode >= 500) {
+        orderResponse = OrderResponse(
+            error: true, message: SOMETHING_WAS_WRONG_SERVER);
+      } else if (response.statusCode == 401) {
+        showDialogSession(context);
+        orderResponse =
+            OrderResponse(error: true, message: UNAUTHORIZED);
       } else {
-        orderResponse.message = data["message"] ?? "Unknown error occurred";
-        logger.e("Get Order: ${orderResponse.message}");
+        orderResponse =
+            OrderResponse(error: true, message: SOMETHING_WAS_WRONG);
       }
-      
-      return orderResponse;
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
-      return OrderResponse(message:NO_INTERNET_CONNECTION, error: true);
+      orderResponse = OrderResponse(message: NO_INTERNET_CONNECTION, error: true);
     } catch (e) {
       logger.e("Get Order: ${e}");
-      return OrderResponse(error: true, message: "Network error : $e");
+      orderResponse = OrderResponse(error: true, message: "Network error : $e");
     }
+
+      return orderResponse;
   }
 
   Future<OrderResponse> orderDelete(var orderId) async {
@@ -745,14 +759,14 @@ class ApiService {
       logger.d("Delete Order : ${data}");
 
       OrderResponse orderResponse = OrderResponse.fromJson(data);
-      
+
       return orderResponse;
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
-      return OrderResponse(message:NO_INTERNET_CONNECTION, error: true);
-    }  catch (e) {
+      return OrderResponse(message: NO_INTERNET_CONNECTION, error: true);
+    } catch (e) {
       logger.e("Delete Order: ${e}");
       return OrderResponse(error: true, message: "Network error : $e");
     }
@@ -771,21 +785,21 @@ class ApiService {
       var data = jsonDecode(response.body);
 
       logger.d("Get Product by ID : ${data}");
-      
+
       ProductResponse productResponse = ProductResponse.fromJson(data);
       return productResponse;
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
-      
-      return ProductResponse(message:NO_INTERNET_CONNECTION, error: true);
+
+      return ProductResponse(message: NO_INTERNET_CONNECTION, error: true);
     } catch (e) {
       logger.e("Get Product by ID : ${e}");
-      return ProductResponse(error: true, message: "Network error : $e",product: null);
+      return ProductResponse(
+          error: true, message: "Network error : $e", product: null);
     }
   }
-
 
   Future<LookResponse> getLookGetById(String lookId) async {
     final url = Uri.parse("${baseUrl}designer/look?id=$lookId");
@@ -801,22 +815,23 @@ class ApiService {
       var data = jsonDecode(response.body);
 
       logger.d("Get Product by ID : ${data}");
-      
+
       lookResponse = LookResponse.fromJson(data);
-      
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
-      
-      lookResponse = LookResponse(message:NO_INTERNET_CONNECTION, error: true);
+
+      lookResponse = LookResponse(message: NO_INTERNET_CONNECTION, error: true);
     } catch (e) {
       logger.e("Get Product by ID : ${e}");
-      lookResponse =  LookResponse(error: true, message: "Network error : $e",);
+      lookResponse = LookResponse(
+        error: true,
+        message: "Network error : $e",
+      );
     }
     return lookResponse;
   }
-
 
   Future<ProductLatestResponse> productsGetByLastUpdate() async {
     final url = Uri.parse("${baseUrl}products/latest");
@@ -829,21 +844,22 @@ class ApiService {
     logger.d("Get Product by Last Update : ${data}");
 
     try {
-       ProductLatestResponse productLatestResponse;
-      if (response.statusCode == 200) {        
+      ProductLatestResponse productLatestResponse;
+      if (response.statusCode == 200) {
         productLatestResponse = ProductLatestResponse.fromJson(data);
       } else {
         logger.e("Get Favorite : ${data["message"]}");
-        productLatestResponse = ProductLatestResponse(error: true, message: data["message"]);
-
+        productLatestResponse =
+            ProductLatestResponse(error: true, message: data["message"]);
       }
       return productLatestResponse;
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
-      return ProductLatestResponse(message:NO_INTERNET_CONNECTION, error: true);
-    }  catch (e) {
+      return ProductLatestResponse(
+          message: NO_INTERNET_CONNECTION, error: true);
+    } catch (e) {
       logger.e("Get Product by Last Update : ${e}");
       return ProductLatestResponse(error: true, message: e.toString());
     }
@@ -861,21 +877,20 @@ class ApiService {
 
     try {
       if (response.statusCode == 200) {
-
-
         return ProductsResponse.fromJson(data);
       } else {
         return ProductsResponse(error: false, message: data["message"]);
       }
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
-      
-      return ProductsResponse(message:NO_INTERNET_CONNECTION, error: true);
-    }  catch (e) {
+
+      return ProductsResponse(message: NO_INTERNET_CONNECTION, error: true);
+    } catch (e) {
       logger.e("Get Product : ${e}");
-      return ProductsResponse(error: true, message: "Terjadi kesalahan saat mengambil data produk");
+      return ProductsResponse(
+          error: true, message: "Terjadi kesalahan saat mengambil data produk");
     }
   }
 
@@ -890,7 +905,6 @@ class ApiService {
       });
 
       var data = jsonDecode(response.body);
-
 
       logger.d("Get Favorite : ${data}");
 
@@ -907,13 +921,12 @@ class ApiService {
         message = data["message"] ?? "Unknown error occurred";
         return message;
       }
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
       return NO_INTERNET_CONNECTION;
     } catch (e) {
-      
       logger.e("Get Favorite : ${e}");
       return "Terjadi Kesalahan";
     }
@@ -937,13 +950,13 @@ class ApiService {
       FavoriteResponse favoriteResponse = FavoriteResponse.fromJson(data);
 
       return favoriteResponse;
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
-      
-      return FavoriteResponse(message:NO_INTERNET_CONNECTION, error: true);
-    }  catch (e) {
+
+      return FavoriteResponse(message: NO_INTERNET_CONNECTION, error: true);
+    } catch (e) {
       logger.e("Delete Favorite : $e");
       return FavoriteResponse(error: true, message: "Network error : $e");
     }
@@ -967,13 +980,13 @@ class ApiService {
       FavoriteResponse favoriteResponse = FavoriteResponse.fromJson(data);
 
       return favoriteResponse;
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
-      
-      return FavoriteResponse(message:NO_INTERNET_CONNECTION, error: true);
-    }  catch (e) {
+
+      return FavoriteResponse(message: NO_INTERNET_CONNECTION, error: true);
+    } catch (e) {
       logger.e("Add Favorite : $e");
       return FavoriteResponse(error: true, message: "Network error : $e");
     }
@@ -984,23 +997,22 @@ class ApiService {
     final response = await http.get(url,
         headers: <String, String>{'Content-Type': 'application/json'});
 
-    
     TermConditionResponse termConditionResponse;
     try {
       var data = jsonDecode(response.body);
-      
+
       logger.d("Term Condition : ${data}");
-      termConditionResponse =
-          TermConditionResponse.fromJson(data);
-      
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+      termConditionResponse = TermConditionResponse.fromJson(data);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
-      termConditionResponse = TermConditionResponse(error: true,data:  NO_INTERNET_CONNECTION);
-    }  catch (e) {
+      termConditionResponse =
+          TermConditionResponse(error: true, data: NO_INTERNET_CONNECTION);
+    } catch (e) {
       logger.e("Term Condition : $e");
-      termConditionResponse =TermConditionResponse(error: true,data:  SOMETHING_WAS_WRONG);
+      termConditionResponse =
+          TermConditionResponse(error: true, data: SOMETHING_WAS_WRONG);
     }
     return termConditionResponse;
   }
@@ -1016,44 +1028,42 @@ class ApiService {
       SizeGuideResponse sizeGuideResponse = SizeGuideResponse.fromJson(data);
 
       return sizeGuideResponse;
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
       return NO_INTERNET_CONNECTION;
-    }  catch (e) {
+    } catch (e) {
       logger.e("Size Guide : $e");
       return "Network error : $e";
     }
   }
 
   Future<AppBannerResponse> getAllAppBanner() async {
-    final url = Uri.parse("${baseUrl}app-banner");    
+    final url = Uri.parse("${baseUrl}app-banner");
     try {
-      final response = await http.get(
-        url,
-        headers: <String, String>{
-          'Content-Type': 'application/json',          
-        });
+      final response = await http.get(url, headers: <String, String>{
+        'Content-Type': 'application/json',
+      });
 
       var data = jsonDecode(response.body);
       logger.d("get all app banner : ${data}");
 
       AppBannerResponse responseBody = AppBannerResponse.fromJson(data);
       return responseBody;
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("get all app banner : Tidak ada koneksi internet");
-      return AppBannerResponse(message:NO_INTERNET_CONNECTION, error: true);
-    }  catch (e) {
+      return AppBannerResponse(message: NO_INTERNET_CONNECTION, error: true);
+    } catch (e) {
       logger.e("get all app banner : $e");
 
       return AppBannerResponse(message: "Network error : $e", error: true);
     }
   }
 
-    // Function to upload SVG design to the server
+  // Function to upload SVG design to the server
   Future<CustomDesignResponse?> uploadCustomDesign(File file) async {
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
     final url = Uri.parse("${baseUrl}order/custom-design");
@@ -1062,8 +1072,7 @@ class ApiService {
       var request = http.MultipartRequest('POST', url)
         ..headers['Content-Type'] = 'application/json'
         ..headers['Authorization'] = '$token'
-        ..files.add(await http.MultipartFile.fromPath(
-            'file', file.path,
+        ..files.add(await http.MultipartFile.fromPath('file', file.path,
             contentType: MediaType('image', 'svg+xml')));
 
       var response = await request.send();
@@ -1072,12 +1081,14 @@ class ApiService {
         var responseData = await response.stream.bytesToString();
         return CustomDesignResponse.fromJson(jsonDecode(responseData));
       } else {
-        return CustomDesignResponse(error: true, message: 'Failed to upload file');
+        return CustomDesignResponse(
+            error: true, message: 'Failed to upload file');
       }
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
       logger.e("upload custom design : Tidak ada koneksi internet");
-      return CustomDesignResponse(error: true, message: 'Tidak ada koneksi internet');
+      return CustomDesignResponse(
+          error: true, message: 'Tidak ada koneksi internet');
     } catch (e) {
       logger.e("upload custom design : Terjadi kesalahan");
       return CustomDesignResponse(error: true, message: 'Terjadi kesalahan');
@@ -1102,10 +1113,10 @@ class ApiService {
         return {'error': true, 'message': 'File not found'};
       }
     } on SocketException catch (e) {
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
       logger.e("get custom design : Tidak ada koneksi internet");
     } catch (e) {
-      showSnackBar(context,"Terjadi kesalahan",isError: true);
+      showSnackBar(context, "Terjadi kesalahan", isError: true);
       logger.e("get custom design : Tidak ada koneksi internet");
     }
   }
@@ -1120,14 +1131,12 @@ class ApiService {
         'Authorization': '$token',
       });
 
-      
       var data = jsonDecode(response.body);
       logger.d("get all app banner : ${data}");
 
       return ProductTermResponse.fromJson(data);
-
     } on SocketException catch (e) {
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
       logger.e("get Product Term : Tidak ada koneksi internet");
       return ProductTermResponse(error: true, message: NO_INTERNET_CONNECTION);
     } catch (e) {
@@ -1145,26 +1154,26 @@ class ApiService {
     try {
       var data = jsonDecode(response.body);
       logger.d("Care Guide : ${data}");
-      
 
-      if(response.statusCode == 200){
-
+      if (response.statusCode == 200) {
         careGuideResponse = CareGuideResponse.fromJson(data);
-      }else if(response.statusCode >= 500){
-        careGuideResponse = CareGuideResponse(error: true,message: SOMETHING_WAS_WRONG_SERVER);
-      }else{  
-
-        careGuideResponse = CareGuideResponse(error: true,message: SOMETHING_WAS_WRONG);
+      } else if (response.statusCode >= 500) {
+        careGuideResponse =
+            CareGuideResponse(error: true, message: SOMETHING_WAS_WRONG_SERVER);
+      } else {
+        careGuideResponse =
+            CareGuideResponse(error: true, message: SOMETHING_WAS_WRONG);
       }
-
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Care Guide :  Tidak ada koneksi internet");
-      careGuideResponse = CareGuideResponse(error: true,message: NO_INTERNET_CONNECTION);
-    }  catch (e) {
+      careGuideResponse =
+          CareGuideResponse(error: true, message: NO_INTERNET_CONNECTION);
+    } catch (e) {
       logger.e("Care Guide :  $e");
-      careGuideResponse = CareGuideResponse(error: true,message: SOMETHING_WAS_WRONG);
+      careGuideResponse =
+          CareGuideResponse(error: true, message: SOMETHING_WAS_WRONG);
     }
     return careGuideResponse;
   }
@@ -1173,81 +1182,86 @@ class ApiService {
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
     var url;
 
-    if(type == 1){
+    if (type == 1) {
       url = Uri.parse("${baseUrl}product-note?type=rtw");
-    }else if(type == 2){
+    } else if (type == 2) {
       url = Uri.parse("${baseUrl}product-note?type=custom");
     }
-    
-    final response = await http.get(url,
-        headers: <String, String>{'Content-Type': 'application/json',
-        'Authorization': '$token',});
+
+    final response = await http.get(url, headers: <String, String>{
+      'Content-Type': 'application/json',
+      'Authorization': '$token',
+    });
 
     ProductNoteResponse productNoteResponse;
     try {
       var data = jsonDecode(response.body);
       logger.d("Product Note : ${data}");
 
-      if(response.statusCode == 200){
-
+      if (response.statusCode == 200) {
         productNoteResponse = ProductNoteResponse.fromJson(data);
-      }else if(response.statusCode >= 500){
-        productNoteResponse = ProductNoteResponse(error: true,message: SOMETHING_WAS_WRONG_SERVER);
-      }else if (response.statusCode == 401){
-        productNoteResponse = ProductNoteResponse(error: true,message: UNAUTHORIZED);
-      }else{  
-        productNoteResponse = ProductNoteResponse(error: true,message: SOMETHING_WAS_WRONG);
+      } else if (response.statusCode >= 500) {
+        productNoteResponse = ProductNoteResponse(
+            error: true, message: SOMETHING_WAS_WRONG_SERVER);
+      } else if (response.statusCode == 401) {
+        showDialogSession(context);
+        productNoteResponse =
+            ProductNoteResponse(error: true, message: UNAUTHORIZED);
+      } else {
+        productNoteResponse =
+            ProductNoteResponse(error: true, message: SOMETHING_WAS_WRONG);
       }
-
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Product Note : Tidak ada koneksi internet");
-      productNoteResponse = ProductNoteResponse(error: true,message: NO_INTERNET_CONNECTION);
-    }  catch (e) {
+      productNoteResponse =
+          ProductNoteResponse(error: true, message: NO_INTERNET_CONNECTION);
+    } catch (e) {
       logger.e("Product Note :  $e");
-      productNoteResponse = ProductNoteResponse(error: true,message: SOMETHING_WAS_WRONG);
+      productNoteResponse =
+          ProductNoteResponse(error: true, message: SOMETHING_WAS_WRONG);
     }
     return productNoteResponse;
   }
 
-
   Future<DesignerResponse> getDesigner() async {
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
-    var  url = Uri.parse("${baseUrl}designer");
-    
-    final response = await http.get(url,
-        headers: <String, String>{'Content-Type': 'application/json',
-        'Authorization': '$token',});
+    var url = Uri.parse("${baseUrl}designer");
+
+    final response = await http.get(url, headers: <String, String>{
+      'Content-Type': 'application/json',
+      'Authorization': '$token',
+    });
 
     DesignerResponse designerResponse;
     try {
       var data = jsonDecode(response.body);
       logger.d("Product Note : ${data}");
 
-      if(response.statusCode == 200){
-
+      if (response.statusCode == 200) {
         designerResponse = DesignerResponse.fromJson(data);
-      }else if(response.statusCode >= 500){
-        designerResponse = DesignerResponse(error: true,message: SOMETHING_WAS_WRONG_SERVER);
-      }else if (response.statusCode == 401){
+      } else if (response.statusCode >= 500) {
+        designerResponse =
+            DesignerResponse(error: true, message: SOMETHING_WAS_WRONG_SERVER);
+      } else if (response.statusCode == 401) {
         showDialogSession(context);
-        designerResponse = DesignerResponse(error: true,message: UNAUTHORIZED);
-      }else{  
-        designerResponse = DesignerResponse(error: true,message: SOMETHING_WAS_WRONG);
+        designerResponse = DesignerResponse(error: true, message: UNAUTHORIZED);
+      } else {
+        designerResponse =
+            DesignerResponse(error: true, message: SOMETHING_WAS_WRONG);
       }
-
-    } on SocketException catch (e){
-      showSnackBar(context,NO_INTERNET_CONNECTION,isError: true);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Product Note : Tidak ada koneksi internet");
-      designerResponse = DesignerResponse(error: true,message: NO_INTERNET_CONNECTION);
-    }  catch (e) {
+      designerResponse =
+          DesignerResponse(error: true, message: NO_INTERNET_CONNECTION);
+    } catch (e) {
       logger.e("Product Note :  $e");
-      designerResponse = DesignerResponse(error: true,message: SOMETHING_WAS_WRONG);
+      designerResponse =
+          DesignerResponse(error: true, message: SOMETHING_WAS_WRONG);
     }
     return designerResponse;
   }
-
-
 }

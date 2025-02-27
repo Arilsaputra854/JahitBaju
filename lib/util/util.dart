@@ -15,6 +15,7 @@ import 'package:jahit_baju/helper/secure/token_storage.dart';
 import 'package:jahit_baju/views/login/login_screen.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:logger/web.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 String convertToRupiah(dynamic value) {
@@ -154,3 +155,52 @@ Widget loadingWidget(){
                 ),
               );
 }
+
+Widget itemCartShimmer() {
+    return ListView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      itemCount: 1, // Jumlah item shimmer
+      itemBuilder: (context, index) {
+        return Shimmer.fromColors(
+          baseColor: Colors.grey[300]!,
+          highlightColor: Colors.grey[100]!,
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 150,
+                      height: 15,
+                      color: Colors.grey[400],
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      width: 100,
+                      height: 12,
+                      color: Colors.grey[400],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }

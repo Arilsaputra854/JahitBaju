@@ -31,7 +31,7 @@ class _HomePageState extends State<HomePage> {
 
   List? tags;
 
-  bool accessCustom = true;
+  bool accessCustom = false;
 
   var deviceWidth;
 
@@ -105,34 +105,101 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                     ),
                                     Padding(
-                                        padding: EdgeInsets.all(10),
-                                        child: InkWell(
-                                          child: Card(
-                                          color: Colors.white,
+                                      padding: EdgeInsets.all(10),
+                                      child: InkWell(
+                                        onTap: accessCustom ? () {
+                                          goToDesignerScreen();
+                                        } : null,
+                                        child: Card(
+                                          color: Colors
+                                              .transparent, // Biar latar belakang dari gambar terlihat
                                           child: Container(
                                             width: 360.w,
                                             height: 100.h,
-                                            child: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(
+                                                  10), // Agar tidak tajam di sudut
+                                              image: DecorationImage(
+                                                image: AssetImage(
+                                                    "assets/background/bg.png"),
+                                                fit: BoxFit
+                                                    .cover, // Menutupi seluruh area
+                                              ),
+                                            ),
+                                            child: Stack(
                                               children: [
-                                                Text(
-                                                  "Akses Kostumisasi",
-                                                  style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 14.sp),
+                                                // Overlay warna hitam transparan supaya teks lebih terbaca
+                                                Positioned.fill(
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                    color: const Color.fromARGB(
+                                                        115,
+                                                        6,
+                                                        6,
+                                                        6), // Efek gelap transparan
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              10), // Agar tidak tajam di sudut
+                                                    ),
+                                                  ),
+                                                ),
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.center,
+                                                  children: [
+                                                    if(!accessCustom) Container(
+                                                      width: 80.w,
+                                                      height: 80.w,                                                      
+                                                      child: Image.asset(
+                                                          "assets/icon/lock.png"),
+                                                    ),
+                                                    SizedBox(
+                                                        width: 10
+                                                            .w), // Jarak antara ikon dan teks
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          Text( accessCustom ? "Akses Kostumisasi": 
+                                                            "Fitur Terkunci",
+                                                            style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize: 14.sp,
+                                                              color: Colors
+                                                                  .white, // Biar kontras dengan background
+                                                            ),
+                                                            softWrap: true,
+                                                          ),
+                                                          Padding(padding: EdgeInsets.only(right: 5),
+                                                          child: Text(
+                                                            "Buat baju kamu sendiri dengan desainer ternama.",
+                                                            style: TextStyle(
+                                                              fontSize: 12.sp,
+                                                              color: Colors
+                                                                  .white, // Supaya teks tetap terbaca
+                                                            ),
+                                                            softWrap: true,
+                                                          ),)
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ],
                                             ),
                                           ),
                                         ),
-                                        onTap: (){
-                                          goToDesignerScreen();
-                                        },
-                                        )),
+                                      ),
+                                    ),
                                     SizedBox(
                                       height: 20.h,
                                     ),
@@ -194,7 +261,7 @@ class _HomePageState extends State<HomePage> {
   Widget smimmerTag() {
     return Container(
       margin: EdgeInsets.only(top: 20),
-                height: 60.h,
+      height: 60.h,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: 5, // Number of placeholder items
@@ -203,8 +270,8 @@ class _HomePageState extends State<HomePage> {
             baseColor: Colors.grey[300]!,
             highlightColor: Colors.grey[100]!,
             child: Container(
-                      width: 60.w,
-                      height: 60.w,
+              width: 60.w,
+              height: 60.w,
               margin: const EdgeInsets.symmetric(horizontal: 10),
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
@@ -396,7 +463,7 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
-  
+
   void goToDesignerScreen() {
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => DesignerScreen()));

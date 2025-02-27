@@ -36,7 +36,7 @@ class _DesignerScreenState extends State<DesignerScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Pilih desainer favorit kamu.",
+              Text("Pilih desainer favorit kamu dari daftar berikut.",
                   style: TextStyle(fontSize: 12.sp)),
               _listOfDesignerWidget()
             ],

@@ -38,7 +38,7 @@ class _LookScreenState extends State<LookScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Pilih desainer favorit kamu.",
+              Text("Pilih look dari desainer pilihan kamu.",
                   style: TextStyle(fontSize: 12.sp)),
               _listOfDesignerWidget()
             ],
@@ -71,15 +71,25 @@ class _LookScreenState extends State<LookScreen> {
             child: IntrinsicWidth(
               child: IntrinsicHeight(
                 child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                  alignment: Alignment.center,
-                  child: Text(
-                    widget.designer.looks![index].name,
-                    textAlign: TextAlign.center,
-                    style:
-                        TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
-                  ),
-                ),
+                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                    alignment: Alignment.center,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          widget.designer.looks![index].name,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontSize: 16.sp, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          convertToRupiah(widget.designer.looks![index].lookPrice),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontSize: 12.sp, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    )),
               ),
             ),
           ),
@@ -87,10 +97,11 @@ class _LookScreenState extends State<LookScreen> {
       },
     );
   }
-  
-  void goToProductScreen(Look look) {
 
+  void goToProductScreen(Look look) {
     Navigator.push(
-        context, MaterialPageRoute(builder: (context) => CustomProductScreen(widget.designer,look)));
+        context,
+        MaterialPageRoute(
+            builder: (context) => CustomProductScreen(widget.designer, look)));
   }
 }

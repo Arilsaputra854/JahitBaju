@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jahit_baju/data/source/remote/response/cart_response.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
 import 'package:jahit_baju/data/model/cart.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
@@ -21,9 +22,16 @@ class HomeScreenViewModel extends ChangeNotifier {
     int value = 0;
 
     if (token != null) {
-      var response = await apiService.cartGet(); 
-      if (response is Cart) {
-        value = response.items.length;      
+      CartResponse response = await apiService.cartGet(); 
+      if (!response.error) {
+        final cart = response.cart;
+        if(cart != null){
+          value = cart.items.length;
+        }else{
+          _errorMsg = ApiService.SOMETHING_WAS_WRONG;
+        }        
+      }else{
+        _errorMsg = response.message;
       }
     }
 
