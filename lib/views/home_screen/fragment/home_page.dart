@@ -5,7 +5,12 @@ import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:jahit_baju/data/model/buy_feature.dart';
+import 'package:jahit_baju/data/model/customization_feature.dart';
 import 'package:jahit_baju/data/repository/repository.dart';
+import 'package:jahit_baju/data/source/remote/response/customization_feature_response.dart';
+import 'package:jahit_baju/data/source/remote/response/feature_response.dart';
+import 'package:jahit_baju/data/source/remote/response/user_response.dart';
 import 'package:jahit_baju/helper/app_color.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/data/source/remote/response/survei_response.dart';
@@ -13,7 +18,9 @@ import 'package:jahit_baju/viewmodels/home_view_model.dart';
 import 'package:jahit_baju/data/model/product.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/views/designer_screen/designer_screen.dart';
+import 'package:jahit_baju/views/payment_screen/payment_screen.dart';
 import 'package:jahit_baju/views/product_screen/rtw_product_screen.dart';
+import 'package:logger/web.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -34,12 +41,22 @@ class _HomePageState extends State<HomePage> {
   bool accessCustom = false;
 
   var deviceWidth;
+  var loading = false;
+
+  @override
+  void initState() {
+    getAccessCustom().then((access){
+      accessCustom = access;
+    });
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     deviceWidth = MediaQuery.of(context).size.width;
 
-    return Scaffold(
+    return Stack(
+      children: [Scaffold(
       backgroundColor: Colors.white,
       body: RefreshIndicator(
           child: Stack(
@@ -104,101 +121,136 @@ class _HomePageState extends State<HomePage> {
                                         ],
                                       ),
                                     ),
-                                    Padding(
-                                      padding: EdgeInsets.all(10),
-                                      child: InkWell(
-                                        onTap: accessCustom ? () {
-                                          goToDesignerScreen();
-                                        } : null,
-                                        child: Card(
-                                          color: Colors
-                                              .transparent, // Biar latar belakang dari gambar terlihat
-                                          child: Container(
-                                            width: 360.w,
-                                            height: 100.h,
-                                            decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.circular(
-                                                  10), // Agar tidak tajam di sudut
-                                              image: DecorationImage(
-                                                image: AssetImage(
-                                                    "assets/background/bg.png"),
-                                                fit: BoxFit
-                                                    .cover, // Menutupi seluruh area
-                                              ),
-                                            ),
-                                            child: Stack(
-                                              children: [
-                                                // Overlay warna hitam transparan supaya teks lebih terbaca
-                                                Positioned.fill(
-                                                  child: Container(
-                                                    decoration: BoxDecoration(
-                                                    color: const Color.fromARGB(
-                                                        115,
-                                                        6,
-                                                        6,
-                                                        6), // Efek gelap transparan
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              10), // Agar tidak tajam di sudut
+                                    FutureBuilder<CustomizationAccess?>(
+                                      future: getCustomizationFeature(),
+                                      builder: (context, snapshot) {
+                                        Logger log = Logger();
+                                        log.d("HASIL SNAPSHOT: ${snapshot.data}");
+                                        if (snapshot.hasData) {
+                                          return Padding(
+                                            padding: EdgeInsets.all(10),
+                                            child: InkWell(
+                                              onTap: accessCustom
+                                                  ? () {
+                                                      goToDesignerScreen();
+                                                    }
+                                                  : (){
+                                                    popUpBuyCostumization(snapshot.data);
+                                                  },
+                                              child: Card(
+                                                color: Colors
+                                                    .transparent, // Biar latar belakang dari gambar terlihat
+                                                child: Container(
+                                                  width: 360.w,
+                                                  height: 100.h,
+                                                  decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10), // Agar tidak tajam di sudut
+                                                    image: DecorationImage(
+                                                      image: AssetImage(
+                                                          "assets/background/bg.png"),
+                                                      fit: BoxFit
+                                                          .cover, // Menutupi seluruh area
                                                     ),
                                                   ),
-                                                ),
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.center,
-                                                  children: [
-                                                    if(!accessCustom) Container(
-                                                      width: 80.w,
-                                                      height: 80.w,                                                      
-                                                      child: Image.asset(
-                                                          "assets/icon/lock.png"),
-                                                    ),
-                                                    SizedBox(
-                                                        width: 10
-                                                            .w), // Jarak antara ikon dan teks
-                                                    Expanded(
-                                                      child: Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
+                                                  child: Stack(
+                                                    children: [
+                                                      // Overlay warna hitam transparan supaya teks lebih terbaca
+                                                      Positioned.fill(
+                                                        child: Container(
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            color: const Color
+                                                                .fromARGB(
+                                                                115,
+                                                                6,
+                                                                6,
+                                                                6), // Efek gelap transparan
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        10), // Agar tidak tajam di sudut
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      Row(
                                                         mainAxisAlignment:
                                                             MainAxisAlignment
                                                                 .center,
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .center,
                                                         children: [
-                                                          Text( accessCustom ? "Akses Kostumisasi": 
-                                                            "Fitur Terkunci",
-                                                            style: TextStyle(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              fontSize: 14.sp,
-                                                              color: Colors
-                                                                  .white, // Biar kontras dengan background
+                                                          if (!accessCustom)
+                                                            Container(
+                                                              width: 80.w,
+                                                              height: 80.w,
+                                                              child: Image.asset(
+                                                                  "assets/icon/lock.png"),
                                                             ),
-                                                            softWrap: true,
+                                                          SizedBox(
+                                                              width: 10
+                                                                  .w), // Jarak antara ikon dan teks
+                                                          Expanded(
+                                                            child: Column(
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .start,
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .center,
+                                                              children: [
+                                                                Text(
+                                                                  accessCustom
+                                                                      ? snapshot.data!.name
+                                                                      : "Fitur Terkunci",
+                                                                  style:
+                                                                      TextStyle(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    fontSize:
+                                                                        14.sp,
+                                                                    color: Colors
+                                                                        .white, // Biar kontras dengan background
+                                                                  ),
+                                                                  softWrap:
+                                                                      true,
+                                                                ),
+                                                                Padding(
+                                                                  padding: EdgeInsets
+                                                                      .only(
+                                                                          right:
+                                                                              5),
+                                                                  child: Text(
+                                                                    snapshot.data!.description!,
+                                                                    style:
+                                                                        TextStyle(
+                                                                      fontSize:
+                                                                          12.sp,
+                                                                      color: Colors
+                                                                          .white, // Supaya teks tetap terbaca
+                                                                    ),
+                                                                    softWrap:
+                                                                        true,
+                                                                  ),
+                                                                )
+                                                              ],
+                                                            ),
                                                           ),
-                                                          Padding(padding: EdgeInsets.only(right: 5),
-                                                          child: Text(
-                                                            "Buat baju kamu sendiri dengan desainer ternama.",
-                                                            style: TextStyle(
-                                                              fontSize: 12.sp,
-                                                              color: Colors
-                                                                  .white, // Supaya teks tetap terbaca
-                                                            ),
-                                                            softWrap: true,
-                                                          ),)
                                                         ],
                                                       ),
-                                                    ),
-                                                  ],
+                                                    ],
+                                                  ),
                                                 ),
-                                              ],
+                                              ),
                                             ),
-                                          ),
-                                        ),
-                                      ),
+                                          );
+                                        }
+
+                                        return itemCartShimmer();
+                                      },
                                     ),
                                     SizedBox(
                                       height: 20.h,
@@ -217,6 +269,7 @@ class _HomePageState extends State<HomePage> {
               products = [];
             });
           }),
+    ),if(loading ) loadingWidget()],
     );
   }
 
@@ -467,5 +520,79 @@ class _HomePageState extends State<HomePage> {
   void goToDesignerScreen() {
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => DesignerScreen()));
+  }
+
+  Future<CustomizationAccess> getCustomizationFeature() async {
+    ApiService apiService = ApiService(context);
+
+    CustomizationAccessResponse response =
+        await apiService.getCustomizationFeature();
+    if (response.error) {
+      Fluttertoast.showToast(msg: ApiService.SOMETHING_WAS_WRONG);
+    }
+    return response.customizationAccess!;
+  }
+  
+  Future<bool> getAccessCustom() async {
+    ApiService apiService = ApiService(context);
+    UserResponse response =  await apiService.userGet();
+    if(response.error){
+      Fluttertoast.showToast(msg: ApiService.SOMETHING_WAS_WRONG);
+      return false;
+    }
+    return response.data!.customAccess;
+    
+  }
+  
+  popUpBuyCostumization(CustomizationAccess? data) {
+   return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Pembelian Fitur'),
+          content: Text('Akses fitur ini dengan membayar ${convertToRupiah(data!.price)}'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Batal'),
+            ),
+            TextButton(
+              onPressed: () {
+                buyFeature();
+              },
+              child: Text('Beli'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+  void goToPaymentScreen(BuyFeature data) {
+    Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => PaymentScreen(buyFeature: data, )),
+              (route) => route.settings.name == "Home",
+            );
+  }
+  
+  Future<void> buyFeature() async {
+    setState(() {
+      loading = true;
+    });
+    ApiService apiService = ApiService(context);
+    BuyFeatureResponse response = await apiService.buyCostumizationFeature();
+    if(response.error && response.data != null){
+      Fluttertoast.showToast(msg: response.message ?? ApiService.SOMETHING_WAS_WRONG);
+    }else{
+      goToPaymentScreen(response.data!);
+    }
+    setState(() {
+      loading = false;
+    });  
   }
 }

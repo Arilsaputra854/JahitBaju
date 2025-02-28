@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image/image.dart' as img;
+import 'package:jahit_baju/data/model/buy_feature.dart';
+import 'package:jahit_baju/data/source/remote/response/feature_response.dart';
+import 'package:jahit_baju/data/source/remote/response/user_response.dart';
 import 'package:path_provider/path_provider.dart';
-
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -27,19 +29,19 @@ import '../home_screen/home_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
   Order? order;
-  PaymentScreen({required this.order, super.key});
+  BuyFeature? buyFeature;
+  PaymentScreen({this.order, this.buyFeature, super.key});
 
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
-
-    GlobalKey _globalKey = GlobalKey();
   var deviceWidth, deviceHeight;
 
   var isPaymentSuccess = false;
   Order? paidOrder;
+  BuyFeature? paidFeature;
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +54,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
           return Scaffold(
             appBar: AppBar(
               centerTitle: true,
-              title: Text("Pembayaran",style: TextStyle(fontWeight: FontWeight.bold),),
+              title: Text(
+                "Pembayaran",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
             body: isPaymentSuccess
                 ? paymentSuccess()
@@ -75,21 +80,22 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         SizedBox(
                           height: 5,
                         ),
-                        Text("Id : ${widget.order?.id ?? ""}",
+                        Text(
+                            "Id : ${widget.order?.id ?? widget.buyFeature?.externalId ?? ""}",
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 12.sp)),
                         SizedBox(
                           height: 10,
                         ),
                         Text(
-                            "Total Harga : ${convertToRupiah(widget.order?.totalPrice)}",style: TextStyle(
-                                 fontSize: 12.sp)),
+                            "Total Harga : ${convertToRupiah(widget.order?.totalPrice ?? widget.buyFeature?.amount)}",
+                            style: TextStyle(fontSize: 12.sp)),
                         SizedBox(
                           height: 10,
                         ),
                         Text(
-                            "Bayar sebelum ${customFormatDate(widget.order!.expiredDate)}",style: TextStyle(
-                                 fontSize: 12.sp)),
+                            "Bayar sebelum ${customFormatDate(widget.order?.expiredDate ?? widget.buyFeature?.expiryDate ?? DateTime(2099))}",
+                            style: TextStyle(fontSize: 12.sp)),
                         SizedBox(
                           height: 40,
                         ),
@@ -101,7 +107,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             },
                             child: Text(
                               "Bayar Sekarang",
-                              style: TextStyle(color: Colors.white,fontSize: 12.sp),
+                              style: TextStyle(
+                                  color: Colors.white, fontSize: 12.sp),
                             ),
                             style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(
@@ -122,11 +129,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             width: deviceWidth * 0.5,
                             child: ElevatedButton(
                               onPressed: () async {
-                                paidOrder = await validatePaymentXenditGateway();
+                                if(widget.order != null){
+                                  paidOrder =
+                                    await validatePaymentXenditGateway();
+                                }else{
+                                  paidFeature =
+                                    await validatePaymentXenditGateway();
+                                }
+                                
                               },
                               child: Text(
                                 "Sudah Bayar",
-                                style: TextStyle(color: Colors.white,fontSize: 12.sp),
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 12.sp),
                               ),
                               style: ElevatedButton.styleFrom(
                                 shape: RoundedRectangleBorder(
@@ -146,34 +161,52 @@ class _PaymentScreenState extends State<PaymentScreen> {
         }));
   }
 
-  Future<Order?> validatePaymentXenditGateway() async {
+  Future<dynamic> validatePaymentXenditGateway() async {
     ApiService apiService = ApiService(context);
-    OrderResponse response = await apiService.orderGet();
+    if (widget.order != null) {
+      OrderResponse response = await apiService.orderGet();
 
-    if (!response.error) {
-      late Order currentOrder;
+      if (!response.error) {
+        late Order currentOrder;
 
-      List<Order> orders = response.data;
+        List<Order> orders = response.data;
 
-      for (var order in orders) {
-        if (order.id == widget.order!.id) {
-          currentOrder = order;
+        for (var order in orders) {
+          if (order.id == widget.order!.id) {
+            currentOrder = order;
+          }
         }
-      }
 
-      if (currentOrder.orderStatus == Order.PROCESS && currentOrder.xenditStatus == "PAID" && paidOrder != null) {
+        if (currentOrder.orderStatus == Order.PROCESS &&
+            currentOrder.xenditStatus == "PAID" &&
+            paidOrder != null) {
+          setState(() {
+            isPaymentSuccess = true;
+          });
+        }
+        return currentOrder;
+      }
+      return null;
+    } else {
+      UserResponse response = await apiService.userGet();
+      if (!response.error) {
         setState(() {
           isPaymentSuccess = true;
         });
+        return widget.buyFeature;
       }
-      return currentOrder;
+      return null;
     }
-    return null;
   }
 
   //Bug release cannot open web
   Future<void> openXenditGateway() async {
-    final url = Uri.parse(widget.order!.paymentUrl!);
+    var url;
+    if (widget.order != null) {
+      url = Uri.parse(widget.order!.paymentUrl!);
+    } else {
+      url = Uri.parse(widget.buyFeature!.invoiceUrl);
+    }
 
     try {
       await launchUrl(url, mode: LaunchMode.externalApplication).then((v) {
@@ -185,107 +218,124 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
   }
 
-
-
   Widget paymentSuccess() {
-  
     return Padding(
-        padding: EdgeInsets.all(10), child: Card(
-      color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12), // Memberikan sudut melengkung pada card
-      ),
-      elevation: 4, // Memberikan bayangan pada card
-      child: Padding(
         padding: EdgeInsets.all(10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min, // Card akan menyesuaikan ukuran dengan konten
-          children: [
-                SizedBox(height: 20.h,),
-            Image.asset(
-              "assets/logo/jahit_baju_logo.png",
-              width: 80.h,
-            ),
-            SizedBox(height: 25),
-            Text(
-              "Pembayaran Berhasil!",
-              style: TextStyle(fontWeight: FontWeight.normal, fontSize: 14.sp),
-            ),
-            SizedBox(height: 5),
-            Text(
-              "${convertToRupiah(paidOrder?.totalPrice)}",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
-            ),
-            SizedBox(height: 15),
-            Padding(padding: EdgeInsets.only(left: 20, right: 20),child: Divider(),),
-            SizedBox(height: 15), // Spasi setelah divider
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        child: Card(
+          color: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+                12), // Memberikan sudut melengkung pada card
+          ),
+          elevation: 4, // Memberikan bayangan pada card
+          child: Padding(
+            padding: EdgeInsets.all(10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize
+                  .min, // Card akan menyesuaikan ukuran dengan konten
               children: [
-                // Order ID
+                SizedBox(
+                  height: 20.h,
+                ),
+                Image.asset(
+                  "assets/logo/jahit_baju_logo.png",
+                  width: 80.h,
+                ),
+                SizedBox(height: 25),
+                Text(
+                  "Pembayaran Berhasil!",
+                  style:
+                      TextStyle(fontWeight: FontWeight.normal, fontSize: 14.sp),
+                ),
+                SizedBox(height: 5),
+                Text(
+                  "${convertToRupiah(paidOrder?.totalPrice ?? paidFeature?.amount)}",
+                  style:
+                      TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
+                ),
+                SizedBox(height: 15),
+                Padding(
+                  padding: EdgeInsets.only(left: 20, right: 20),
+                  child: Divider(),
+                ),
+                SizedBox(height: 15), // Spasi setelah divider
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Order ID:", style: TextStyle(fontSize: 12.sp)),
-                    Text("${paidOrder?.id ?? ""}", style: TextStyle(fontSize: 12.sp)),
+                    // Order ID
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Order ID:", style: TextStyle(fontSize: 12.sp)),
+                        Text("${paidOrder?.id ?? paidFeature?.externalId}",
+                            style: TextStyle(fontSize: 12.sp)),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                    // Tanggal Pembayaran
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Tanggal pembayaran:",
+                            style: TextStyle(fontSize: 12.sp)),
+                        Text("${customFormatDate(paidOrder?.paymentDate ?? DateTime.now())}",
+                            style: TextStyle(fontSize: 12.sp)),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                    // Status Pembayaran
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Status Pembayaran:",
+                            style: TextStyle(fontSize: 12.sp)),
+                        Text("${paidOrder?.xenditStatus ?? "-"}",
+                            style: TextStyle(fontSize: 12.sp)),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                    // Metode Pembayaran
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Metode pembayaran:",
+                            style: TextStyle(fontSize: 12.sp)),
+                        Text("${paidOrder?.paymentMethod ?? "-"}",
+                            style: TextStyle(fontSize: 12.sp)),
+                      ],
+                    ),
+                    SizedBox(height: 20),
                   ],
                 ),
-                SizedBox(height: 8),
-                // Tanggal Pembayaran
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Tanggal pembayaran:", style: TextStyle(fontSize: 12.sp)),
-                    Text("${paidOrder?.paymentDate}", style: TextStyle(fontSize: 12.sp)),
-                  ],
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => HomeScreen()),
+                      (route) => false, // Menghapus semua aktivitas sebelumnya
+                    );
+                    context.read<HomeViewModel>().refresh();
+                  },
+                  child: Text(
+                    "Selesai",
+                    style: TextStyle(color: Colors.white, fontSize: 12.sp),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30)),
+                    backgroundColor: Colors.red, // Latar belakang merah
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 15,
+                        horizontal: 30), // Padding agar tombol lebih besar
+                  ),
                 ),
-                SizedBox(height: 8),
-                // Status Pembayaran
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Status Pembayaran:", style: TextStyle(fontSize: 12.sp)),
-                    Text("${paidOrder?.xenditStatus ?? "-"}", style: TextStyle(fontSize: 12.sp)),
-                  ],
-                ),
-                SizedBox(height: 8),
-                // Metode Pembayaran
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Metode pembayaran:", style: TextStyle(fontSize: 12.sp)),
-                    Text("${paidOrder?.paymentMethod ?? "-"}", style: TextStyle(fontSize: 12.sp)),
-                  ],
-                ),
-                SizedBox(height: 20),
+                SizedBox(
+                  height: 20.h,
+                )
               ],
             ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => HomeScreen()),
-                  (route) => false, // Menghapus semua aktivitas sebelumnya
-                );
-                context.read<HomeViewModel>().refresh();
-              },
-              child: Text(
-                "Selesai",
-                style: TextStyle(color: Colors.white,fontSize: 12.sp),
-              ),
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30)),
-                backgroundColor: Colors.red, // Latar belakang merah
-                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30), // Padding agar tombol lebih besar
-              ),
-            ),
-            SizedBox(height: 20.h,)
-          ],
-        ),
-      ),
-    ));
+          ),
+        ));
   }
-
 }

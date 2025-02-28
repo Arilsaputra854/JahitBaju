@@ -8,7 +8,9 @@ import 'package:jahit_baju/data/model/look.dart';
 import 'package:jahit_baju/data/source/remote/response/app_banner_response.dart';
 import 'package:jahit_baju/data/source/remote/response/care_guide_response.dart';
 import 'package:jahit_baju/data/source/remote/response/custom_design_response.dart';
+import 'package:jahit_baju/data/source/remote/response/customization_feature_response.dart';
 import 'package:jahit_baju/data/source/remote/response/designer_response.dart';
+import 'package:jahit_baju/data/source/remote/response/feature_response.dart';
 import 'package:jahit_baju/data/source/remote/response/look_response.dart';
 import 'package:jahit_baju/data/source/remote/response/packaging_response.dart';
 import 'package:jahit_baju/data/source/remote/response/product_note_response.dart';
@@ -39,7 +41,7 @@ import 'response/term_condition_response.dart';
 import 'response/user_response.dart';
 
 class ApiService {
-  final String baseUrl = "http://192.168.1.156:3000/api/";
+  final String baseUrl = "https://bonefish-supreme-sculpin.ngrok-free.app/api/";
 
   TokenStorage tokenStorage = TokenStorage();
   Logger logger = Logger();
@@ -1263,5 +1265,75 @@ class ApiService {
           DesignerResponse(error: true, message: SOMETHING_WAS_WRONG);
     }
     return designerResponse;
+  }
+
+
+  Future<CustomizationAccessResponse> getCustomizationFeature() async {
+    var url = Uri.parse("${baseUrl}customization-feature");
+
+    final response = await http.get(url, headers: <String, String>{
+      'Content-Type': 'application/json'
+    });
+
+    CustomizationAccessResponse customizationResponse;
+    try {
+      var data = jsonDecode(response.body);
+      logger.d("Customization Feature : ${data}");
+
+      if (response.statusCode == 200) {
+        customizationResponse = CustomizationAccessResponse.fromJson(data);
+      } else if (response.statusCode >= 500) {
+        customizationResponse =
+            CustomizationAccessResponse(error: true, message: SOMETHING_WAS_WRONG_SERVER);
+      } else if (response.statusCode == 401) {
+        showDialogSession(context);
+        customizationResponse = CustomizationAccessResponse(error: true, message: UNAUTHORIZED);
+      } else {
+        customizationResponse =
+            CustomizationAccessResponse(error: true, message: SOMETHING_WAS_WRONG);
+      }
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
+
+      logger.e("Customization Feature : Tidak ada koneksi internet");
+      customizationResponse =
+          CustomizationAccessResponse(error: true, message: NO_INTERNET_CONNECTION);
+    } catch (e) {
+      logger.e("Customization Feature :  $e");
+      customizationResponse =
+          CustomizationAccessResponse(error: true, message: SOMETHING_WAS_WRONG);
+    }
+    return customizationResponse;
+  }
+
+
+Future<BuyFeatureResponse> buyCostumizationFeature() async {
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+    final url = Uri.parse("${baseUrl}feature/customization");
+    final response = await http.post(url,
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': '${token}'
+        });
+
+    BuyFeatureResponse buyFeatureResponse;
+    try {
+      var data = jsonDecode(response.body);
+
+      logger.d("Buy Customization Feature : ${data}");
+
+      buyFeatureResponse = BuyFeatureResponse.fromJson(data);
+
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
+
+      logger.e("Buy Customization Feature : Tidak ada koneksi internet");
+
+      buyFeatureResponse = BuyFeatureResponse(message: NO_INTERNET_CONNECTION, error: true);
+    } catch (e) {
+      logger.e("Buy Customization Feature : $e");
+      buyFeatureResponse = BuyFeatureResponse(error: true, message: "Network error : $e");
+    }
+    return buyFeatureResponse;
   }
 }
