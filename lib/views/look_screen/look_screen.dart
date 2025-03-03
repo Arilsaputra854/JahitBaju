@@ -71,25 +71,53 @@ class _LookScreenState extends State<LookScreen> {
             child: IntrinsicWidth(
               child: IntrinsicHeight(
                 child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                    alignment: Alignment.center,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          widget.designer.looks![index].name,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontSize: 16.sp, fontWeight: FontWeight.bold),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(
+                          10), // Agar tidak tajam di sudut
+                      image: DecorationImage(
+                        image: AssetImage("assets/background/bg.png"),
+                        fit: BoxFit.cover, // Menutupi seluruh area
+                      ),
+                    ),
+                    child: Stack(alignment: AlignmentDirectional.center, children: [
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(
+                                115, 6, 6, 6), // Efek gelap transparan
+                            borderRadius: BorderRadius.circular(
+                                10), // Agar tidak tajam di sudut
+                          ),
                         ),
-                        Text(
-                          convertToRupiah(widget.designer.looks![index].lookPrice),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontSize: 12.sp, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    )),
+                      ),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 60.w,
+                            height: 60.w,
+                            child: Image.asset("assets/icon/lock.png"),
+                          ),
+                          Text(
+                            widget.designer.looks![index].name,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            convertToRupiah(
+                                widget.designer.looks![index].lookPrice),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      )
+                    ])),
               ),
             ),
           ),

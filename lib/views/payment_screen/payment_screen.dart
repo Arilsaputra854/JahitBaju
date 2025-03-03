@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image/image.dart' as img;
-import 'package:jahit_baju/data/model/buy_feature.dart';
+import 'package:jahit_baju/data/source/remote/response/feature_order_reaspones.dart';
 import 'package:jahit_baju/data/source/remote/response/feature_response.dart';
 import 'package:jahit_baju/data/source/remote/response/user_response.dart';
+import 'package:logger/web.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:flutter/foundation.dart';
@@ -25,12 +26,13 @@ import 'package:jahit_baju/views/cart_screen/cart_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../data/model/feature_order.dart';
 import '../home_screen/home_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
   Order? order;
-  BuyFeature? buyFeature;
-  PaymentScreen({this.order, this.buyFeature, super.key});
+  FeatureOrder? featureOrder;
+  PaymentScreen({this.order, this.featureOrder, super.key});
 
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();
@@ -41,7 +43,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   var isPaymentSuccess = false;
   Order? paidOrder;
-  BuyFeature? paidFeature;
+  FeatureOrder? paidFeature;
+  Logger log = Logger();
 
   @override
   Widget build(BuildContext context) {
@@ -81,20 +84,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           height: 5,
                         ),
                         Text(
-                            "Id : ${widget.order?.id ?? widget.buyFeature?.externalId ?? ""}",
+                            "Id : ${widget.order?.id ?? widget.featureOrder?.id ?? ""}",
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 12.sp)),
                         SizedBox(
                           height: 10,
                         ),
                         Text(
-                            "Total Harga : ${convertToRupiah(widget.order?.totalPrice ?? widget.buyFeature?.amount)}",
+                            "Total Harga : ${convertToRupiah(widget.order?.totalPrice ?? widget.featureOrder?.price)}",
                             style: TextStyle(fontSize: 12.sp)),
                         SizedBox(
                           height: 10,
                         ),
                         Text(
-                            "Bayar sebelum ${customFormatDate(widget.order?.expiredDate ?? widget.buyFeature?.expiryDate ?? DateTime(2099))}",
+                            "Bayar sebelum ${customFormatDate(widget.order?.expiredDate ?? widget.featureOrder?.expiryDate ?? DateTime(2099))}",
                             style: TextStyle(fontSize: 12.sp)),
                         SizedBox(
                           height: 40,
@@ -129,14 +132,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             width: deviceWidth * 0.5,
                             child: ElevatedButton(
                               onPressed: () async {
-                                if(widget.order != null){
+                                if (widget.order != null) {
                                   paidOrder =
-                                    await validatePaymentXenditGateway();
-                                }else{
+                                      await validateOrderProductPaymentXenditGateway();
+                                } else {
                                   paidFeature =
-                                    await validatePaymentXenditGateway();
+                                      await validateOrderFeaturePaymentXenditGateway();
+                                      log.d("Paid Feature : ${paidFeature}");
                                 }
-                                
                               },
                               child: Text(
                                 "Sudah Bayar",
@@ -161,41 +164,44 @@ class _PaymentScreenState extends State<PaymentScreen> {
         }));
   }
 
-  Future<dynamic> validatePaymentXenditGateway() async {
+  Future<Order?> validateOrderProductPaymentXenditGateway() async {
     ApiService apiService = ApiService(context);
-    if (widget.order != null) {
-      OrderResponse response = await apiService.orderGet();
+    OrderResponse response = await apiService.orderGet();
 
-      if (!response.error) {
-        late Order currentOrder;
+    if (!response.error) {
+      late Order currentOrder;
 
-        List<Order> orders = response.data;
+      List<Order> orders = response.data;
 
-        for (var order in orders) {
-          if (order.id == widget.order!.id) {
-            currentOrder = order;
-          }
+      for (var order in orders) {
+        if (order.id == widget.order!.id) {
+          currentOrder = order;
         }
-
-        if (currentOrder.orderStatus == Order.PROCESS &&
-            currentOrder.xenditStatus == "PAID" &&
-            paidOrder != null) {
-          setState(() {
-            isPaymentSuccess = true;
-          });
-        }
-        return currentOrder;
       }
-      return null;
-    } else {
-      UserResponse response = await apiService.userGet();
-      if (!response.error) {
+
+      if (currentOrder.orderStatus == Order.PROCESS &&
+          currentOrder.xenditStatus == "PAID" &&
+          paidOrder != null) {
         setState(() {
           isPaymentSuccess = true;
         });
-        return widget.buyFeature;
       }
-      return null;
+      return currentOrder;
+    }
+  }
+
+  Future<FeatureOrder?> validateOrderFeaturePaymentXenditGateway() async {
+    ApiService apiService = ApiService(context);
+    OrderFeatureResponse response =
+        await apiService.getFeatureOrder(widget.featureOrder!.id!);
+
+    if (!response.error && response.data != null) {
+      if (response.data!.paymentStatus == "PAID"&& paidFeature != null) {
+        setState(() {
+          isPaymentSuccess = true;
+        });
+      }
+      return response.data;
     }
   }
 
@@ -204,21 +210,29 @@ class _PaymentScreenState extends State<PaymentScreen> {
     var url;
     if (widget.order != null) {
       url = Uri.parse(widget.order!.paymentUrl!);
+      try {
+        await launchUrl(url, mode: LaunchMode.externalApplication).then((v) {
+          validateOrderProductPaymentXenditGateway();
+        });
+      } catch (e) {
+        Fluttertoast.showToast(
+            msg: "Terjadi kesalahan, silakan coba lagi nanti.");
+      }
     } else {
-      url = Uri.parse(widget.buyFeature!.invoiceUrl);
-    }
-
-    try {
-      await launchUrl(url, mode: LaunchMode.externalApplication).then((v) {
-        validatePaymentXenditGateway();
-      });
-    } catch (e) {
-      Fluttertoast.showToast(
-          msg: "Terjadi kesalahan, silakan coba lagi nanti.");
+      url = Uri.parse(widget.featureOrder!.paymentUrl);
+      try {
+        await launchUrl(url, mode: LaunchMode.externalApplication).then((v) {
+          validateOrderFeaturePaymentXenditGateway();
+        });
+      } catch (e) {
+        Fluttertoast.showToast(
+            msg: "Terjadi kesalahan, silakan coba lagi nanti.");
+      }
     }
   }
 
   Widget paymentSuccess() {
+    log.d("LOG : ${paidFeature?.paymentDate}");
     return Padding(
         padding: EdgeInsets.all(10),
         child: Card(
@@ -250,7 +264,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
                 SizedBox(height: 5),
                 Text(
-                  "${convertToRupiah(paidOrder?.totalPrice ?? paidFeature?.amount)}",
+                  "${convertToRupiah(paidOrder?.totalPrice ?? paidFeature?.price)}",
                   style:
                       TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
                 ),
@@ -268,7 +282,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text("Order ID:", style: TextStyle(fontSize: 12.sp)),
-                        Text("${paidOrder?.id ?? paidFeature?.externalId}",
+                        Text("${paidOrder?.id ?? paidFeature?.id ?? "-"}",
                             style: TextStyle(fontSize: 12.sp)),
                       ],
                     ),
@@ -279,8 +293,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       children: [
                         Text("Tanggal pembayaran:",
                             style: TextStyle(fontSize: 12.sp)),
-                        Text("${customFormatDate(paidOrder?.paymentDate ?? DateTime.now())}",
-                            style: TextStyle(fontSize: 12.sp)),
+                        (widget.order != null)
+                            ? Text(
+                                "${customFormatDate(paidOrder?.paymentDate?? DateTime.now())}",
+                                style: TextStyle(fontSize: 12.sp))
+                            : Text(
+                                "${customFormatDate(paidFeature?.paymentDate ?? DateTime.now())}",
+                                style: TextStyle(fontSize: 12.sp)),
                       ],
                     ),
                     SizedBox(height: 8),
@@ -290,7 +309,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       children: [
                         Text("Status Pembayaran:",
                             style: TextStyle(fontSize: 12.sp)),
-                        Text("${paidOrder?.xenditStatus ?? "-"}",
+                        Text("${paidOrder?.xenditStatus ?? paidFeature?.paymentStatus}",
                             style: TextStyle(fontSize: 12.sp)),
                       ],
                     ),
@@ -301,7 +320,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       children: [
                         Text("Metode pembayaran:",
                             style: TextStyle(fontSize: 12.sp)),
-                        Text("${paidOrder?.paymentMethod ?? "-"}",
+                        Text("${paidOrder?.paymentMethod ?? paidFeature?.paymentMethod}",
                             style: TextStyle(fontSize: 12.sp)),
                       ],
                     ),

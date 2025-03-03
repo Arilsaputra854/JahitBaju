@@ -9,6 +9,7 @@ import 'package:jahit_baju/data/model/designer.dart';
 import 'package:jahit_baju/data/model/favorite.dart';
 import 'package:jahit_baju/data/model/look.dart';
 import 'package:jahit_baju/data/model/look_texture.dart';
+import 'package:jahit_baju/data/model/texture.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/data/model/product.dart';
 import 'package:jahit_baju/data/source/remote/response/favorite_response.dart';
@@ -48,14 +49,14 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
   var currentSvg = "";
 
   var updatedSvg;
-  var rendering = false;
-
   late ApiService apiService;
 
   List<LookTexture> svgColor = [];
   List<String> svgFeatures = [];
 
   Map<String, String> currentFeatureColor = {};
+
+  CacheHelper cache = CacheHelper();
 
   late String htmlContent;
 
@@ -72,13 +73,12 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
   initState() {
     apiService = ApiService(context);
 
-    
-      _controller = WebViewController();
-      _controller.enableZoom(false);
+    _controller = WebViewController();
+    _controller.enableZoom(false);
 
-      svgColor = widget.look.textures!;
-      svgFeatures = widget.look.features!;
-      fetchAllAndConvertToBase64();
+    svgColor = widget.look.textures!;
+    svgFeatures = widget.look.features!;
+    fetchAllAndConvertToBase64();
 
     super.initState();
   }
@@ -92,12 +92,12 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
           backgroundColor: Colors.white,
           appBar: AppBar(
             centerTitle: true,
-            title: Text("Kostum Produk",
+            title: Text(
+              "Kostum Produk",
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
-          body: SingleChildScrollView(
-              child: showCustom()),
+          body: SingleChildScrollView(child: showCustom()),
           bottomNavigationBar: _bottomNavigationWidget(),
         ),
         if (loading) loadingWidget()
@@ -109,7 +109,7 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
     return Column(
       children: [
         Container(
-            height: 400,
+            height: 300.h,
             child: Row(
               children: [
                 _featureWidget(),
@@ -131,11 +131,11 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
                   height: 10,
                 ),
                 Text(
-                      "${widget.look.sold} Terjual | ${widget.look.seen} Favorit | Stok \n${widget.look.seen} Orang melihat produk ini",
-                      style: TextStyle(
-                        fontSize: 15.sp,
-                      ),
-                    ),
+                  "${widget.look.sold} Terjual | ${widget.look.seen} Favorit | Stok \n${widget.look.seen} Orang melihat produk ini",
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                  ),
+                ),
                 SizedBox(
                   height: 10,
                 ),
@@ -199,23 +199,27 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
           itemCount: svgColor.length,
           itemBuilder: (context, index) {
             return InkWell(
+              onLongPress: (){
+                //_previewTextureDetails(svgColor[index].texture);
+              },
                 onTap: () async {
                   try {
                     if (currentFeature != "") {
                       setState(() {
-                        rendering = true;
+                        loading = true;
                         // Mengubah warna atau texture sesuai kondisi
-                        if(svgColor[index].texture.hex != null){
+                        if (svgColor[index].texture.hex != null) {
                           currentColor = svgColor[index].texture.hex; //color
-                        } else if(svgColor[index].texture.urlTexture != null){
-                          currentColor = svgColor[index].texture.urlTexture; //texture
+                        } else if (svgColor[index].texture.urlTexture != null) {
+                          currentColor =
+                              svgColor[index].texture.urlTexture; //texture
                         }
-                        
                       });
 
                       if (svgColor[index].texture.urlTexture != null) {
                         // Ambil dan konversi gambar ke Base64
-                        String? base64Image = base64Textures[svgColor[index].textureId];
+                        String? base64Image =
+                            base64Textures[svgColor[index].textureId];
 
                         if (base64Image != null) {
                           updatedSvg = addPatternToSvg(
@@ -229,9 +233,8 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
                             currentSvg, currentFeature!, currentColor!);
                       }
 
-                      
                       setState(() {
-                        rendering = false;
+                        loading = false;
                         currentFeatureColor[currentFeature!] = currentColor!;
                         currentSvg = updatedSvg;
                       });
@@ -266,8 +269,10 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
                             horizontal: deviceWidth * 0.01),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Color(int.parse(
-                              svgColor[index].texture.hex!.replaceFirst('#', '0xFF'))),
+                          color: Color(int.parse(svgColor[index]
+                              .texture
+                              .hex!
+                              .replaceFirst('#', '0xFF'))),
                         ),
                       ));
           },
@@ -337,13 +342,15 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
           future: fetchSvg(widget.look.designUrl),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Container(
-                  width: 260.w,
-                  height: 400.h,
-                  child: Center(
-                    child: CircularProgressIndicator(),
+              return Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Container(
+                    width: 240.w,
+                    height: 300.h,
+                    color: Colors.grey,
                   ));
-            }
+            } 
             if (snapshot.hasData) {
               currentSvg = snapshot.data!;
               htmlContent = '''
@@ -376,10 +383,9 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
             ''';
               _controller.loadHtmlString(htmlContent);
             }
-
             return Container(
-              width: deviceWidth * 0.65,
-              height: 400,
+              width: 240.w,
+                    height: 300.h,
               padding: EdgeInsets.all(10),
               child: WebViewWidget(
                 controller: _controller,
@@ -420,21 +426,14 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
     _controller.loadHtmlString(htmlContent);
     //svg update
     return Container(
-        width: deviceWidth * 0.65,
-        height: 400,
+        width: 240.w,
+        height: 300.h,
         padding: EdgeInsets.all(10),
-        child: Stack(
-          children: [
+        child: 
             WebViewWidget(
               controller: _controller,
               gestureRecognizers: Set(),
-            ),
-            rendering
-                ? Center(
-                    child: CircularProgressIndicator(),
-                  )
-                : SizedBox()
-          ],
+            
         ));
   }
 
@@ -453,8 +452,10 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
           return base64Textures[imageUrl];
         } else {
           // Menangani error jika request gagal
-          log.d('Fetch and Convert to Base64: Gagal memuat gambar, status code: ${response.statusCode}');
-          Fluttertoast.showToast(msg: "Tidak dapat memuat tekstur kain, silakan coba lagi nanti.");
+          log.d(
+              'Fetch and Convert to Base64: Gagal memuat gambar, status code: ${response.statusCode}');
+          Fluttertoast.showToast(
+              msg: "Tidak dapat memuat tekstur kain, silakan coba lagi nanti.");
           return null;
         }
       } catch (e) {
@@ -469,46 +470,58 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
   }
 
   Future<void> fetchAllAndConvertToBase64() async {
-    log.d("start fetching all texture");
-
     setState(() {
       loading = true;
     });
 
-    for (LookTexture texture in svgColor) {
-      if (texture.texture.urlTexture != null) {
-        if (base64Textures[texture.textureId] == null) {
-          try {
-            // Mengambil svg dari URL menggunakan HTTP GET
-            final response = await http.get(Uri.parse(texture.texture.urlTexture!));
+    Map<String, String>? cachedTextures = await cache.getBase64Map();
+    if (cachedTextures != null && cachedTextures.isNotEmpty) {
+      setState(() {
+        base64Textures = cachedTextures;
+      });
+      log.d("Base64 textures loaded from cache : ${json.encode(cachedTextures)}");
 
-            // Mengecek apakah response sukses
-            if (response.statusCode == 200) {
-              // Mengonversi byte data gambar ke Base64
+      setState(() {
+        loading = false;
+      });
+    } else {
+      log.d("start fetching base64 texture from server");
+      for (LookTexture texture in svgColor) {
+        if (texture.texture.urlTexture != null) {
+          if (base64Textures[texture.textureId] == null) {
+            try {
+              final response =
+                  await http.get(Uri.parse(texture.texture.urlTexture!));
 
-              String base64Image = base64Encode(response.bodyBytes);
-              setState(() {
-                base64Textures[texture.textureId] = base64Image;
+              if (response.statusCode == 200) {
+                String base64Image = base64Encode(response.bodyBytes);
                 log.d("finish fetch ${base64Textures[texture.textureId]}");
-              });
-            } else {
-              // Menangani error jika request gagal
-              log.d('Fetch and Convert to Base64: Gagal memuat gambar, status code: ${response.statusCode}');
+                setState(() {
+                  base64Textures[texture.textureId] = base64Image;
+                });
+              } else {
+                // Menangani error jika request gagal
+                log.d(
+                    'Fetch and Convert to Base64: Gagal memuat gambar, status code: ${response.statusCode}');
+                return null;
+              }
+            } catch (e) {
+              // Menangani error jika ada masalah dengan request HTTP
+              log.d('Fetch and Convert to Base64: Terjadi kesalahan ${e}');
               return null;
             }
-          } catch (e) {
-            // Menangani error jika ada masalah dengan request HTTP
-            log.d('Fetch and Convert to Base64: Terjadi kesalahan ${e}');
-            return null;
           }
-        }else{
         }
       }
+
+      await cache.saveBase64Map(base64Textures);
+
+      log.d("Base64 textures saved to cache");
+      log.d("finish fetching all texture.");
+      setState(() {
+        loading = false;
+      });
     }
-    setState(() {
-      loading = false;
-    });
-    log.d("finish fetching all texture");
   }
 
   _featureWidget() {
@@ -779,60 +792,59 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
       alignment: AlignmentDirectional.center,
       children: [
         Container(
-                width: deviceWidth,
-                padding: EdgeInsets.all(20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    OutlinedButton(
-                        style: OutlinedButton.styleFrom(
+            width: deviceWidth,
+            padding: EdgeInsets.all(20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      backgroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey,
+                      padding: EdgeInsets.symmetric(vertical: 15),
+                    ),
+                    onPressed: () async {
+                      Uri url = Uri.parse("http://wa.me/+6281284844428");
+                      try {
+                        await launchUrl(url,
+                            mode: LaunchMode.externalApplication);
+                      } catch (e) {
+                        Fluttertoast.showToast(
+                            msg: "Terjadi kesalahan, silakan coba lagi nanti.");
+                      }
+                    },
+                    child: Icon(Icons.chat)),
+                SizedBox(width: 10),
+                Expanded(
+                    child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          backgroundColor: Colors.white,
+                              borderRadius: BorderRadius.circular(8)),
+                          backgroundColor: Colors.red,
                           disabledBackgroundColor: Colors.grey,
-                          padding: EdgeInsets.symmetric(vertical: 15),
+                          padding: EdgeInsets.symmetric(
+                              vertical: 15, horizontal: 10),
                         ),
-                        onPressed: () async {
-                          Uri url = Uri.parse("http://wa.me/+6281284844428");
-                          try {
-                            await launchUrl(url,
-                                mode: LaunchMode.externalApplication);
-                          } catch (e) {
-                            Fluttertoast.showToast(
-                                msg:
-                                    "Terjadi kesalahan, silakan coba lagi nanti.");
-                          }
-                        },
-                        child: Icon(Icons.chat)),
-                    SizedBox(width: 10),
-                    Expanded(
-                        child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8)),
-                              backgroundColor: Colors.red,
-                              disabledBackgroundColor: Colors.grey,
-                              padding: EdgeInsets.symmetric(
-                                  vertical: 15, horizontal: 10),
-                            ),
-                            onPressed: currentSvg.contains("none")
-                                ? null
-                                : () {
-                                    goToDesignConfirmation(htmlContent);
-                                  },
-                            child: Text(
-                              "Selanjutnya",
-                              style: TextStyle(
-                                color: currentSvg.contains("none")
-                                    ? Colors.black
-                                    : Colors.white,
-                                    fontSize: 12.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            )))
-                  ],
-                )),
+                        onPressed: currentSvg.contains("none")
+                            ? null
+                            : () {
+                                goToDesignConfirmation(htmlContent);
+                              },
+                        child: Text(
+                          "Selanjutnya",
+                          style: TextStyle(
+                            color: currentSvg.contains("none")
+                                ? Colors.black
+                                : Colors.white,
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )))
+              ],
+            )),
       ],
     );
   }
@@ -894,44 +906,56 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
     );
   }
 
-  // _tagsWidget() {
-  //   return Column(
-  //     crossAxisAlignment: CrossAxisAlignment.start,
-  //     children: [
-  //       Divider(),
-  //       Text(
-  //         "Tags",
-  //         style: TextStyle(
-  //           fontSize: 16.sp,
-  //         ),
-  //       ),
-  //       SizedBox(
-  //         height: 5,
-  //       ),
-  //       Wrap(
-  //         spacing: 5, // Jarak horizontal antar tag
-  //         runSpacing: 5, // Jarak vertikal antara baris tag
-  //         children: widget.look.tags!.map((tag) {
-  //           return Container(
-  //             padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-  //             decoration: BoxDecoration(
-  //               color: AppColor.tag,
-  //               borderRadius: BorderRadius.circular(10),
-  //             ),
-  //             child: Text(
-  //               tag,
-  //               style: TextStyle(
-  //                 color: Colors.black,
-  //                 fontWeight: FontWeight.bold,
-  //                 fontSize: 10.sp,
-  //               ),
-  //             ),
-  //           );
-  //         }).toList(),
-  //       ),
-  //     ],
-  //   );
-  // }
+  _previewTextureDetails(TextureLook texture) {
+    return showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+        contentPadding: EdgeInsets.all(16.0),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            texture.urlTexture != null? Image.network( // Bisa diganti Image.asset jika gambar lokal
+              texture.urlTexture!,
+              width: 150.w,
+              height: 150.w,
+              fit: BoxFit.cover,
+            ) : Container(
+                        width: 150.w,
+                        height: 150.w,
+                        decoration: BoxDecoration(
+                          color: Color(int.parse(texture
+                              .hex!
+                              .replaceFirst('#', '0xFF'))),
+                        ),
+                      ),
+            SizedBox(height: 16),
+            Text(
+              texture.title,
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 8),
+            Text(
+              texture.description ?? "Tidak ada deskripsi.",
+              style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Tutup dialog
+            },
+            child: Text("Tutup"),
+          ),
+        ],
+      );
+    },
+  );
+  }
 }
 
 void buyNow(BuildContext context, String size, Product? product) {

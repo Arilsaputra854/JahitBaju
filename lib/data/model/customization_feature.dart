@@ -2,7 +2,8 @@ class CustomizationAccess {
   final String id;
   final String name;
   final String? description;
-  final double price;
+  final String type;
+  final int price;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -11,6 +12,7 @@ class CustomizationAccess {
     required this.name,
     this.description,
     required this.price,
+    required this.type,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -20,9 +22,10 @@ class CustomizationAccess {
       id: json['id'],
       name: json['name'],
       description: json['description'],
-      price: json['price'].toDouble(),
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      type: json['type'],
+      price: json['price'],
+      createdAt: DateTime.parse(json['created_at']),
+      updatedAt: DateTime.parse(json['updated_at']),
     );
   }
 

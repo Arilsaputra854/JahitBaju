@@ -1,8 +1,8 @@
-import 'package:jahit_baju/data/model/buy_feature.dart';
+import 'package:jahit_baju/data/model/feature_order.dart';
 
 class BuyFeatureResponse {
   final bool error;
-  final BuyFeature? data;
+  final FeatureOrder? data;
   final String? message;
 
   BuyFeatureResponse({
@@ -14,7 +14,7 @@ class BuyFeatureResponse {
   factory BuyFeatureResponse.fromJson(Map<String, dynamic> json) {
     return BuyFeatureResponse(
       error: json['error'] ?? false,
-      data: json['data'] != null ? BuyFeature.fromJson(json['data']) : null,
+      data: json['data'] != null ? FeatureOrder.fromJson(json['data']) : null,
       message: json['message'],
     );
   }

@@ -5,7 +5,7 @@ import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:jahit_baju/data/model/buy_feature.dart';
+import 'package:jahit_baju/data/model/feature_order.dart';
 import 'package:jahit_baju/data/model/customization_feature.dart';
 import 'package:jahit_baju/data/repository/repository.dart';
 import 'package:jahit_baju/data/source/remote/response/customization_feature_response.dart';
@@ -46,7 +46,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     getAccessCustom().then((access){
-      accessCustom = access;
+      accessCustom = access ?? false;
     });
     super.initState();
   }
@@ -124,8 +124,6 @@ class _HomePageState extends State<HomePage> {
                                     FutureBuilder<CustomizationAccess?>(
                                       future: getCustomizationFeature(),
                                       builder: (context, snapshot) {
-                                        Logger log = Logger();
-                                        log.d("HASIL SNAPSHOT: ${snapshot.data}");
                                         if (snapshot.hasData) {
                                           return Padding(
                                             padding: EdgeInsets.all(10),
@@ -416,7 +414,7 @@ class _HomePageState extends State<HomePage> {
         future: ApiService(context).getAllAppBanner(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            if (snapshot.data!.appBanner != null) {
+            if (snapshot.data!.appBanner!.isNotEmpty) {
               return FlutterCarousel(
                   options: FlutterCarouselOptions(
                       viewportFraction: 1, autoPlay: true, aspectRatio: 16 / 9),
@@ -533,7 +531,7 @@ class _HomePageState extends State<HomePage> {
     return response.customizationAccess!;
   }
   
-  Future<bool> getAccessCustom() async {
+  Future<bool?> getAccessCustom() async {
     ApiService apiService = ApiService(context);
     UserResponse response =  await apiService.userGet();
     if(response.error){
@@ -571,11 +569,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
   
-  void goToPaymentScreen(BuyFeature data) {
+  void goToPaymentScreen(FeatureOrder data) {
     Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
-                  builder: (context) => PaymentScreen(buyFeature: data, )),
+                  builder: (context) => PaymentScreen(featureOrder: data, )),
               (route) => route.settings.name == "Home",
             );
   }

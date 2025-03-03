@@ -1,11 +1,12 @@
 
-import 'texture.dart';
+
+import 'package:jahit_baju/data/model/texture.dart';
 
 class LookTexture {
   String id;
   String lookId;
   String textureId;
-  Texture texture;
+  TextureLook texture;
 
   LookTexture({
     required this.id,
@@ -19,7 +20,7 @@ class LookTexture {
       id: json['id'],
       lookId: json['look_id'],
       textureId: json['texture_id'],
-      texture: Texture.fromJson(json['texture']),
+      texture: TextureLook.fromJson(json['texture']),
     );
   }
 }

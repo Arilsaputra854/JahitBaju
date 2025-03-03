@@ -1,18 +1,30 @@
+import 'dart:convert';
+import 'package:logger/web.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CacheHelper {
-  static Future<void> saveBase64List(String key, List<String> base64List) async {
+  Logger log = Logger();
+  static const String KEY = "TEXTURE_MAP_CUSTOM";
+
+  Future<void> saveBase64Map(Map<String, String> base64Map) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(key, base64List);
+    String jsonMap = jsonEncode(base64Map);
+    log.d("Save Texture Cache ${jsonMap}");
+    await prefs.setString(KEY, jsonMap);
   }
 
-  static Future<List<String>?> getBase64List(String key) async {
+  Future<Map<String, String>?> getBase64Map() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getStringList(key);
+    String? jsonMap = prefs.getString(KEY);
+    log.d("Read Texture Cache ${jsonMap}");
+    if (jsonMap != null) {
+      return Map<String, String>.from(jsonDecode(jsonMap));
+    }
+    return null;
   }
 
-  static Future<void> removeBase64List(String key) async {
+  Future<void> removeBase64Map() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(key);
+    await prefs.remove(KEY);
   }
 }
