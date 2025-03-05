@@ -124,7 +124,7 @@ class _HomePageState extends State<HomePage> {
                                     FutureBuilder<CustomizationAccess?>(
                                       future: getCustomizationFeature(),
                                       builder: (context, snapshot) {
-                                        if (snapshot.hasData) {
+                                        if (snapshot.hasData && snapshot.data != null) {
                                           return Padding(
                                             padding: EdgeInsets.all(10),
                                             child: InkWell(
@@ -413,7 +413,7 @@ class _HomePageState extends State<HomePage> {
       return FutureBuilder(
         future: ApiService(context).getAllAppBanner(),
         builder: (context, snapshot) {
-          if (snapshot.hasData) {
+          if (snapshot.hasData && snapshot.data?.appBanner != null) {
             if (snapshot.data!.appBanner!.isNotEmpty) {
               return FlutterCarousel(
                   options: FlutterCarouselOptions(
@@ -520,15 +520,18 @@ class _HomePageState extends State<HomePage> {
         context, MaterialPageRoute(builder: (context) => DesignerScreen()));
   }
 
-  Future<CustomizationAccess> getCustomizationFeature() async {
+  Future<CustomizationAccess?> getCustomizationFeature() async {
     ApiService apiService = ApiService(context);
 
     CustomizationAccessResponse response =
         await apiService.getCustomizationFeature();
-    if (response.error) {
+    if (!response.error && response.customizationAccess != null) {
+      return response.customizationAccess!;
+    }else{
       Fluttertoast.showToast(msg: ApiService.SOMETHING_WAS_WRONG);
+    return null;
     }
-    return response.customizationAccess!;
+    
   }
   
   Future<bool?> getAccessCustom() async {

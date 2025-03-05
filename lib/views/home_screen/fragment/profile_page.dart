@@ -176,9 +176,7 @@ class _HomePageState extends State<ProfilePage> {
                         return null;
                       },
                       decoration: standartInputDecoration(
-                          user?.address != "" && user?.address != null
-                              ? user!.address
-                              : "Address",
+                          user?.address??"Alamat",
                           Icons.location_pin),
                     ),
                     const SizedBox(height: 10),
@@ -256,7 +254,7 @@ class _HomePageState extends State<ProfilePage> {
         password: "password",
         emailVerified: false);
     }
-
+    Fluttertoast.showToast(msg: "Tidak dapat memperbarui halaman.");
     return User(
         email: "email",
         name: "name",

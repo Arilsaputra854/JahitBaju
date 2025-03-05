@@ -334,7 +334,7 @@ class _ProductScreenState extends State<ProductScreen> {
   Future<void> addProductFavorite(Product product) async {
     ApiService apiService = ApiService(context);
 
-    Favorite favorite = Favorite(productId: product.id);
+    Favorite favorite = Favorite(productId: product.id, lastUpdate: DateTime.now());
 
     if (!isFavorited) {
       FavoriteResponse response = await apiService.favoriteAdd(favorite);

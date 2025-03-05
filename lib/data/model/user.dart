@@ -4,10 +4,11 @@ class User {
   String name;
   String phoneNumber;
   String password;
-  String address;
+  String? address;
   String imageUrl;
   bool emailVerified;
   bool customAccess;
+  final DateTime? lastUpdate;
 
   User({
     this.id = "",
@@ -15,10 +16,11 @@ class User {
     required this.name,
      this.phoneNumber= "",
     required this.password,
-     this.address= "",
+     this.address,
      this.imageUrl= "",
     this.emailVerified = false,
     this.customAccess = false,
+    this.lastUpdate,
   });
 factory User.fromJson(Map<String, dynamic> json) {
     return User(
@@ -27,10 +29,11 @@ factory User.fromJson(Map<String, dynamic> json) {
       name: json['name'] ?? "",  // Use empty string if 'name' is null
       phoneNumber: json['phone_number']?? "",  // Nullable field
       password: json['password'] ?? "",  // Use empty string if 'password' is null
-      address: json['address']?? "",  // Nullable field
+      address: json['address'],  // Nullable field
       imageUrl: json['img_url']?? "",  // Nullable field
       emailVerified: json['email_verified'] ?? false,
-      customAccess: json['custom_access'] ?? false
+      customAccess: json['custom_access'] ?? false,
+      lastUpdate: json['last_update'] != null ? DateTime.parse(json['last_update']) : null,
     );
   }
 
@@ -44,7 +47,8 @@ factory User.fromJson(Map<String, dynamic> json) {
       'address': address,
       'img_url': imageUrl,
       'email_verified' : emailVerified,
-      'custom_access' : customAccess
+      'custom_access' : customAccess,
+      'last_update': lastUpdate?.toIso8601String() ?? DateTime.now().toIso8601String(),
     };
   }
 }

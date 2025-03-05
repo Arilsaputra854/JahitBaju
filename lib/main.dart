@@ -8,6 +8,9 @@ import 'package:jahit_baju/viewmodels/designer_view_model.dart';
 import 'package:jahit_baju/viewmodels/forgot_password_view_model.dart';
 import 'package:jahit_baju/viewmodels/home_screen_view_model.dart';
 import 'package:jahit_baju/viewmodels/home_view_model.dart';
+import 'package:jahit_baju/viewmodels/login_view_model.dart';
+import 'package:jahit_baju/viewmodels/look_view_model.dart';
+import 'package:jahit_baju/viewmodels/otp_screen_view_model.dart';
 import 'package:jahit_baju/viewmodels/payment_view_model.dart';
 import 'package:jahit_baju/viewmodels/register_view_model.dart';
 import 'package:jahit_baju/viewmodels/reset_password_view_model.dart';
@@ -31,6 +34,9 @@ void main() async {
     ChangeNotifierProvider(create: (context) => ShippingViewModel(ApiService(context))),
     ChangeNotifierProvider(create: (context) => HomeScreenViewModel(ApiService(context))),
     ChangeNotifierProvider(create: (context) => DesignerViewModel(ApiService(context))),
+    ChangeNotifierProvider(create: (context) => LoginViewModel(ApiService(context))),
+    ChangeNotifierProvider(create: (context) => OtpScreenViewModel(ApiService(context))),
+    ChangeNotifierProvider(create: (context) => LookViewModel(ApiService(context))),
   ],
   child: ScreenUtilInit(
     designSize: Size(360, 640),

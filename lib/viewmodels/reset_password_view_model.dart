@@ -5,12 +5,11 @@ import 'package:jahit_baju/data/source/remote/response/user_response.dart';
 class ResetPasswordViewModel extends ChangeNotifier {
   String? _password;
   String? _confirmPassword;
-  String? _errorMsg;
+  String? _message;
 
   String? get password => _password;
   String? get confirmPassword => _confirmPassword;
-  String? get errorMsg => _errorMsg;
-
+  String? get message => _message;
 
   ApiService apiService;
 
@@ -28,24 +27,24 @@ class ResetPasswordViewModel extends ChangeNotifier {
 
   Future<void> changePassword(String token) async {
 
-    _errorMsg = null;
+    _message = null;
     notifyListeners();
     
     if (_password == null || _confirmPassword == null) {
-      _errorMsg = 'Password tidak boleh kosong!';
+      _message = 'Password tidak boleh kosong!';
       notifyListeners();
       return;
     }
 
     if (_password != _confirmPassword) {
-      _errorMsg = 'Konfirmasi password tidak sama!';
+      _message = 'Konfirmasi password tidak sama!';
       notifyListeners();
       return;
     }
 
 
     if (_password!.length < 7) {
-      _errorMsg = 'Password harus terdiri dari minimal 8 karakter!';
+      _message = 'Password harus terdiri dari minimal 8 karakter!';
       notifyListeners();
       return;
     }
@@ -53,7 +52,7 @@ class ResetPasswordViewModel extends ChangeNotifier {
     UserResponse userResponse =  await apiService.userUpdate(null, null, password, null, null, null, resetToken: token);
 
     if(userResponse.error){
-      _errorMsg = userResponse.message!;
+      _message = userResponse.message!;
       notifyListeners();
       return;
     }

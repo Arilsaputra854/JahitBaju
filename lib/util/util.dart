@@ -7,7 +7,9 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:jahit_baju/data/cache/cache.dart';
 import 'package:jahit_baju/data/model/product.dart';
+import 'package:jahit_baju/data/source/local/db/db_helper.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/data/source/remote/response/product_response.dart';
 import 'package:jahit_baju/data/source/remote/response/survei_response.dart';
@@ -119,8 +121,14 @@ void showDialogSession(BuildContext context){
 
 
 
-  logoutUser(BuildContext context) async {
+  logoutUser(BuildContext context) async {    
     TokenStorage tokenStorage = TokenStorage();
+    CacheHelper cache = CacheHelper();
+    DatabaseHelper database = DatabaseHelper();
+
+    await cache.removeBase64Map();
+    await database.clearCache();
+    
     await tokenStorage.deleteToken(TokenStorage.TOKEN_KEY);
     Fluttertoast.showToast(msg: "Logout berhasil");
     goToLoginScreen(context);

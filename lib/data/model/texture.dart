@@ -5,6 +5,7 @@ class TextureLook {
   String? urlTexture;
   String? hex;
   String? description;
+  final DateTime? lastUpdate;
 
   TextureLook({
     required this.id,
@@ -12,6 +13,7 @@ class TextureLook {
     this.urlTexture,
     this.hex,
     this.description,
+    required this.lastUpdate,
   });
 
   factory TextureLook.fromJson(Map<String, dynamic> json) {
@@ -21,6 +23,7 @@ class TextureLook {
       urlTexture: json['url_texture'],
       hex: json['hex'],
       description: json['description'],
+      lastUpdate: json['last_update'] != null ? DateTime.parse(json['last_update']) : null,
     );
   }
 }

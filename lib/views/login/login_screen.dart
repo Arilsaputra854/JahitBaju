@@ -21,18 +21,14 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  bool _isPasswordVisible = false;
-  var deviceWidth, deviceHeight;
   var formKey = GlobalKey<FormState>();  
 
   bool init = false;
 
-  bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    isLoading = false;
   }
 
   @override
@@ -47,12 +43,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    deviceWidth = MediaQuery.of(context).size.width;
-    deviceHeight = MediaQuery.of(context).size.height;
 
-    return GestureDetector(child: ChangeNotifierProvider(
-        create: (context) => LoginViewModel(new ApiService(context)),
-        child: Stack(
+    return Consumer<LoginViewModel>(builder: (context, viewmodel, child) {
+      if(viewmodel.message != null){
+        Fluttertoast.showToast(msg: viewmodel.message!);
+      }
+      return GestureDetector(child: Stack(
           alignment: Alignment.center,
           children: [
             Positioned.fill(
@@ -71,27 +67,23 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             Scaffold(
               backgroundColor: Colors.transparent,
-              body: Container(
-                height: deviceHeight,
-                width: deviceWidth,
-                child: Center(                
-                child: FractionallySizedBox(
-                widthFactor: 0.8, // 80% dari lebar layar.
-                child: loginForm(),
-                )
-              )),
+              body: Center(
+                child: Container(
+                height: 400.w,
+                width: 320.w,
+                child:loginForm(viewmodel)),
+              )
             ),
-            if (isLoading)
+            if (viewmodel.loading)
               loadingWidget()
           ],
-        )),onTap: (){
+        ),onTap: (){
           FocusScope.of(context).unfocus(); 
-        },);
+        },);});
   }
 
-  loginForm() {
-    return Consumer<LoginViewModel>(builder: (context, viewModel, child) {
-      return Container(
+  loginForm(LoginViewModel viewmodel) {
+    return Container(
           padding: const EdgeInsets.all(16),
           child: Form(
             key: formKey,
@@ -119,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     }
                     return null;
                   },
-                  onChanged: viewModel.setEmail,
+                  onChanged: viewmodel.setEmail,
                   keyboardType: TextInputType.emailAddress,
                   decoration: inputEmailDecoration(),
                 ),
@@ -135,9 +127,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     }
                     return null;
                   },
-                  onChanged: viewModel.setPassword,
-                  obscureText: !_isPasswordVisible,
-                  decoration: inputPasswordDecoration(),
+                  onChanged: viewmodel.setPassword,
+                  obscureText: !viewmodel.hidePassword,
+                  decoration: inputPasswordDecoration(viewmodel),
                 ),
                 const SizedBox(
                   height: 10,
@@ -162,15 +154,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 Column(
                   children: [
                     SizedBox(
-                      width: deviceWidth,
+                      width: 320.w,
                       child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(5)),
-                              backgroundColor: isLoading? Colors.grey : Colors.white),
-                          onPressed: isLoading? null : () async {
+                              backgroundColor: viewmodel.loading? Colors.grey : Colors.white),
+                          onPressed: viewmodel.loading? null : () async {
                             if (formKey.currentState!.validate()) {
-                              login(viewModel);
+                              FocusScope.of(context).unfocus();
+                              login(viewmodel);
                             }
                           },
                           child: Text(
@@ -196,7 +189,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
             ),
           ));
-    });
   }
 
   inputEmailDecoration() {
@@ -210,7 +202,7 @@ class _LoginScreenState extends State<LoginScreen> {
             borderRadius: BorderRadius.all(Radius.circular(10))));
   }
 
-  inputPasswordDecoration() {
+  inputPasswordDecoration(LoginViewModel viewmodel) {
     return InputDecoration(
         fillColor: Colors.white,
         filled: true,
@@ -218,12 +210,9 @@ class _LoginScreenState extends State<LoginScreen> {
         hintText: "********",
         suffixIcon: IconButton(
             onPressed: () {
-              setState(() {
-                _isPasswordVisible = !_isPasswordVisible;
-              });
             },
             icon: Icon(
-                _isPasswordVisible ? Icons.visibility : Icons.visibility_off)),
+                !viewmodel.hidePassword ? Icons.visibility : Icons.visibility_off)),
         hintStyle:
             const TextStyle(color: Colors.grey, fontWeight: FontWeight.normal),
         border: const OutlineInputBorder(
@@ -247,29 +236,23 @@ class _LoginScreenState extends State<LoginScreen> {
         (Route<dynamic> route) => false);
   }
 
-  Future<void> login(LoginViewModel viewModel) async {
-    setState(() {
-      isLoading = true;
-    });
-    await viewModel.login().then((isSuccess) async {
-      if (viewModel.message != null) {
-        Fluttertoast.showToast(msg: viewModel.message.toString());
+  Future<void> login(LoginViewModel viewmodel) async {
+    await viewmodel.login().then((isSuccess) async {
+      if (viewmodel.message != null) {
+        Fluttertoast.showToast(msg: viewmodel.message.toString());
       }
       if (isSuccess) {
-        await viewModel.emailVerified().then((isVerified) {
+        await viewmodel.emailVerified().then((isVerified) {
           if (isVerified) {
             Fluttertoast.showToast(msg: "Login berhasil!");
 
             goToHomeScreen();
           } else {
-            goTogoToOtpPage(viewModel.email);
+            goTogoToOtpPage(viewmodel.email);
             Fluttertoast.showToast(msg: "Email belum terverifikasi!");
           }
         });
       }
-      setState(() {
-        isLoading = false;
-      });
     });
   }
 

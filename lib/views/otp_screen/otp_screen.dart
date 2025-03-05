@@ -8,8 +8,11 @@ import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/data/source/remote/response/login_response.dart';
 import 'package:jahit_baju/data/source/remote/response/otp_response.dart';
 import 'package:jahit_baju/util/util.dart';
+import 'package:jahit_baju/viewmodels/home_view_model.dart';
+import 'package:jahit_baju/viewmodels/otp_screen_view_model.dart';
 import 'package:jahit_baju/views/home_screen/home_screen.dart';
 import 'package:jahit_baju/views/reset_password/reset_password.dart';
+import 'package:provider/provider.dart';
 
 class OtpScreen extends StatefulWidget {
   static const REGISTER = 1;
@@ -25,26 +28,7 @@ class OtpScreen extends StatefulWidget {
 }
 
 class _ResetPasswordState extends State<OtpScreen> {
-  var deviceWidth, deviceHeight;
-
   bool init = false;
-  bool isOtpValid = false;
-  bool requestOTP = true;
-
-  int currentOtp = 0;
-
-  late ApiService apiService;
-
-  late Timer _timer;
-  int _secondsRemaining = 300;
-
-  bool loading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    apiService = ApiService(context);
-  }
 
   @override
   void didChangeDependencies() {
@@ -57,46 +41,51 @@ class _ResetPasswordState extends State<OtpScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    deviceWidth = MediaQuery.of(context).size.width;
-    deviceHeight = MediaQuery.of(context).size.height;
+  Widget build(BuildContext context) {    
 
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        Transform.scale(
-          scale: 1.3,
-          child: Container(
-            width: deviceWidth,
-            decoration: const BoxDecoration(
-                color: Colors.black,
-                image: DecorationImage(
-                    image: AssetImage("assets/background/bg.png"),
-                    fit: BoxFit.cover,
-                    opacity: 0.6)),
-          ),
-        ),
-        Scaffold(
-            appBar: AppBar(
-              backgroundColor: Colors.transparent,
-              foregroundColor: Colors.white,
+    return Consumer<OtpScreenViewModel>(builder: (context, viewModel, child) {
+      viewModel.setEmail(widget.email);
+
+      if(viewModel.message != null){
+        Fluttertoast.showToast(msg: viewModel.message!);
+      }
+      return Stack(
+        alignment: Alignment.center,
+        children: [
+          Transform.scale(
+            scale: 1.3,
+            child: Container(
+              width: 340.w,
+              decoration: const BoxDecoration(
+                  color: Colors.black,
+                  image: DecorationImage(
+                      image: AssetImage("assets/background/bg.png"),
+                      fit: BoxFit.cover,
+                      opacity: 0.6)),
             ),
-            backgroundColor: Colors.transparent,
-            body: Center(
-              child: SizedBox(
-                width: 300.w,
-                height: 500.h,
-                child: SingleChildScrollView(
-                  child: _otpWidget(),
-                ),
+          ),
+          Scaffold(
+              appBar: AppBar(
+                backgroundColor: Colors.transparent,
+                foregroundColor: Colors.white,
               ),
-            )),
-            if(loading) loadingWidget()
-      ],
-    );
+              backgroundColor: Colors.transparent,
+              body: Center(
+                child: SizedBox(
+                  width: 300.w,
+                  height: 500.h,
+                  child: SingleChildScrollView(
+                    child: _otpWidget(viewModel),
+                  ),
+                ),
+              )),
+          if (viewModel.loading) loadingWidget()
+        ],
+      );
+    });
   }
 
-  _otpWidget() {
+  _otpWidget(OtpScreenViewModel viewmodel) {
     return Container(
       padding: const EdgeInsets.all(14),
       child: Column(
@@ -106,7 +95,9 @@ class _ResetPasswordState extends State<OtpScreen> {
             "Kode OTP",
             textAlign: TextAlign.start,
             style: TextStyle(
-                fontSize: 20.sp, fontWeight: FontWeight.bold, color: Colors.white),
+                fontSize: 20.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.white),
           ),
           Text(
             "Kami telah kirim kode ke ${widget.email} kamu.\njika tidak ada, cek juga folder SPAM.",
@@ -121,7 +112,7 @@ class _ResetPasswordState extends State<OtpScreen> {
           ),
           OtpTextField(
             numberOfFields: 4,
-            fieldWidth: deviceWidth * 0.15,
+            fieldWidth: 50.w,
             showFieldAsBox: true,
             fillColor: Colors.white,
             focusedBorderColor: const Color(0xFFBB5E44),
@@ -129,162 +120,41 @@ class _ResetPasswordState extends State<OtpScreen> {
             textStyle:
                 const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             onSubmit: (value) async {
-              currentOtp = int.parse(value);
+              viewmodel.setOtp(int.parse(value));
             },
           ),
           const SizedBox(
             height: 15,
           ),
-          countdown(),
+          countdown(viewmodel),
           const SizedBox(
             height: 20,
           ),
           Column(
             children: [
               SizedBox(
-                width: deviceWidth,
+                width: 340.w,
                 child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5)),
                         backgroundColor: Colors.white),
-                    onPressed: requestOTP
+                    onPressed: viewmodel.isRequestOtp
                         ? () async {
-                          setState(() {
-                            loading = true;
-                          });
-                            if (widget.type == OtpScreen.RESET_PASSWORD) {
-                              var response = await apiService
-                                  .userResetRequestOtp(widget.email);
-
-                              if (response.error) {
-                                if (response.message!.contains(
-                                    "OTP is already valid and not expired. Please verify it.")) {
-                                  Fluttertoast.showToast(
-                                      msg:
-                                          "Kode OTP masih valid. silakan cek email kamu.");
-
-                                  setState(() {
-                                    requestOTP = false;
-                                  });
-
-                                startCountdown();
-                                }
-                                if (response.message!
-                                    .contains("User not found.")) {
-                                  Fluttertoast.showToast(
-                                      msg:
-                                          "Email yang kamu masukkan tidak ditemukan.");
-
-                                  setState(() {
-                                    requestOTP = true;
-                                  });
-                                }
-                                
-                              } else {
-                                if (response.message!.contains(
-                                    "OTP has been successfully sent to your email.")) {
-                                  Fluttertoast.showToast(
-                                      msg: "Kode OTP berhasil dikirim.");
-                                  setState(() {
-                                    requestOTP = false;
-                                  });
-                                }
-                                startCountdown();
-                              }                              
-                            } else if (widget.type == OtpScreen.REGISTER) {
-                              OtpResponse response =
-                                  await apiService.userRequestOtp();
-
-                              if (response.error) {
-                                if (response.message!
-                                    .contains("User not found.")) {
-                                  Fluttertoast.showToast(
-                                      msg:
-                                          "Email yang kamu masukkan tidak ditemukan.");
-
-                                  setState(() {
-                                    requestOTP = true;
-                                  });
-                                }
-                                if (response.message!.contains(
-                                    "OTP is already valid and not expired. Please verify it.")) {
-                                  Fluttertoast.showToast(
-                                      msg:
-                                          "Kode OTP masih valid. silakan cek email kamu.");
-
-                                  setState(() {
-                                    requestOTP = false;
-                                  });
-
-                                startCountdown();
-                                }
-                              } else {
-                                if (response.message!.contains(
-                                    "OTP has been successfully sent to your email.")) {
-                                  Fluttertoast.showToast(
-                                      msg: "Kode OTP berhasil dikirim.");
-                                  setState(() {
-                                    requestOTP = false;
-                                  });
-                                }
-                                startCountdown();
-                              }
-                            }
-                            setState(() {
-                            loading = false;
-                          });
+                            await viewmodel.sendOtpVerification(widget.type);
                           }
                         : () async {
-                          setState(() {
-                            loading = true;
-                          });
-                            if (widget.type == OtpScreen.RESET_PASSWORD) {
-                              OtpResponse response =
-                                  await apiService.userResetEmailVerify(
-                                      widget.email, currentOtp.toString());
-
-                              if (response.error) {
-                                if (response.message != null) {
-                                  if (response.message!
-                                      .contains("OTP has expired")) {
-                                    resetTimer();
-                                    Fluttertoast.showToast(
-                                        msg: "Kode OTP telah kadaluarsa.");
-                                    setState(() {
-                                      requestOTP = true;
-                                    });
-                                  } else {
-                                    Fluttertoast.showToast(
-                                        msg:
-                                            "Kode OTP yang kamu masukkan salah.");
-                                  }
-                                }
-                              } else {
-                                if (response.token != null) {
-                                  goToResetPasswordScreen(response.token!);
-                                  Fluttertoast.showToast(
-                                      msg: "Verifikasi email berhasil!");
-                                }
-                              }
-                            } else if (widget.type == OtpScreen.REGISTER) {
-                              LoginResponse response = await apiService
-                                  .userEmailVerify(currentOtp.toString());
-
-                              if (response.error) {
-                                Fluttertoast.showToast(msg: response.message!);
-                              } else {
-                                Fluttertoast.showToast(
-                                    msg: "Verifikasi email berhasil!");
-                                goToHomeScreen();
+                            String? token =  await viewmodel.verifyOtpVerification(widget.type);                            
+                            if(token != null){
+                              if(widget.type == OtpScreen.REGISTER){
+                                goToLoginScreen(context);                                
+                              }else{
+                                goToResetPasswordScreen(token);
                               }
                             }
-                            setState(() {
-                            loading = false;
-                          });
                           },
                     child: Text(
-                      requestOTP ? "Minta Kode" : "Aktivasi",
+                      viewmodel.isRequestOtp ? "Minta Kode" : "Aktivasi",
                       style: TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 14.sp),
                     )),
@@ -308,43 +178,20 @@ class _ResetPasswordState extends State<OtpScreen> {
         (Route<dynamic> route) => false);
   }
 
-  void resetTimer() {
-    setState(() {
-      _secondsRemaining = 300;
-    });
-    _timer.cancel();
-  }
-
   String formatTime(int seconds) {
     int minutes = seconds ~/ 60;
     int secs = seconds % 60;
     return "${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}";
   }
 
-  void startCountdown() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_secondsRemaining > 0) {
-        setState(() {
-          _secondsRemaining--;
-        });
-      } else {
-        timer.cancel();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
-  }
-
-  countdown() {
+  countdown(OtpScreenViewModel viewmodel) {
     return Center(
       child: Text(
-        formatTime(_secondsRemaining),
+        formatTime(viewmodel.secondsRemaining),
         style: TextStyle(
-            fontSize: 14.sp, fontWeight: FontWeight.normal, color: Colors.white),
+            fontSize: 14.sp,
+            fontWeight: FontWeight.normal,
+            color: Colors.white),
       ),
     );
   }

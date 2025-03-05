@@ -47,7 +47,7 @@ class _HomePageState extends State<FavoritePage> {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return itemCartShimmer();
                   } else {
-                    if (snapshot.hasData) {
+                    if (snapshot.hasData && snapshot.data !=null) {
                       favorites = snapshot.data!;
                       if (favorites.isNotEmpty) {
                         return SingleChildScrollView(
@@ -55,19 +55,29 @@ class _HomePageState extends State<FavoritePage> {
                         );
                       } else {
                         return Container(
+                          height: 100.h,
                           child: Center(
-                            child: Text("Tidak ada produk.",style:  TextStyle(
-                                                    fontSize: 12.sp),),
+                            child: Text(
+                              "Tidak ada produk.",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.normal,
+                                  fontSize: 14.sp),
+                            ),
                           ),
                         );
                       }
                     } else {
                       return Container(
-                        child: Center(
-                          child: Text("Tidak ada produk.",style:  TextStyle(
-                                                    fontSize: 12.sp),),
-                        ),
-                      );
+                          height: 100.h,
+                          child: Center(
+                            child: Text(
+                              "Tidak ada produk.",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.normal,
+                                  fontSize: 14.sp),
+                            ),
+                          ),
+                        );
                     }
                   }
                 }),

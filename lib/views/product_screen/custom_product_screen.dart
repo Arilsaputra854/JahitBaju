@@ -76,8 +76,8 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
     _controller = WebViewController();
     _controller.enableZoom(false);
 
-    svgColor = widget.look.textures!;
-    svgFeatures = widget.look.features!;
+    svgColor = widget.look.textures ?? [];
+    svgFeatures = widget.look.features ?? [];
     fetchAllAndConvertToBase64();
 
     super.initState();
@@ -199,9 +199,9 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
           itemCount: svgColor.length,
           itemBuilder: (context, index) {
             return InkWell(
-              onLongPress: (){
-                //_previewTextureDetails(svgColor[index].texture);
-              },
+                onLongPress: () {
+                  //_previewTextureDetails(svgColor[index].texture);
+                },
                 onTap: () async {
                   try {
                     if (currentFeature != "") {
@@ -278,6 +278,8 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
           },
         ),
       );
+    }else{
+      return SizedBox();
     }
   }
 
@@ -350,7 +352,7 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
                     height: 300.h,
                     color: Colors.grey,
                   ));
-            } 
+            }
             if (snapshot.hasData) {
               currentSvg = snapshot.data!;
               htmlContent = '''
@@ -385,7 +387,7 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
             }
             return Container(
               width: 240.w,
-                    height: 300.h,
+              height: 300.h,
               padding: EdgeInsets.all(10),
               child: WebViewWidget(
                 controller: _controller,
@@ -429,11 +431,9 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
         width: 240.w,
         height: 300.h,
         padding: EdgeInsets.all(10),
-        child: 
-            WebViewWidget(
-              controller: _controller,
-              gestureRecognizers: Set(),
-            
+        child: WebViewWidget(
+          controller: _controller,
+          gestureRecognizers: Set(),
         ));
   }
 
@@ -470,57 +470,60 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
   }
 
   Future<void> fetchAllAndConvertToBase64() async {
-    setState(() {
-      loading = true;
-    });
-
-    Map<String, String>? cachedTextures = await cache.getBase64Map();
-    if (cachedTextures != null && cachedTextures.isNotEmpty) {
+    if (svgColor != null) {
       setState(() {
-        base64Textures = cachedTextures;
+        loading = true;
       });
-      log.d("Base64 textures loaded from cache : ${json.encode(cachedTextures)}");
 
-      setState(() {
-        loading = false;
-      });
-    } else {
-      log.d("start fetching base64 texture from server");
-      for (LookTexture texture in svgColor) {
-        if (texture.texture.urlTexture != null) {
-          if (base64Textures[texture.textureId] == null) {
-            try {
-              final response =
-                  await http.get(Uri.parse(texture.texture.urlTexture!));
+      Map<String, String>? cachedTextures = await cache.getBase64Map();
+      if (cachedTextures != null && cachedTextures.isNotEmpty) {
+        setState(() {
+          base64Textures = cachedTextures;
+        });
+        log.d(
+            "Base64 textures loaded from cache : ${json.encode(cachedTextures)}");
 
-              if (response.statusCode == 200) {
-                String base64Image = base64Encode(response.bodyBytes);
-                log.d("finish fetch ${base64Textures[texture.textureId]}");
-                setState(() {
-                  base64Textures[texture.textureId] = base64Image;
-                });
-              } else {
-                // Menangani error jika request gagal
-                log.d(
-                    'Fetch and Convert to Base64: Gagal memuat gambar, status code: ${response.statusCode}');
+        setState(() {
+          loading = false;
+        });
+      } else {
+        log.d("start fetching base64 texture from server");
+        for (LookTexture texture in svgColor) {
+          if (texture.texture.urlTexture != null) {
+            if (base64Textures[texture.textureId] == null) {
+              try {
+                final response =
+                    await http.get(Uri.parse(texture.texture.urlTexture!));
+
+                if (response.statusCode == 200) {
+                  String base64Image = base64Encode(response.bodyBytes);
+                  log.d("finish fetch ${base64Textures[texture.textureId]}");
+                  setState(() {
+                    base64Textures[texture.textureId] = base64Image;
+                  });
+                } else {
+                  // Menangani error jika request gagal
+                  log.d(
+                      'Fetch and Convert to Base64: Gagal memuat gambar, status code: ${response.statusCode}');
+                  return null;
+                }
+              } catch (e) {
+                // Menangani error jika ada masalah dengan request HTTP
+                log.d('Fetch and Convert to Base64: Terjadi kesalahan ${e}');
                 return null;
               }
-            } catch (e) {
-              // Menangani error jika ada masalah dengan request HTTP
-              log.d('Fetch and Convert to Base64: Terjadi kesalahan ${e}');
-              return null;
             }
           }
         }
+
+        await cache.saveBase64Map(base64Textures);
+
+        log.d("Base64 textures saved to cache");
+        log.d("finish fetching all texture.");
+        setState(() {
+          loading = false;
+        });
       }
-
-      await cache.saveBase64Map(base64Textures);
-
-      log.d("Base64 textures saved to cache");
-      log.d("finish fetching all texture.");
-      setState(() {
-        loading = false;
-      });
     }
   }
 
@@ -908,53 +911,56 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
 
   _previewTextureDetails(TextureLook texture) {
     return showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
-        contentPadding: EdgeInsets.all(16.0),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            texture.urlTexture != null? Image.network( // Bisa diganti Image.asset jika gambar lokal
-              texture.urlTexture!,
-              width: 150.w,
-              height: 150.w,
-              fit: BoxFit.cover,
-            ) : Container(
-                        width: 150.w,
-                        height: 150.w,
-                        decoration: BoxDecoration(
-                          color: Color(int.parse(texture
-                              .hex!
-                              .replaceFirst('#', '0xFF'))),
-                        ),
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+          contentPadding: EdgeInsets.all(16.0),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              texture.urlTexture != null
+                  ? Image.network(
+                      // Bisa diganti Image.asset jika gambar lokal
+                      texture.urlTexture!,
+                      width: 150.w,
+                      height: 150.w,
+                      fit: BoxFit.cover,
+                    )
+                  : Container(
+                      width: 150.w,
+                      height: 150.w,
+                      decoration: BoxDecoration(
+                        color: Color(
+                            int.parse(texture.hex!.replaceFirst('#', '0xFF'))),
                       ),
-            SizedBox(height: 16),
-            Text(
-              texture.title,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 8),
-            Text(
-              texture.description ?? "Tidak ada deskripsi.",
-              style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-              textAlign: TextAlign.center,
+                    ),
+              SizedBox(height: 16),
+              Text(
+                texture.title,
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 8),
+              Text(
+                texture.description ?? "Tidak ada deskripsi.",
+                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Tutup dialog
+              },
+              child: Text("Tutup"),
             ),
           ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Tutup dialog
-            },
-            child: Text("Tutup"),
-          ),
-        ],
-      );
-    },
-  );
+        );
+      },
+    );
   }
 }
 

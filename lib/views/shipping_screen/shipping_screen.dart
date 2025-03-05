@@ -26,7 +26,13 @@ class ShippingScreen extends StatefulWidget {
   final String? filename;
   final Look? look;
   final String? size;
-  ShippingScreen({this.cart, this.product, this.look, this.size,this.filename, super.key});
+  ShippingScreen(
+      {this.cart,
+      this.product,
+      this.look,
+      this.size,
+      this.filename,
+      super.key});
 
   @override
   State<ShippingScreen> createState() => _ShippingScreenState();
@@ -94,14 +100,13 @@ class _ShippingScreenState extends State<ShippingScreen> {
       if (widget.cart != null) {
         int customPrice = 0, rtwPrice = 0;
         for (var cart in widget.cart!.items) {
-          if(cart.productId != null){
+          if (cart.productId != null) {
             Product? product =
-              await getProductById(cart.productId, ApiService(context));
+                await getProductById(cart.productId, ApiService(context));
 
             rtwPrice += product!.price.toInt();
-          }else{
-            Look? look =
-              await getLook(cart.lookId!);
+          } else {
+            Look? look = await getLook(cart.lookId!);
 
             customPrice += look!.price.toInt();
           }
@@ -116,7 +121,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
             shippingPrice: shipping!.price.toInt(),
             shippingId: shipping!.id,
             packagingId: packaging!.id,
-            cartId: widget.cart!.id,            
+            cartId: widget.cart!.id,
             description: _descriptionController.text.isNotEmpty
                 ? _descriptionController.text
                 : "-",
@@ -127,7 +132,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
             paymentUrl: "");
         Logger log = Logger();
         log.d("Order Cart ${order.toJson()}");
-        
+
         viewModel.createOrder(order).then((orderFromServer) {
           if (orderFromServer != null) {
             Navigator.pushAndRemoveUntil(
@@ -162,18 +167,20 @@ class _ShippingScreenState extends State<ShippingScreen> {
             description: _descriptionController.text.isNotEmpty
                 ? _descriptionController.text
                 : "-",
-            product: widget.product,   
-            look: widget.look,         
-            totalPrice:
-                (shipping!.price + (widget.product?.price ?? 0) + (widget.look?.price ?? 0) + packaging!.price)
-                    .toInt(),
+            product: widget.product,
+            look: widget.look,
+            totalPrice: (shipping!.price +
+                    (widget.product?.price ?? 0) +
+                    (widget.look?.price ?? 0) +
+                    packaging!.price)
+                .toInt(),
             orderStatus: Order.WAITING_FOR_PAYMENT,
             paymentUrl: "",
             shippingPrice: shipping!.price.toInt(),
             packagingPrice: packaging!.price.toInt(),
             discount: discount);
-            
-        await viewModel.buyNow(order,widget.filename).then((orderFromServer) {
+
+        await viewModel.buyNow(order, widget.filename).then((orderFromServer) {
           if (orderFromServer != null) {
             Navigator.pushAndRemoveUntil(
               context,
@@ -433,17 +440,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
             ),
             const SizedBox(height: 5),
-            FutureBuilder(
-                future: viewModel.getListShippingMethod(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
-                  List<Shipping> data = snapshot.data;
-
-                  return FutureBuilder(
+           FutureBuilder(
                     future: viewModel.getUserAddress(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
@@ -455,6 +452,10 @@ class _ShippingScreenState extends State<ShippingScreen> {
                               colors: [Colors.white, Colors.grey]),
                         );
                       }
+
+                      if (snapshot.data == null) {
+                        goToAddress(snapshot.data);
+                      }
                       return InkWell(
                           onTap: () => goToAddress(snapshot.data),
                           child: Card(
@@ -465,16 +466,38 @@ class _ShippingScreenState extends State<ShippingScreen> {
                                       border: Border.all(width: 2),
                                       borderRadius: BorderRadius.circular(12)),
                                   padding: EdgeInsets.all(10),
-                                  child: Text(snapshot.data,
+                                  child: Text(
+                                      snapshot.data ?? "Tidak ada alamat.",
                                       maxLines: 1,
                                       style: TextStyle(
                                           fontWeight: FontWeight.normal,
                                           fontSize: 14.sp)))));
                     },
-                  );
-                })
+                  )
           ],
         ));
+  }
+
+  void showAddressRequiredDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible:
+          false, // Supaya tidak bisa ditutup dengan klik di luar dialog
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Alamat Diperlukan"),
+          content: Text("Harap isi alamat Anda sebelum melanjutkan."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                goToAddress("");
+              },
+              child: Text("OK"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   _packagingWidget(ShippingViewModel viewModel) {
@@ -522,24 +545,22 @@ class _ShippingScreenState extends State<ShippingScreen> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
             ),
             const SizedBox(height: 5),
-            FutureBuilder(
+            FutureBuilder<List<Shipping>?>(
                 future: viewModel.getListShippingMethod(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
+                    return itemCartShimmer();
                   }
-                  List<Shipping> data = snapshot.data;
-
-                  return data.isNotEmpty
-                      ? deliveryList(data)
-                      : Center(
+                  if(snapshot.data != null && snapshot.hasData){
+                    return deliveryList(snapshot.data);
+                  }else{
+                    return Center(
                           child: Text(
                             "Tidak ada expedisi.",
                             style: TextStyle(fontSize: 12.sp),
                           ),
                         );
+                  }
                 })
           ],
         ));

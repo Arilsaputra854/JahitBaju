@@ -17,6 +17,7 @@ class Repository {
 
   Future<List<Product>?> getAllProduct() async {
     List<Product>? cacheProduct = await _dbHelper.getProductCache();
+    logger.d("Repository Product :${json.encode(cacheProduct)}");
 
     if (cacheProduct != null) {
       DateTime? latestDateCache;
@@ -37,11 +38,12 @@ class Repository {
           DateTime lastUpdate = response.last_update!;
           if (latestDateCache == null || lastUpdate.isAfter(latestDateCache)) {
             getProductFromAPI();
+          } else {
+            logger.d(
+                "Repository Product from Cached, API : ${lastUpdate} Cache terakhir: $latestDateCache");
           }
         }
       }
-      logger.d(
-          "Repository Product from Cached, Cache terakhir: $latestDateCache");
 
       return cacheProduct;
     } else {
@@ -60,7 +62,7 @@ class Repository {
           products.map((product) => product.toJson()).toList();
       String json = jsonEncode(jsonList);
 
-      _dbHelper.insertProductCache(json);
+      await _dbHelper.insertProductCache(json);
     }
 
     if (!data.error) {

@@ -1,9 +1,5 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
-import 'package:jahit_baju/data/model/user.dart';
 import 'package:jahit_baju/data/source/remote/response/register_response.dart';
 
 class RegisterViewModel extends ChangeNotifier {
@@ -16,16 +12,22 @@ class RegisterViewModel extends ChangeNotifier {
   String? _phoneNumber;
 
   String? _message;
-
-  bool _isLoading = false;
+  bool _loading = false;
+  bool _hidePassword = false;
+  bool _agreeTerm = false;
+  
 
   String? get email => _email;
   String? get password => _password;
   String? get confirmPassword => _confirmPassword;
   String? get message => _message;
-  bool get isLoading => _isLoading;
   String? get name => _name;
   String? get phoneNumber => _phoneNumber;
+
+
+  bool get agreeTerm => _agreeTerm;
+  bool get hidePassword => _hidePassword;
+  bool get loading => _loading;
 
   RegisterViewModel(this.apiService);
 
@@ -54,27 +56,37 @@ class RegisterViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setHidePassword(bool hide){
+    _hidePassword = hide;
+    notifyListeners();
+  }
+
+  void setAgreeTerm(bool? agree){
+    _agreeTerm = agree ?? false;
+    notifyListeners();
+  }
+
   Future<void> register() async {
-    _isLoading = true;
+    _loading = true;
     notifyListeners();
 
     if (_email == null || !_email!.contains('@')) {
       _message = 'Email yang kamu masukkan tidak valid!';
-      _isLoading = false;
+      _loading = false;
       notifyListeners();
       return;
     }
 
     if (_password == null || _password!.length < 8) {
       _message = 'Password harus lebih dari 8 karakter!';
-      _isLoading = false;
+      _loading = false;
       notifyListeners();
       return;
     }
 
     if (_password != _confirmPassword) {
       _message = 'Konfirmasi password tidak sama!';
-      _isLoading = false;
+      _loading = false;
       notifyListeners();
       return;
     }
@@ -86,11 +98,11 @@ class RegisterViewModel extends ChangeNotifier {
       if (data.message != null) {
         if (data.message == RegisterResponse.EMAIL_ALREADY_EXIST) {
           _message = "Alamat email kamu sudah terdaftar.";
-          _isLoading = false;
+          _loading = false;
           notifyListeners();
           return;
         } else {
-          _isLoading = false;
+          _loading = false;
           _message = null;
           notifyListeners();
           return;
@@ -99,19 +111,19 @@ class RegisterViewModel extends ChangeNotifier {
     } else {
       //if register successfully
       if (data.user != null) {
-        _isLoading = false;
+        _loading = false;
         _message = "Buat akun berhasil!";
         notifyListeners();
         return;
       } else {
-        _isLoading = false;
+        _loading = false;
         _message = ApiService.SOMETHING_WAS_WRONG;
         notifyListeners();
         return;
       }
     }
     _message = null;
-    _isLoading = false;
+    _loading = false;
     notifyListeners();
     return;
   }

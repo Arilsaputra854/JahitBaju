@@ -154,9 +154,9 @@ class _ResetPasswordState extends State<ResetPassword> {
                           });
                           if (formKey.currentState!.validate()) {
                             viewModel.changePassword(widget.token);
-                            if (viewModel.errorMsg != null) {
+                            if (viewModel.message != null) {
                               Fluttertoast.showToast(
-                                  msg: viewModel.errorMsg.toString());
+                                  msg: viewModel.message.toString());
                             } else {
                               Fluttertoast.showToast(
                                   msg: "Password berhasil diganti!");

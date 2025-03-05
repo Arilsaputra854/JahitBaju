@@ -5,12 +5,14 @@ class Packaging {
   final String name;
   final String description;
   final double price;
+  final DateTime? lastUpdate;
 
   Packaging({
     required this.id,
     required this.name,
     required this.description,
     required this.price,
+    required this.lastUpdate,
   });
 
   factory Packaging.fromJson(Map<String, dynamic> json) {
@@ -19,6 +21,7 @@ class Packaging {
       name: json['name'],
       description: json['description'],
       price: (json['price'] as num).toDouble(),
+      lastUpdate: json['last_update'] != null? DateTime.parse(json['last_update']) : null,
     );
   }
 
@@ -28,6 +31,7 @@ class Packaging {
       'name': name,
       'description': description,
       'price': price,
+      'last_update': lastUpdate?.toIso8601String() ?? DateTime.now().toIso8601String(),
     };
   }
 }

@@ -5,7 +5,7 @@ class CustomizationAccess {
   final String type;
   final int price;
   final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? lastUpdate;
 
   CustomizationAccess({
     required this.id,
@@ -14,7 +14,7 @@ class CustomizationAccess {
     required this.price,
     required this.type,
     required this.createdAt,
-    required this.updatedAt,
+    required this.lastUpdate,
   });
 
   factory CustomizationAccess.fromJson(Map<String, dynamic> json) {
@@ -25,7 +25,7 @@ class CustomizationAccess {
       type: json['type'],
       price: json['price'],
       createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      lastUpdate: json['last_update'] != null ? DateTime.parse(json['last_update']) : null,
     );
   }
 
@@ -36,7 +36,7 @@ class CustomizationAccess {
       'description': description,
       'price': price,
       'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
+      'last_update': lastUpdate?.toIso8601String() ?? DateTime.now().toIso8601String(),
     };
   }
 }

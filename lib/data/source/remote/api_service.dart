@@ -1,9 +1,7 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:http/http.dart';
 import 'package:jahit_baju/data/model/look.dart';
 import 'package:jahit_baju/data/source/remote/response/app_banner_response.dart';
 import 'package:jahit_baju/data/source/remote/response/care_guide_response.dart';
@@ -12,6 +10,8 @@ import 'package:jahit_baju/data/source/remote/response/customization_feature_res
 import 'package:jahit_baju/data/source/remote/response/designer_response.dart';
 import 'package:jahit_baju/data/source/remote/response/feature_order_reaspones.dart';
 import 'package:jahit_baju/data/source/remote/response/feature_response.dart';
+import 'package:jahit_baju/data/source/remote/response/look_access_response.dart';
+import 'package:jahit_baju/data/source/remote/response/look_order_response.dart';
 import 'package:jahit_baju/data/source/remote/response/look_response.dart';
 import 'package:jahit_baju/data/source/remote/response/packaging_response.dart';
 import 'package:jahit_baju/data/source/remote/response/product_note_response.dart';
@@ -24,15 +24,12 @@ import 'package:jahit_baju/data/model/favorite.dart';
 import 'package:jahit_baju/data/model/order.dart';
 import 'package:jahit_baju/data/model/packaging.dart';
 import 'package:jahit_baju/data/model/product.dart';
-import 'package:jahit_baju/data/model/shipping.dart';
-import 'package:jahit_baju/data/model/user.dart';
 import 'package:jahit_baju/data/source/remote/response/favorite_response.dart';
 import 'package:jahit_baju/data/source/remote/response/login_response.dart';
 import 'package:jahit_baju/data/source/remote/response/order_response.dart';
 import 'package:jahit_baju/data/source/remote/response/otp_response.dart';
 import 'package:jahit_baju/data/source/remote/response/product_response.dart';
 import 'package:jahit_baju/data/source/remote/response/size_guide_response.dart';
-import 'package:jahit_baju/data/source/remote/response/survei_response.dart';
 import 'package:logger/web.dart';
 import 'package:http_parser/http_parser.dart';
 
@@ -418,7 +415,7 @@ class ApiService {
       var data = jsonDecode(response.body);
       logger.d("Cart Get : ${data}");
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         cartResponse = CartResponse.fromJson(data);
       } else if (response.statusCode >= 500) {
         cartResponse =
@@ -476,7 +473,7 @@ class ApiService {
       var data = jsonDecode(response.body);
       logger.d("Cart Add : ${data}");
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         cartResponse = CartResponse.fromJson(data);
       } else if (response.statusCode == 401) {
         showDialogSession(context);
@@ -512,7 +509,7 @@ class ApiService {
       logger.d("Item Cart Delete : ${data}");
 
       dynamic message;
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         message = data["message"];
         return message;
       } else {
@@ -530,7 +527,7 @@ class ApiService {
     }
   }
 
-  Future<dynamic> getAllShipping() async {
+  Future<ShippingsResponse> getAllShipping() async {
     final url = Uri.parse("${baseUrl}shipping");
 
     try {
@@ -541,28 +538,25 @@ class ApiService {
       var data = jsonDecode(response.body);
       logger.d("Shipping Get : ${data}");
 
-      dynamic message;
-
-      if (response.statusCode == 200) {
-        var productsData = data["data"] as List;
-
-        List<Shipping> products = productsData
-            .map<Shipping>((json) => Shipping.fromJson(json))
-            .toList();
-
-        return products;
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return ShippingsResponse.fromJson(data);
+      } else if (response.statusCode >= 500) {
+        return ShippingsResponse(
+            error: true, message: SOMETHING_WAS_WRONG_SERVER);
+      } else if (response.statusCode == 401) {
+        showDialogSession(context);
+        return ShippingsResponse(error: true, message: UNAUTHORIZED);
       } else {
-        message = data["message"] ?? "Unknown error occurred";
-        return message;
+        return ShippingsResponse(error: true, message: SOMETHING_WAS_WRONG);
       }
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
-      logger.e("Get Favorite : Tidak ada koneksi internet");
-      return NO_INTERNET_CONNECTION;
+      logger.e("Shipping Get : Tidak ada koneksi internet");
+        return ShippingsResponse(error: true, message: NO_INTERNET_CONNECTION);
     } catch (e) {
-      logger.e("Favorite Get : $e");
-      return "error";
+      logger.e("Shipping Get : $e");
+        return ShippingsResponse(error: true, message: SOMETHING_WAS_WRONG);
     }
   }
 
@@ -606,7 +600,7 @@ class ApiService {
       logger.d("Packaging Get : ${data}");
       dynamic message;
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         var packagingData = data["data"] as List;
 
         List<Packaging> packaging = packagingData
@@ -718,7 +712,7 @@ class ApiService {
 
       orderResponse = OrderResponse.fromJson(data);
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         List<Order> orders = Order.listFromJson(orderResponse.data);
         orderResponse.data = orders;
       } else if (response.statusCode >= 500) {
@@ -805,7 +799,6 @@ class ApiService {
     final url = Uri.parse("${baseUrl}designer/look?id=$lookId");
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
-    LookResponse lookResponse;
     try {
       final response = await http.get(url, headers: <String, String>{
         'Content-Type': 'application/json',
@@ -814,23 +807,22 @@ class ApiService {
 
       var data = jsonDecode(response.body);
 
-      logger.d("Get Product by ID : ${data}");
+      logger.d("Get Look by ID : ${data}");
 
-      lookResponse = LookResponse.fromJson(data);
+      return LookResponse.fromJson(data);
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
-      logger.e("Get Favorite : Tidak ada koneksi internet");
+      logger.e("Get Look by ID : Tidak ada koneksi internet");
 
-      lookResponse = LookResponse(message: NO_INTERNET_CONNECTION, error: true);
+      return LookResponse(message: NO_INTERNET_CONNECTION, error: true);
     } catch (e) {
-      logger.e("Get Product by ID : ${e}");
-      lookResponse = LookResponse(
+      logger.e("Get Look by ID : ${e}");
+      return LookResponse(
         error: true,
-        message: "Network error : $e",
+        message: SOMETHING_WAS_WRONG,
       );
     }
-    return lookResponse;
   }
 
   Future<ProductLatestResponse> productsGetByLastUpdate() async {
@@ -845,10 +837,10 @@ class ApiService {
 
     try {
       ProductLatestResponse productLatestResponse;
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         productLatestResponse = ProductLatestResponse.fromJson(data);
       } else {
-        logger.e("Get Favorite : ${data["message"]}");
+        logger.e("Product by Last Update : ${data["message"]}");
         productLatestResponse =
             ProductLatestResponse(error: true, message: data["message"]);
       }
@@ -867,16 +859,16 @@ class ApiService {
 
   Future<ProductsResponse> productsGet() async {
     final url = Uri.parse("${baseUrl}products");
-    final response = await http.get(url, headers: <String, String>{
-      'Content-Type': 'application/json',
-    });
-
-    var data = jsonDecode(response.body);
-
-    logger.d("Get Product : ${data["data"]}");
 
     try {
-      if (response.statusCode == 200) {
+      final response = await http.get(url, headers: <String, String>{
+        'Content-Type': 'application/json',
+      });
+
+      var data = jsonDecode(response.body);
+
+      logger.d("Get Product : ${data["data"]}");
+      if (response.statusCode == 200 || response.statusCode == 201) {
         return ProductsResponse.fromJson(data);
       } else {
         return ProductsResponse(error: false, message: data["message"]);
@@ -909,7 +901,7 @@ class ApiService {
       logger.d("Get Favorite : ${data}");
 
       dynamic message;
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         var favoriteData = data["data"] as List;
 
         List<Favorite> favorites = favoriteData
@@ -1077,7 +1069,7 @@ class ApiService {
 
       var response = await request.send();
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         var responseData = await response.stream.bytesToString();
         return CustomDesignResponse.fromJson(jsonDecode(responseData));
       } else {
@@ -1106,7 +1098,7 @@ class ApiService {
         'Authorization': 'Bearer $token',
       });
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         // Return file or response as needed
         return {'error': false, 'data': response.body};
       } else {
@@ -1155,7 +1147,7 @@ class ApiService {
       var data = jsonDecode(response.body);
       logger.d("Care Guide : ${data}");
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         careGuideResponse = CareGuideResponse.fromJson(data);
       } else if (response.statusCode >= 500) {
         careGuideResponse =
@@ -1180,13 +1172,7 @@ class ApiService {
 
   Future<ProductNoteResponse> getNoteProduct(int type) async {
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
-    var url;
-
-    if (type == 1) {
-      url = Uri.parse("${baseUrl}product-note?type=rtw");
-    } else if (type == 2) {
-      url = Uri.parse("${baseUrl}product-note?type=custom");
-    }
+    var url = Uri.parse("${baseUrl}product-note?type=${type}");
 
     final response = await http.get(url, headers: <String, String>{
       'Content-Type': 'application/json',
@@ -1198,7 +1184,7 @@ class ApiService {
       var data = jsonDecode(response.body);
       logger.d("Product Note : ${data}");
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         productNoteResponse = ProductNoteResponse.fromJson(data);
       } else if (response.statusCode >= 500) {
         productNoteResponse = ProductNoteResponse(
@@ -1237,9 +1223,9 @@ class ApiService {
     DesignerResponse designerResponse;
     try {
       var data = jsonDecode(response.body);
-      logger.d("Product Note : ${data}");
+      logger.d("Get Designer : ${data}");
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         designerResponse = DesignerResponse.fromJson(data);
       } else if (response.statusCode >= 500) {
         designerResponse =
@@ -1254,11 +1240,11 @@ class ApiService {
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
-      logger.e("Product Note : Tidak ada koneksi internet");
+      logger.e("Get Designer : Tidak ada koneksi internet");
       designerResponse =
           DesignerResponse(error: true, message: NO_INTERNET_CONNECTION);
     } catch (e) {
-      logger.e("Product Note :  $e");
+      logger.e("Get Designer :  $e");
       designerResponse =
           DesignerResponse(error: true, message: SOMETHING_WAS_WRONG);
     }
@@ -1275,7 +1261,7 @@ class ApiService {
 
       logger.d("Customization Feature Response: ${response.body}");
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         var data = jsonDecode(response.body);
         return CustomizationAccessResponse.fromJson(data);
       } else if (response.statusCode == 401) {
@@ -1343,7 +1329,7 @@ class ApiService {
 
       logger.d("Get Feature Order : ${data}");
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         return OrderFeatureResponse.fromJson(data);
       } else if (response.statusCode >= 500) {
         return OrderFeatureResponse(
@@ -1364,4 +1350,32 @@ class ApiService {
       return OrderFeatureResponse(error: true, message: "Network error : $e");
     }
   }
+
+
+  Future<LookAccessResponse> getLookAccess(String lookId) async {
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+    final url = Uri.parse("${baseUrl}look/${lookId}");
+    final response = await http.get(url, headers: <String, String>{
+      'Content-Type': 'application/json',
+      'Authorization': '${token}'
+    });
+
+    try {
+      var data = jsonDecode(response.body);
+
+      logger.d("look Access : ${data}");
+
+      return LookAccessResponse.fromJson(data);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
+
+      logger.e("look Access : Tidak ada koneksi internet");
+
+      return LookAccessResponse(message: NO_INTERNET_CONNECTION, error: true);
+    } catch (e) {
+      logger.e("look Access : $e");
+      return  LookAccessResponse(error: true, message: "Network error : $e");
+    }
+  }
+
 }

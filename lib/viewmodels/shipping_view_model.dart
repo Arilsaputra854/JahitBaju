@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:jahit_baju/data/model/order.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/data/source/remote/response/shipping_response.dart';
 import 'package:jahit_baju/data/source/remote/response/user_response.dart';
-import 'package:jahit_baju/helper/secure/token_storage.dart';
 import 'package:jahit_baju/data/model/packaging.dart';
 import 'package:jahit_baju/data/model/shipping.dart';
-import 'package:jahit_baju/data/model/user.dart';
 import 'package:jahit_baju/data/source/remote/response/order_response.dart';
 
 class ShippingViewModel extends ChangeNotifier {
@@ -16,25 +15,25 @@ class ShippingViewModel extends ChangeNotifier {
 
   ShippingViewModel(this.apiService);
 
-  Future<dynamic> getListShippingMethod() async {
-    var data = await apiService.getAllShipping();
-    if (data is List<Shipping>) {
-      return data;
-    } else if (data is String) {
-      _errorMsg = data;
+  Future<List<Shipping>?> getListShippingMethod() async {
+    ShippingsResponse  response = await apiService.getAllShipping();
+    if (!response.error) {
+      return response.shippings;
     } else {
+      _errorMsg = response.message ?? ApiService.SOMETHING_WAS_WRONG_SERVER;
       return [];
     }
   }
 
-  Future<dynamic> getUserAddress() async {
+  Future<String?> getUserAddress() async {
     UserResponse response = await apiService.userGet();
 
     if(response.error){
       _errorMsg = response.message;
       notifyListeners();
+    return null;
     }else{
-      return response.data?.address ?? "";
+      return response.data?.address;
     }
   }
 

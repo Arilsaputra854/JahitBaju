@@ -29,17 +29,21 @@ class DatabaseHelper {
     final db = await database;
     await db.insert('product_cache', {'id' : 1, 'data': data},
         conflictAlgorithm: ConflictAlgorithm.replace);
-    logger.d("Insert cache successful");
+    logger.d("Insert cache successful ${data}");
     return true;
   }
 
   Future<List<Product>?> getProductCache() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query('product_cache');
+    logger.d("read cache successful ${maps}");
     if (maps.isNotEmpty) {
-      final String jsonData = maps.first['data'];
-
-      return Product.fromJsonList(jsonData);
+      final List<Product> allProducts = maps
+        .map((map) => Product.fromJsonList(map['data'])) // Convert JSON string ke List<Product>
+        .expand((productList) => productList) // Flatten nested lists
+        .toList();
+    
+    return allProducts;
     }
     return null;
   }

@@ -47,7 +47,7 @@ class Look {
       size: json['size'] != null
           ? List<String>.from(json['size'])
           : null,
-      lastUpdate: json['lastUpdate'],
+      lastUpdate: json['last_update'],
       sold: json['sold'],
       seen: json['seen'],
       textures: json['textures'] != null

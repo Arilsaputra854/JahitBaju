@@ -3,21 +3,24 @@ class Shipping {
   String name;
   String imgUrl;
   int price;
+  final DateTime? lastUpdate;
   
 
   Shipping({
-    this.id = "",
+    required this.id,
     required this.name,
     required this.imgUrl,
-    required this.price
+    required this.price,
+    required this.lastUpdate,
   });
 
 factory Shipping.fromJson(Map<String, dynamic> json) {
     return Shipping(
-      id: json['id'] ?? "", 
-      name: json['name'] ?? "",  
-      imgUrl: json['img_url'] ?? "",  
-      price: json['price'] ?? "", 
+      id: json['id'], 
+      name: json['name'],  
+      imgUrl: json['img_url'],  
+      price: json['price'], 
+      lastUpdate: json['last_update'] != null ? DateTime.parse(json['last_update']) : null,
     );
   }
 
@@ -27,6 +30,7 @@ factory Shipping.fromJson(Map<String, dynamic> json) {
       'name': name,
       'img_url': imgUrl,
       'price': price,
+      'last_update': lastUpdate?.toIso8601String() ?? DateTime.now().toIso8601String(),
     };
   }
 }

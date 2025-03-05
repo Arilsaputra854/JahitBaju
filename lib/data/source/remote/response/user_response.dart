@@ -15,7 +15,7 @@ class UserResponse {
     return UserResponse(
       error: json['error'] ?? false,
       message: json['message'] ?? "",
-      data: json['data'] != null? User.fromJson(json['data']) : User(email: "", name: "", password: "")
+      data: json['data'] != null? User.fromJson(json['data']) :null
     );
   }
 }

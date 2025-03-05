@@ -20,22 +20,9 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  bool _isPasswordVisible = false;
-  var deviceWidth, deviceHeight;
   var formKey = GlobalKey<FormState>();
 
-  Logger logger = Logger();
-
   bool init = false;
-  bool isLoading = false;
-
-  bool agreeTerm = false;
-
-  @override
-  void initState() {
-    super.initState();
-    isLoading = false;
-  }
 
   @override
   void didChangeDependencies() {
@@ -49,22 +36,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    deviceWidth = MediaQuery.of(context).size.width;
-    deviceHeight = MediaQuery.of(context).size.height;
 
-    return GestureDetector(
+
+    return Consumer<RegisterViewModel>(builder: (context, viewmodel, child) { 
+
+      if(viewmodel.message != null){
+        Fluttertoast.showToast(msg: viewmodel.message!);
+      }
+      return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
       },
-      child: ChangeNotifierProvider(
-          create: (context) => RegisterViewModel(ApiService(context)),
-          child: Stack(
+      child:Stack(
             alignment: Alignment.center,
             children: [
               Transform.scale(
                 scale: 1.3,
                 child: Container(
-                  width: deviceWidth,
+                  width: double.infinity,
                   decoration: const BoxDecoration(
                       color: Colors.black,
                       image: DecorationImage(
@@ -81,26 +70,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 backgroundColor: Colors.transparent,
                 body: SingleChildScrollView(
                   child: Consumer<RegisterViewModel>(
-                      builder: (context, viewModel, child) {
+                      builder: (context, viewmodel, child) {
                     return Center(
                       child: SizedBox(
-                        width: deviceWidth * 0.8,
-                        child: registerForm(),
+                        width: 300.w,
+                        child: registerForm(viewmodel),
                       ),
                     );
                   }),
                 ),
               ),
-              if (isLoading)
+              if (viewmodel.loading)
                 loadingWidget()
             ],
-          )),
-    );
+          ),
+    );});
   }
 
-  registerForm() {
-    return Consumer<RegisterViewModel>(builder: (context, viewModel, child) {
-      return Container(
+  registerForm(RegisterViewModel viewmodel){
+    return Container(
           padding: const EdgeInsets.all(16),
           child: Form(
             key: formKey,
@@ -129,7 +117,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       }
                       return null;
                     },
-                    onChanged: viewModel.setName,
+                    onChanged: viewmodel.setName,
                     decoration: standartInputDecoration("Nama Lengkap"),
                   ),
                   const SizedBox(
@@ -146,7 +134,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       return null;
                     },
                     keyboardType: TextInputType.number,
-                    onChanged: viewModel.setPhoneNumber,
+                    onChanged: viewmodel.setPhoneNumber,
                     decoration: standartInputDecoration("No Telepon"),
                   ),
                   const SizedBox(
@@ -162,7 +150,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       }
                       return null;
                     },
-                    onChanged: viewModel.setEmail,
+                    onChanged: viewmodel.setEmail,
                     keyboardType: TextInputType.emailAddress,
                     decoration: inputEmailDecoration(),
                   ),
@@ -179,9 +167,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       }
                       return null;
                     },
-                    onChanged: viewModel.setPassword,
-                    obscureText: !_isPasswordVisible,
-                    decoration: inputPasswordDecoration(),
+                    onChanged: viewmodel.setPassword,
+                    obscureText: !viewmodel.hidePassword,
+                    decoration: inputPasswordDecoration(viewmodel),
                   ),
                   const SizedBox(
                     height: 10,
@@ -196,9 +184,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       }
                       return null;
                     },
-                    onChanged: viewModel.setConfirmPassword,
-                    obscureText: !_isPasswordVisible,
-                    decoration: inputPasswordDecoration(),
+                    onChanged: viewmodel.setConfirmPassword,
+                    obscureText: !viewmodel.hidePassword,
+                    decoration: inputPasswordDecoration(viewmodel),
                   ),
                   const SizedBox(
                     height: 30,
@@ -213,11 +201,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     .white, // Ganti dengan warna outline yang diinginkan
                                 width: 2.0, // Lebar outline
                               ),
-                              value: agreeTerm,
+                              value: viewmodel.agreeTerm,
                               onChanged: (value) {
-                                setState(() {
-                                  agreeTerm = value!;
-                                });
+                                viewmodel.setAgreeTerm(value);
                               }),
                           Expanded(
                               child: RichText(
@@ -247,33 +233,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         height: 5,
                       ),
                       SizedBox(
-                        width: deviceWidth,
                         child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(5)),
                                 backgroundColor: Colors.white,
                                 disabledBackgroundColor: Colors.grey),
-                            onPressed: agreeTerm
+                            onPressed: viewmodel.agreeTerm
                                 ? () async {
                                     if (formKey.currentState!.validate()) {
-                                      setState(() {
-                                        isLoading = true;
-                                      });
-
-                                      await viewModel.register();
-                                      if (viewModel.message != null) {
-                                        if (viewModel.message ==
+                                      FocusScope.of(context).unfocus();
+                                      await viewmodel.register();
+                                      if (viewmodel.message != null) {
+                                        if (viewmodel.message ==
                                             "Buat akun berhasil!") {
                                           Navigator.pop(context);
                                         }
                                         Fluttertoast.showToast(
-                                            msg: viewModel.message.toString());
+                                            msg: viewmodel.message.toString());
                                       }
-
-                                      setState(() {
-                                        isLoading = false;
-                                      });
                                     }
                                   }
                                 : null,
@@ -287,8 +265,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ]),
           ));
-    });
   }
+  
 
   inputEmailDecoration() {
     return const InputDecoration(
@@ -313,7 +291,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             borderRadius: BorderRadius.all(Radius.circular(10))));
   }
 
-  inputPasswordDecoration() {
+  inputPasswordDecoration(RegisterViewModel viewmodel){
     return InputDecoration(
         errorStyle: TextStyle(color: Colors.white),
         fillColor: Colors.white,
@@ -321,12 +299,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         hintText: "********",
         suffixIcon: IconButton(
             onPressed: () {
-              setState(() {
-                _isPasswordVisible = !_isPasswordVisible;
-              });
+              viewmodel.setHidePassword(!viewmodel.hidePassword);
             },
             icon: Icon(
-                _isPasswordVisible ? Icons.visibility : Icons.visibility_off)),
+                viewmodel.hidePassword ? Icons.visibility : Icons.visibility_off)),
         hintStyle:
             const TextStyle(color: Colors.grey, fontWeight: FontWeight.normal),
         border: const OutlineInputBorder(

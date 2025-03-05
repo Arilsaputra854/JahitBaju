@@ -5,6 +5,7 @@ class Cart {
   final double rtwPrice;
   final double customPrice;
   final List<CartItem> items;
+  final DateTime? lastUpdate;
 
   Cart({
     required this.id,
@@ -13,6 +14,7 @@ class Cart {
     required this.rtwPrice,
     required this.customPrice,
     required this.items,
+    this.lastUpdate,
   });
 
   // Dari JSON ke objek Cart
@@ -26,6 +28,7 @@ class Cart {
       items: (json['items'] as List)
           .map((itemJson) => CartItem.fromJson(itemJson))
           .toList(),
+      lastUpdate: json['last_update'] != null?  DateTime.parse(json['last_update']) : null,
     );
   }
 
@@ -38,6 +41,7 @@ class Cart {
       'custom_price' : customPrice,
       'rtw_price' : rtwPrice,
       'items': items.map((item) => item.toJson()).toList(),
+      'last_update': lastUpdate?.toIso8601String() ?? DateTime.now().toIso8601String(),
     };
   }
   
@@ -54,6 +58,8 @@ class CartItem {
   final int quantity;
   final double price;
   final String? customDesign;
+  final DateTime? lastUpdate;
+
 
   CartItem({
     required this.id,
@@ -63,7 +69,8 @@ class CartItem {
     required this.size,
     required this.quantity,
     required this.price,
-    this.customDesign
+    this.customDesign,
+    this.lastUpdate,
   });
 
   // Dari JSON ke objek CartItem
@@ -76,7 +83,8 @@ class CartItem {
       size: json['size'],
       quantity: json['quantity'],
       price: json['price'].toDouble(),
-      customDesign: json['custom_design']
+      customDesign: json['custom_design'],
+      lastUpdate: json['last_update'] != null?  DateTime.parse(json['last_update']) : null,
     );
   }
 
@@ -90,7 +98,8 @@ class CartItem {
       'size': size,
       'quantity': quantity,
       'price': price,
-      'custom_design' : customDesign
+      'custom_design' : customDesign,
+      'last_update': lastUpdate?.toIso8601String() ?? DateTime.now().toIso8601String(),
     };
   }
 }

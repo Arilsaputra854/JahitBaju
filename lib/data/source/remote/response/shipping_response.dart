@@ -9,7 +9,7 @@ class ShippingResponse {
   ShippingResponse({
     required this.error,
     this.message,   
-    this.shipping  
+    this.shipping
   });
 
   factory ShippingResponse.fromJson(Map<String, dynamic> json) {
@@ -20,3 +20,27 @@ class ShippingResponse {
     );
   }
 }
+
+
+class ShippingsResponse {
+  bool error;
+  String? message;
+  List<Shipping>? shippings;
+
+  ShippingsResponse({
+    required this.error,
+    this.message,
+    this.shippings
+  });
+
+  factory ShippingsResponse.fromJson(Map<String, dynamic> json) {
+    return ShippingsResponse(
+      error: json['error'] ?? false,
+      message: json['message'] ?? null,
+      shippings: json['data'] != null
+          ? (json['data'] as List).map((item) => Shipping.fromJson(item)).toList()
+          : null,    
+    );
+  }
+}
+

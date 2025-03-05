@@ -16,7 +16,6 @@ class ForgotPasswordScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
-  var deviceWidth, deviceHeight;
   var formKey = GlobalKey<FormState>();
 
   bool init = false;
@@ -38,8 +37,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    deviceWidth = MediaQuery.of(context).size.width;
-    deviceHeight = MediaQuery.of(context).size.height;
 
     return GestureDetector(
         child: ChangeNotifierProvider(
@@ -50,7 +47,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 Transform.scale(
                   scale: 1.3,
                   child: Container(
-                    width: deviceWidth,
+                    width: 320.w,
                     decoration: const BoxDecoration(
                         color: Colors.black,
                         image: DecorationImage(
@@ -70,7 +67,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           builder: (context, viewModel, child) {
                         return Center(
                           child: SizedBox(
-                            width: 300.w,
+                            width: 320.w,
                             child: forgotPasswordForm(),
                           ),
                         );
@@ -129,7 +126,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 Column(
                   children: [
                     SizedBox(
-                      width: deviceWidth,
+                      width: 320.w,
                       child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(
