@@ -38,6 +38,7 @@ class LoginViewModel extends ChangeNotifier {
   }
 
   Future<bool> login() async {
+    _message = null;
     _loading = true;
     notifyListeners();
 
@@ -84,6 +85,7 @@ class LoginViewModel extends ChangeNotifier {
   }
 
   Future<bool> emailVerified() async {
+    _message = null;
     _loading = true;
     notifyListeners();
     UserResponse response = await api.userGet();

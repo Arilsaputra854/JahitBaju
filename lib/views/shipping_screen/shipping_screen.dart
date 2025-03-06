@@ -5,8 +5,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/model/look.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/data/source/remote/response/look_response.dart';
-import 'package:jahit_baju/data/source/remote/response/order_response.dart';
-import 'package:jahit_baju/helper/app_color.dart';
 import 'package:jahit_baju/viewmodels/shipping_view_model.dart';
 import 'package:jahit_baju/data/model/cart.dart';
 import 'package:jahit_baju/data/model/order.dart';
@@ -454,7 +452,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
                       }
 
                       if (snapshot.data == null) {
-                        goToAddress(snapshot.data);
+                        Fluttertoast.showToast(msg: "Silakan atur alamat pengiriman.");
                       }
                       return InkWell(
                           onTap: () => goToAddress(snapshot.data),
@@ -472,6 +470,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
                                       style: TextStyle(
                                           fontWeight: FontWeight.normal,
                                           fontSize: 14.sp)))));
+                      
                     },
                   )
           ],

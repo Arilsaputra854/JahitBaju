@@ -16,7 +16,7 @@ class Favorite {
       id: json['id'] as int ?? 0,
       userId: json['user_id'] ?? "",
       productId: json['product_id'],
-      lastUpdate: json['last_update'] ? DateTime.parse(json['last_update']) : null,
+      lastUpdate: json['last_update'] != null ? DateTime.parse(json['last_update']) : null,
     );
   }
 

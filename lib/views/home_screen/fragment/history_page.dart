@@ -247,17 +247,7 @@ class _HistoryPageState extends State<HistoryPage> {
                               style: TextStyle(
                                   fontSize: 8.sp, fontWeight: FontWeight.bold),
                             ),
-                            order.orderStatus == Order.WAITING_FOR_PAYMENT
-                                ? InkWell(
-                                    onTap: () => _deleteOrder(order.id),
-                                    child: Text(
-                                      "Batal",
-                                      style: TextStyle(
-                                          color: AppColor.primary,
-                                          fontSize: 10.sp,
-                                          fontWeight: FontWeight.bold),
-                                    ))
-                                : Container()
+                            
                           ],
                         ),
                         ListView.builder(

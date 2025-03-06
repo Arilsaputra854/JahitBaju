@@ -210,9 +210,10 @@ class _LoginScreenState extends State<LoginScreen> {
         hintText: "********",
         suffixIcon: IconButton(
             onPressed: () {
+              viewmodel.setHidePassword(!viewmodel.hidePassword);
             },
             icon: Icon(
-                !viewmodel.hidePassword ? Icons.visibility : Icons.visibility_off)),
+                viewmodel.hidePassword ? Icons.visibility : Icons.visibility_off)),
         hintStyle:
             const TextStyle(color: Colors.grey, fontWeight: FontWeight.normal),
         border: const OutlineInputBorder(

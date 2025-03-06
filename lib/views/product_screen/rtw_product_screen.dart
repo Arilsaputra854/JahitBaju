@@ -742,6 +742,7 @@ class _ProductScreenState extends State<ProductScreen> {
         ),
         if (widget.product.materials != null)
           ListView.builder(
+            physics: NeverScrollableScrollPhysics(),
             shrinkWrap: true,
             itemCount: widget.product.materials!.length,
             itemBuilder: (context, index) {
