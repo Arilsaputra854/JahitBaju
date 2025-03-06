@@ -1378,4 +1378,60 @@ class ApiService {
     }
   }
 
+
+  Future<LookOrderResponse> buyLook(String lookId) async {
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+    final url = Uri.parse("${baseUrl}look/buy");
+    final response = await http.post(url, headers: <String, String>{
+      'Content-Type': 'application/json',
+      'Authorization': '${token}'
+    },body: jsonEncode( <String, String>{
+      "look_id" : lookId
+    }));
+
+    try {
+      var data = jsonDecode(response.body);
+
+      logger.d("look order : ${data}");
+
+      return LookOrderResponse.fromJson(data);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
+
+      logger.e("look order : Tidak ada koneksi internet");
+
+      return LookOrderResponse(message: NO_INTERNET_CONNECTION, error: true);
+    } catch (e) {
+      logger.e("look order : $e");
+      return  LookOrderResponse(error: true, message: "Network error : $e");
+    }
+  }
+
+
+  Future<LookOrderResponse> getLookOrder(String lookId) async {
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
+    final url = Uri.parse("${baseUrl}look/buy/${lookId}");
+    final response = await http.get(url, headers: <String, String>{
+      'Content-Type': 'application/json',
+      'Authorization': '${token}'
+    });
+
+    try {
+      var data = jsonDecode(response.body);
+
+      logger.d("get look order : ${data}");
+
+      return LookOrderResponse.fromJson(data);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
+
+      logger.e("get look order : Tidak ada koneksi internet");
+
+      return LookOrderResponse(message: NO_INTERNET_CONNECTION, error: true);
+    } catch (e) {
+      logger.e("get look order : $e");
+      return  LookOrderResponse(error: true, message: "Network error : $e");
+    }
+  }
+
 }

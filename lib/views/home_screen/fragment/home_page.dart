@@ -1,9 +1,7 @@
-import 'package:animated_snack_bar/animated_snack_bar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/model/feature_order.dart';
 import 'package:jahit_baju/data/model/customization_feature.dart';
@@ -11,20 +9,16 @@ import 'package:jahit_baju/data/repository/repository.dart';
 import 'package:jahit_baju/data/source/remote/response/customization_feature_response.dart';
 import 'package:jahit_baju/data/source/remote/response/feature_response.dart';
 import 'package:jahit_baju/data/source/remote/response/user_response.dart';
-import 'package:jahit_baju/helper/app_color.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
-import 'package:jahit_baju/data/source/remote/response/survei_response.dart';
 import 'package:jahit_baju/viewmodels/home_view_model.dart';
 import 'package:jahit_baju/data/model/product.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/views/designer_screen/designer_screen.dart';
 import 'package:jahit_baju/views/payment_screen/payment_screen.dart';
 import 'package:jahit_baju/views/product_screen/rtw_product_screen.dart';
-import 'package:logger/web.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
-import '../../../data/source/remote/response/product_response.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

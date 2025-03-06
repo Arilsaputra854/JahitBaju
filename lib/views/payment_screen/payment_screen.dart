@@ -1,28 +1,18 @@
-import 'dart:ui' as ui;
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:image/image.dart' as img;
+import 'package:jahit_baju/data/model/look_order.dart';
 import 'package:jahit_baju/data/source/remote/response/feature_order_reaspones.dart';
-import 'package:jahit_baju/data/source/remote/response/feature_response.dart';
-import 'package:jahit_baju/data/source/remote/response/user_response.dart';
+import 'package:jahit_baju/data/source/remote/response/look_order_response.dart';
 import 'package:logger/web.dart';
-import 'package:path_provider/path_provider.dart';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
-import 'package:jahit_baju/helper/app_color.dart';
-import 'package:jahit_baju/helper/secure/token_storage.dart';
 import 'package:jahit_baju/data/model/order.dart';
 import 'package:jahit_baju/data/source/remote/response/order_response.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/viewmodels/home_view_model.dart';
 import 'package:jahit_baju/viewmodels/payment_view_model.dart';
-import 'package:jahit_baju/views/cart_screen/cart_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -32,24 +22,23 @@ import '../home_screen/home_screen.dart';
 class PaymentScreen extends StatefulWidget {
   Order? order;
   FeatureOrder? featureOrder;
-  PaymentScreen({this.order, this.featureOrder, super.key});
+  LookOrder? lookOrder;
+  PaymentScreen({this.order, this.featureOrder,this.lookOrder, super.key});
 
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
-  var deviceWidth, deviceHeight;
 
   var isPaymentSuccess = false;
   Order? paidOrder;
   FeatureOrder? paidFeature;
+  LookOrder? paidLook;
   Logger log = Logger();
 
   @override
   Widget build(BuildContext context) {
-    deviceWidth = MediaQuery.of(context).size.width;
-    deviceHeight = MediaQuery.of(context).size.height;
 
     return ChangeNotifierProvider(
         create: (context) => PaymentViewModel(ApiService(context)),
@@ -65,14 +54,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
             body: isPaymentSuccess
                 ? paymentSuccess()
                 : Container(
-                    width: deviceWidth,
+                    width: 360.w,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Image.asset(
                           "assets/logo/jahit_baju_logo.png",
-                          width: deviceHeight * 0.3,
+                          width: 200.w,
                         ),
                         SizedBox(
                           height: 40,
@@ -84,26 +73,26 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           height: 5,
                         ),
                         Text(
-                            "Id : ${widget.order?.id ?? widget.featureOrder?.id ?? ""}",
+                            "Id : ${widget.order?.id ?? widget.featureOrder?.id ?? widget.lookOrder?.id?? ""}",
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 12.sp)),
                         SizedBox(
                           height: 10,
                         ),
                         Text(
-                            "Total Harga : ${convertToRupiah(widget.order?.totalPrice ?? widget.featureOrder?.price)}",
+                            "Total Harga : ${convertToRupiah(widget.order?.totalPrice ?? widget.featureOrder?.price ?? widget.lookOrder?.price)}",
                             style: TextStyle(fontSize: 12.sp)),
                         SizedBox(
                           height: 10,
                         ),
                         Text(
-                            "Bayar sebelum ${customFormatDate(widget.order?.expiredDate ?? widget.featureOrder?.expiryDate ?? DateTime(2099))}",
+                            "Bayar sebelum ${customFormatDate(widget.order?.expiredDate ?? widget.featureOrder?.expiryDate ?? widget.lookOrder?.expiredDate ?? DateTime(2099))}",
                             style: TextStyle(fontSize: 12.sp)),
                         SizedBox(
                           height: 40,
                         ),
                         SizedBox(
-                          width: deviceWidth * 0.5,
+                          width: 200.w,
                           child: ElevatedButton(
                             onPressed: () {
                               openXenditGateway();
@@ -129,16 +118,21 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           height: 10,
                         ),
                         SizedBox(
-                            width: deviceWidth * 0.5,
+                            width: 200.w,
                             child: ElevatedButton(
                               onPressed: () async {
                                 if (widget.order != null) {
                                   paidOrder =
                                       await validateOrderProductPaymentXenditGateway();
-                                } else {
+                                      log.d("Paid Order : ${paidOrder}");
+                                } else if(widget.featureOrder != null) {
                                   paidFeature =
                                       await validateOrderFeaturePaymentXenditGateway();
                                       log.d("Paid Feature : ${paidFeature}");
+                                } else if(widget.lookOrder != null) {
+                                  paidLook =
+                                      await validateLookOrderPaymentXenditGateway();
+                                      log.d("Paid Look : ${paidLook}");
                                 }
                               },
                               child: Text(
@@ -205,7 +199,23 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
   }
 
-  //Bug release cannot open web
+
+  Future<LookOrder?> validateLookOrderPaymentXenditGateway() async {
+    ApiService apiService = ApiService(context);
+    LookOrderResponse response =
+        await apiService.getLookOrder(widget.lookOrder!.id!);
+
+    if (!response.error && response.look != null) {
+      if (response.look!.paymentStatus == "PAID"&& paidLook != null) {
+        setState(() {
+          isPaymentSuccess = true;
+        });
+      }
+      return response.look;
+    }
+  }
+
+
   Future<void> openXenditGateway() async {
     var url;
     if (widget.order != null) {
@@ -218,7 +228,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         Fluttertoast.showToast(
             msg: "Terjadi kesalahan, silakan coba lagi nanti.");
       }
-    } else {
+    } else if(widget.featureOrder != null){
       url = Uri.parse(widget.featureOrder!.paymentUrl);
       try {
         await launchUrl(url, mode: LaunchMode.externalApplication).then((v) {
@@ -228,11 +238,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
         Fluttertoast.showToast(
             msg: "Terjadi kesalahan, silakan coba lagi nanti.");
       }
+    }  else if(widget.lookOrder != null){
+      url = Uri.parse(widget.lookOrder!.paymentUrl!);
+      try {
+        await launchUrl(url, mode: LaunchMode.externalApplication).then((v) {
+          validateLookOrderPaymentXenditGateway();
+        });
+      } catch (e) {
+        Fluttertoast.showToast(
+            msg: "Terjadi kesalahan, silakan coba lagi nanti.");
+      }
     }
   }
 
   Widget paymentSuccess() {
-    log.d("LOG : ${paidFeature?.paymentDate}");
     return Padding(
         padding: EdgeInsets.all(10),
         child: Card(
@@ -264,7 +283,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
                 SizedBox(height: 5),
                 Text(
-                  "${convertToRupiah(paidOrder?.totalPrice ?? paidFeature?.price)}",
+                  "${convertToRupiah(paidOrder?.totalPrice ?? paidFeature?.price ?? paidLook?.price)}",
                   style:
                       TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
                 ),
@@ -282,7 +301,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text("Order ID:", style: TextStyle(fontSize: 12.sp)),
-                        Text("${paidOrder?.id ?? paidFeature?.id ?? "-"}",
+                        Text("${paidOrder?.id ?? paidFeature?.id ?? paidLook?.id}",
                             style: TextStyle(fontSize: 12.sp)),
                       ],
                     ),
@@ -297,9 +316,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             ? Text(
                                 "${customFormatDate(paidOrder?.paymentDate?? DateTime.now())}",
                                 style: TextStyle(fontSize: 12.sp))
-                            : Text(
+                            : widget.featureOrder != null ? Text(
                                 "${customFormatDate(paidFeature?.paymentDate ?? DateTime.now())}",
-                                style: TextStyle(fontSize: 12.sp)),
+                                style: TextStyle(fontSize: 12.sp)): Text(
+                                "${customFormatDate(paidLook?.paymentDate ?? DateTime.now())}",
+                                style: TextStyle(fontSize: 12.sp))
                       ],
                     ),
                     SizedBox(height: 8),
@@ -309,7 +330,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       children: [
                         Text("Status Pembayaran:",
                             style: TextStyle(fontSize: 12.sp)),
-                        Text("${paidOrder?.xenditStatus ?? paidFeature?.paymentStatus}",
+                        Text("${paidOrder?.xenditStatus ?? paidFeature?.paymentStatus ?? paidLook?.paymentStatus}",
                             style: TextStyle(fontSize: 12.sp)),
                       ],
                     ),
@@ -320,7 +341,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       children: [
                         Text("Metode pembayaran:",
                             style: TextStyle(fontSize: 12.sp)),
-                        Text("${paidOrder?.paymentMethod ?? paidFeature?.paymentMethod}",
+                        Text("${paidOrder?.paymentMethod ?? paidFeature?.paymentMethod ?? paidLook?.paymentMethod}",
                             style: TextStyle(fontSize: 12.sp)),
                       ],
                     ),
