@@ -27,28 +27,20 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   var searchController = TextEditingController();
 
-  List<Product>? productsRTW;
   List<Product>? filteredRTW;
 
   Logger logger = Logger();
 
-  String? _selectedCategory;
-  String? _selectedTags;
-  String? _searchQuery;
-
   List<String> categories = [];
   List<String> tags = [];
 
-  var deviceWidth;
-
   @override
   Widget build(BuildContext context) {
-    initializeSort();
-
-    deviceWidth = MediaQuery.of(context).size.width;
-    return ChangeNotifierProvider(
-        create: (context) => SearchViewModel(Repository(ApiService(context))),
-        child: Scaffold(
+    return GestureDetector(onTap: () {
+      FocusScope.of(context).unfocus();
+    }, child: Consumer<SearchViewModel>(builder: (context, viewModel, child) {
+      initializeSort(viewModel);
+      return Scaffold(
           appBar: PreferredSize(
             preferredSize: Size.fromHeight(120),
             child: AppBar(
@@ -87,9 +79,10 @@ class _SearchPageState extends State<SearchPage> {
                             child: IconButton(
                               icon: const Icon(Icons.search),
                               onPressed: () {
-                                _searchQuery = searchController.text;
+                                viewModel.setSearchQuery(searchController.text);
 
-                                searchProduct(_searchQuery ?? "");
+                                searchProduct(
+                                    viewModel.searchQuery ?? "", viewModel);
                               },
                             ),
                           )
@@ -104,7 +97,7 @@ class _SearchPageState extends State<SearchPage> {
                                   "Kategori",
                                   style: TextStyle(fontSize: 12.sp),
                                 ),
-                                value: _selectedCategory,
+                                value: viewModel.selectedCategory,
                                 items: categories.map((value) {
                                   return DropdownMenuItem(
                                     child: Text(value,
@@ -113,9 +106,7 @@ class _SearchPageState extends State<SearchPage> {
                                   );
                                 }).toList(),
                                 onChanged: (value) {
-                                  setState(() {
-                                    _selectedCategory = value!;
-                                  });
+                                  viewModel.setSelectedCategory(value!);
                                 },
                               ),
                               SizedBox(
@@ -126,7 +117,7 @@ class _SearchPageState extends State<SearchPage> {
                                   "Tag",
                                   style: TextStyle(fontSize: 12.sp),
                                 ),
-                                value: _selectedTags,
+                                value: viewModel.selectedTags,
                                 items: tags.map((value) {
                                   return DropdownMenuItem(
                                     child: Text(value,
@@ -135,22 +126,21 @@ class _SearchPageState extends State<SearchPage> {
                                   );
                                 }).toList(),
                                 onChanged: (value) {
-                                  setState(() {
-                                    _selectedTags = value!;
-                                  });
+                                  viewModel.setSelectedTags(value!);
                                 },
                               ),
                               SizedBox(
                                 width: 10,
                               ),
-                              _selectedCategory != null || _selectedTags != null
+                              viewModel.selectedCategory != null ||
+                                      viewModel.selectedTags != null
                                   ? InkWell(
                                       onTap: () {
+                                        viewModel.setSelectedCategory(null);
+                                        viewModel.setSelectedTags(null);
                                         setState(() {
-                                          _selectedCategory = null;
-                                          _selectedTags = null;
-
-                                          filteredRTW = List.from(productsRTW!);
+                                          filteredRTW =
+                                              List.from(viewModel.productsRTW!);
                                         });
                                       },
                                       child: Text(
@@ -167,74 +157,72 @@ class _SearchPageState extends State<SearchPage> {
                 )),
           ),
           backgroundColor: Colors.white,
-          body: Consumer<SearchViewModel>(builder: (context, viewModel, child) {
-            return FutureBuilder(
-                future: viewModel.getListProducts(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    // Menampilkan data atau place holder
-                    List<Product>? products = snapshot.data;
+          body: FutureBuilder(
+              future: viewModel.getListProducts(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  // Menampilkan data atau place holder
+                  List<Product>? products = snapshot.data;
 
-                    productsRTW = products;
+                  viewModel.setListOfProductRTW(products!);
 
-                    if (_selectedTags != null && _selectedTags!.isNotEmpty) {
-                      filteredRTW = productsRTW
-                          ?.where((product) => product.tags
-                              .any((tag) => _selectedTags!.contains(tag)))
-                          .toList();
-                    }
-
-                    if (_selectedCategory != null &&
-                        _selectedCategory!.isNotEmpty) {
-                      filteredRTW = productsRTW?.where((product) {
-                        if (product.category != null &&
-                            product.category!.isNotEmpty) {
-                          return product.category!.any((category) =>
-                              _selectedCategory!.contains(category));
-                        } else {
-                          return false;
-                        }
-                      }).toList();
-
-                    }
-
-                    if (filteredRTW == null)
-                      filteredRTW = List.from(productsRTW!);                    
-
-                    if ((_selectedCategory == null && _selectedTags == null) &&
-                        _searchQuery == null) {
-                      filteredRTW = List.from(productsRTW!);
-                    }
-
-                    return SingleChildScrollView(
-                        child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 10),
-                          child: widgetListRTW(),
-                        ),
-                      ],
-                    ));
+                  if (viewModel.selectedTags != null &&
+                      viewModel.selectedTags!.isNotEmpty) {
+                    filteredRTW = viewModel.productsRTW
+                        ?.where((product) => product.tags.any(
+                            (tag) => viewModel.selectedTags!.contains(tag)))
+                        .toList();
                   }
-                  return productShimmer();
-                });
-          }),
-        ));
+
+                  if (viewModel.selectedCategory != null &&
+                      viewModel.selectedCategory!.isNotEmpty) {
+                    filteredRTW = viewModel.productsRTW?.where((product) {
+                      if (product.category != null &&
+                          product.category!.isNotEmpty) {
+                        return product.category!.any((category) =>
+                            viewModel.selectedCategory!.contains(category));
+                      } else {
+                        return false;
+                      }
+                    }).toList();
+                  }
+
+                  if (filteredRTW == null)
+                    filteredRTW = List.from(viewModel.productsRTW!);
+
+                  if ((viewModel.selectedCategory == null &&
+                          viewModel.selectedTags == null) &&
+                      viewModel.searchQuery == null) {
+                    filteredRTW = List.from(viewModel.productsRTW!);
+                  }
+
+                  return SingleChildScrollView(
+                      child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 10),
+                        child: widgetListRTW(),
+                      ),
+                    ],
+                  ));
+                }
+                return productShimmer();
+              }));
+    }));
   }
 
-  void searchProduct(String text) {
-    filterProducts(text);
+  void searchProduct(String text, SearchViewModel viewModel) {
+    filterProducts(text, viewModel);
   }
 
-  void filterProducts(String query) {
-    if (productsRTW != null) {
+  void filterProducts(String query, SearchViewModel viewModel) {
+    if (viewModel.productsRTW != null) {
       setState(() {
-        filteredRTW = productsRTW!
+        filteredRTW = viewModel.productsRTW!
             .where((product) =>
                 product.name.toLowerCase().contains(query.toLowerCase()))
             .toList();
-
       });
     }
   }
@@ -321,69 +309,53 @@ class _SearchPageState extends State<SearchPage> {
                       ),
                     ))
             : SizedBox(
-                    height: 100.h,
-                    child: Center(
-                      child: Text(
-                        "Tidak ada produk.",
-                        style: TextStyle(fontSize: 12.sp),
-                      ),
-                    )));
+                height: 100.h,
+                child: Center(
+                  child: Text(
+                    "Tidak ada produk.",
+                    style: TextStyle(fontSize: 12.sp),
+                  ),
+                )));
   }
 
-  Future<List<String>?> getAllCategoryFromProduct(ApiService apiService) async {
+  Future<List<String>?> getAllCategoryFromProduct(
+      SearchViewModel viewModel) async {
     List<String> allCategories = [];
-    ProductsResponse response = await apiService.productsGet();
-    if (response.error) {
-      Fluttertoast.showToast(
-          msg: "Terjadi kesalahan, silakan coba lagi nanti.");
-      return allCategories;
-    } else {
-      if (response.products != null) {
-        Set<String> uniqueCategories = {};
-
-        response.products!.forEach((product) {
-          if (product.category != null) {
-            uniqueCategories.addAll(product.category!);
-          }
-
-          allCategories = uniqueCategories.toList();
-        });
+    Set<String> uniqueCategories = {};
+    List<Product> data = await viewModel.getListProducts();
+    for (var product in data) {
+      if (product.category != null) {
+        uniqueCategories.addAll(product.category!);
       }
 
-      return allCategories;
+      allCategories = uniqueCategories.toList();
     }
+    return allCategories;
   }
 
-  getAllTagsFromProduct(ApiService apiService) async {
+  getAllTagsFromProduct(SearchViewModel viewModel) async {
     List<String> allTags = [];
-    ProductsResponse response = await apiService.productsGet();
-    if (response.error) {
-      Fluttertoast.showToast(
-          msg: "Terjadi kesalahan, silakan coba lagi nanti.");
-      return allTags;
-    } else {
-      if (response.products != null) {
-        Set<String> uniqueTags = {};
+    List<Product> data = await viewModel.getListProducts();
 
-        response.products!.forEach((product) {
-          uniqueTags.addAll(product.tags);
-          allTags = uniqueTags.toList();
-        });
-      }
+    Set<String> uniqueTags = {};
 
-      return allTags;
-    }
+    data.forEach((product) {
+      uniqueTags.addAll(product.tags);
+      allTags = uniqueTags.toList();
+    });
+
+    return allTags;
   }
 
-  void initializeSort() async {
-    await getAllCategoryFromProduct(ApiService(context)).then((value) {
+  void initializeSort(SearchViewModel viewModel) async {
+    await getAllCategoryFromProduct(viewModel).then((value) {
       if (value != null && !listEquals(categories, value)) {
         categories = value;
         setState(() {});
       }
     });
 
-    await getAllTagsFromProduct(ApiService(context)).then((value) {
+    await getAllTagsFromProduct(viewModel).then((value) {
       if (value != null && !listEquals(tags, value)) {
         tags = value;
         setState(() {});

@@ -19,7 +19,6 @@ import 'package:jahit_baju/views/product_screen/rtw_product_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -28,10 +27,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Product>? products = [];
-
-  List? tags;
-
   bool accessCustom = false;
 
   var deviceWidth;
@@ -39,7 +34,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    getAccessCustom().then((access){
+    getAccessCustom().then((access) {
       accessCustom = access ?? false;
     });
     super.initState();
@@ -49,39 +44,39 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     deviceWidth = MediaQuery.of(context).size.width;
 
-    return Stack(
-      children: [Scaffold(
-      backgroundColor: Colors.white,
-      body: RefreshIndicator(
-          child: Stack(
-            children: [
-              ChangeNotifierProvider(
-                  create: (context) =>
-                      HomeViewModel(Repository(ApiService(context))),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        appBannerWidget(),
-                        Consumer<HomeViewModel>(
-                            builder: (context, viewModel, child) {
-                          return FutureBuilder(
+    return Consumer<HomeViewModel>(builder: (context, viewModel, child) {
+      return Stack(
+        children: [
+          Scaffold(
+            backgroundColor: Colors.white,
+            body: RefreshIndicator(
+                child: Stack(
+                  children: [
+                    SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          appBannerWidget(),
+                          FutureBuilder(
                               future: viewModel.getListProducts(),
                               builder: (context, snapshot) {
-                                // Menampilkan data atau place holder
-                                products = snapshot.data;
+                                if (snapshot.hasData) {
+                                    viewModel.setProducts(snapshot.data!);
 
-                                tags = products
-                                    ?.expand((product) => product.tags)
-                                    .toSet()
-                                    .toList();
+                                    List<String>? tags = viewModel.products
+                                        ?.expand((product) => product.tags)
+                                        .toSet()
+                                        .toList();
+                                    viewModel.setTags(tags!);
+                                  }
+
                                 return Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     SizedBox(
                                       height: 10.h,
                                     ),
-                                    tagsWidget(),
+                                    tagsWidget(viewModel),
                                     SizedBox(
                                       height: 10.h,
                                     ),
@@ -97,7 +92,7 @@ class _HomePageState extends State<HomePage> {
                                         ],
                                       ),
                                     ),
-                                    widgetListRTW(),
+                                    widgetListRTW(viewModel),
                                     SizedBox(
                                       height: 20.h,
                                     ),
@@ -118,7 +113,8 @@ class _HomePageState extends State<HomePage> {
                                     FutureBuilder<CustomizationAccess?>(
                                       future: getCustomizationFeature(),
                                       builder: (context, snapshot) {
-                                        if (snapshot.hasData && snapshot.data != null) {
+                                        if (snapshot.hasData &&
+                                            snapshot.data != null) {
                                           return Padding(
                                             padding: EdgeInsets.all(10),
                                             child: InkWell(
@@ -126,9 +122,10 @@ class _HomePageState extends State<HomePage> {
                                                   ? () {
                                                       goToDesignerScreen();
                                                     }
-                                                  : (){
-                                                    popUpBuyCostumization(snapshot.data);
-                                                  },
+                                                  : () {
+                                                      popUpBuyCostumization(
+                                                          snapshot.data);
+                                                    },
                                               child: Card(
                                                 color: Colors
                                                     .transparent, // Biar latar belakang dari gambar terlihat
@@ -195,7 +192,9 @@ class _HomePageState extends State<HomePage> {
                                                               children: [
                                                                 Text(
                                                                   accessCustom
-                                                                      ? snapshot.data!.name
+                                                                      ? snapshot
+                                                                          .data!
+                                                                          .name
                                                                       : "Fitur Terkunci",
                                                                   style:
                                                                       TextStyle(
@@ -216,7 +215,9 @@ class _HomePageState extends State<HomePage> {
                                                                           right:
                                                                               5),
                                                                   child: Text(
-                                                                    snapshot.data!.description!,
+                                                                    snapshot
+                                                                        .data!
+                                                                        .description!,
                                                                     style:
                                                                         TextStyle(
                                                                       fontSize:
@@ -249,20 +250,22 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   ],
                                 );
-                              });
-                        }),
-                      ],
-                    ),
-                  )),
-            ],
+                              }),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+                onRefresh: () async {
+                  setState(() {
+                    viewModel.setProducts([]);
+                  });
+                }),
           ),
-          onRefresh: () async {
-            setState(() {
-              products = [];
-            });
-          }),
-    ),if(loading ) loadingWidget()],
-    );
+          if (loading) loadingWidget()
+        ],
+      );
+    });
   }
 
   void goToProductScreen(Product item) {
@@ -270,36 +273,34 @@ class _HomePageState extends State<HomePage> {
         context, MaterialPageRoute(builder: (context) => ProductScreen(item)));
   }
 
-  tagsWidget() {
-    return tags != null
-        ? tags!.isNotEmpty
-            ? Container(
-                height: 60.h,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: tags?.length,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      width: 60.w,
-                      height: 60.w,
-                      margin: EdgeInsets.symmetric(horizontal: 10),
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color(0xFFFFAAAA),
-                      ),
-                      child: Center(
-                        child: Text(
-                          tags?[index],
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 10.sp),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              )
-            : smimmerTag()
+  tagsWidget(HomeViewModel viewModel) {
+    return viewModel.tags != null
+        ? Container(
+            height: 60.h,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: viewModel.tags?.length,
+              itemBuilder: (context, index) {
+                return Container(
+                  width: 60.w,
+                  height: 60.w,
+                  margin: EdgeInsets.symmetric(horizontal: 10),
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Color(0xFFFFAAAA),
+                  ),
+                  child: Center(
+                    child: Text(
+                      viewModel.tags![index],
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 10.sp),
+                    ),
+                  ),
+                );
+              },
+            ),
+          )
         : smimmerTag();
   }
 
@@ -329,19 +330,19 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  widgetListRTW() {
+  widgetListRTW(HomeViewModel viewModel) {
     return Container(
         margin: const EdgeInsets.all(10),
         height: 200.h,
-        child: products != null
-            ? products!.isNotEmpty
+        child: viewModel.products != null
+            ? viewModel.products!.isNotEmpty
                 ? ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    itemCount: products?.length,
+                    itemCount: viewModel.products!.length,
                     itemBuilder: (context, index) {
                       return InkWell(
                           onTap: () {
-                            goToProductScreen(products![index]);
+                            goToProductScreen(viewModel.products![index]);
                           },
                           child: Container(
                             width: 150.w,
@@ -356,7 +357,8 @@ class _HomePageState extends State<HomePage> {
                                 Expanded(
                                     child: Center(
                                   child: CachedNetworkImage(
-                                    imageUrl: products![index].imageUrl[0],
+                                    imageUrl:
+                                        viewModel.products![index].imageUrl[0],
                                     placeholder: (context, url) {
                                       return Shimmer.fromColors(
                                           baseColor: Colors.grey[300]!,
@@ -378,14 +380,14 @@ class _HomePageState extends State<HomePage> {
                                       children: [
                                         Text(
                                           maxLines: 2,
-                                          products![index].name,
+                                          viewModel.products![index].name,
                                           style: TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 12.sp),
                                         ),
                                         Text(
                                           convertToRupiah(
-                                              products![index].price),
+                                              viewModel.products![index].price),
                                           style: TextStyle(fontSize: 12.sp),
                                         ),
                                       ],
@@ -521,32 +523,31 @@ class _HomePageState extends State<HomePage> {
         await apiService.getCustomizationFeature();
     if (!response.error && response.customizationAccess != null) {
       return response.customizationAccess!;
-    }else{
+    } else {
       Fluttertoast.showToast(msg: ApiService.SOMETHING_WAS_WRONG);
-    return null;
+      return null;
     }
-    
   }
-  
+
   Future<bool?> getAccessCustom() async {
     ApiService apiService = ApiService(context);
-    UserResponse response =  await apiService.userGet();
-    if(response.error){
+    UserResponse response = await apiService.userGet();
+    if (response.error) {
       Fluttertoast.showToast(msg: ApiService.SOMETHING_WAS_WRONG);
       return false;
     }
     return response.data!.customAccess;
-    
   }
-  
+
   popUpBuyCostumization(CustomizationAccess? data) {
-   return showDialog(
+    return showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Pembelian Fitur'),
-          content: Text('Akses fitur ini dengan membayar ${convertToRupiah(data!.price)}'),
+          content: Text(
+              'Akses fitur ini dengan membayar ${convertToRupiah(data!.price)}'),
           actions: [
             TextButton(
               onPressed: () {
@@ -565,29 +566,32 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
-  
+
   void goToPaymentScreen(FeatureOrder data) {
     Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => PaymentScreen(featureOrder: data, )),
-              (route) => route.settings.name == "Home",
-            );
+      context,
+      MaterialPageRoute(
+          builder: (context) => PaymentScreen(
+                featureOrder: data,
+              )),
+      (route) => route.settings.name == "Home",
+    );
   }
-  
+
   Future<void> buyFeature() async {
     setState(() {
       loading = true;
     });
     ApiService apiService = ApiService(context);
     BuyFeatureResponse response = await apiService.buyCostumizationFeature();
-    if(response.error && response.data != null){
-      Fluttertoast.showToast(msg: response.message ?? ApiService.SOMETHING_WAS_WRONG);
-    }else{
+    if (response.error && response.data != null) {
+      Fluttertoast.showToast(
+          msg: response.message ?? ApiService.SOMETHING_WAS_WRONG);
+    } else {
       goToPaymentScreen(response.data!);
     }
     setState(() {
       loading = false;
-    });  
+    });
   }
 }

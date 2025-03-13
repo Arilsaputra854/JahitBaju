@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:jahit_baju/data/model/product.dart';
 import 'package:jahit_baju/data/source/local/db/db_helper.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';

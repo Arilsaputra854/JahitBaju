@@ -143,7 +143,7 @@ class ApiService {
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
-      logger.e("Get Favorite : Tidak ada koneksi internet");
+      logger.e("User Get : Tidak ada koneksi internet");
       return UserResponse(message: "Tidak ada internet", error: true);
     } catch (e) {
       logger.e("User Get : $e");
@@ -210,7 +210,7 @@ class ApiService {
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
-      logger.e("Get Favorite : Tidak ada koneksi internet");
+      logger.e("User Update: Tidak ada koneksi internet");
       return UserResponse(message: NO_INTERNET_CONNECTION, error: true);
     } catch (e) {
       logger.e("User Update : $e");
@@ -243,7 +243,7 @@ class ApiService {
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
-      logger.e("Get Favorite : Tidak ada koneksi internet");
+      logger.e("User Email Verify : Tidak ada koneksi internet");
       return LoginResponse(message: NO_INTERNET_CONNECTION, error: true);
     } catch (e) {
       logger.e("User Email Verify : $e");
@@ -273,7 +273,7 @@ class ApiService {
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
-      logger.e("Get Favorite : Tidak ada koneksi internet");
+      logger.e("User Request OTP : Tidak ada koneksi internet");
       return OtpResponse(message: NO_INTERNET_CONNECTION, error: true);
     } catch (e) {
       logger.e("User Request OTP : $e");
@@ -306,7 +306,7 @@ class ApiService {
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
-      logger.e("Get Favorite : Tidak ada koneksi internet");
+      logger.e("User Reset Email Verify : Tidak ada koneksi internet");
       return OtpResponse(message: NO_INTERNET_CONNECTION, error: true);
     } catch (e) {
       logger.e("User Reset Email Verify : $e");
@@ -335,7 +335,7 @@ class ApiService {
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
-      logger.e("Get Favorite : Tidak ada koneksi internet");
+      logger.e("User Reset Request OTP : Tidak ada koneksi internet");
       return LoginResponse(message: NO_INTERNET_CONNECTION, error: true);
     } catch (e) {
       logger.e("User Reset Request OTP : $e");
@@ -397,7 +397,7 @@ class ApiService {
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
-      logger.e("Get Favorite : Tidak ada koneksi internet");
+      logger.e("Order New : Tidak ada koneksi internet");
       return OrderResponse(message: NO_INTERNET_CONNECTION, error: true);
     } catch (e) {
       logger.e("Order now : $e");
@@ -435,7 +435,7 @@ class ApiService {
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
-      logger.e("Get Favorite : Tidak ada koneksi internet");
+      logger.e("Cart Get : Tidak ada koneksi internet");
       cartResponse = CartResponse(error: true, message: NO_INTERNET_CONNECTION);
     } catch (e) {
       logger.e("Cart Get : $e");
@@ -492,7 +492,7 @@ class ApiService {
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
-      logger.e("Get Favorite : Tidak ada koneksi internet");
+      logger.e("Cart Add : Tidak ada koneksi internet");
       return CartResponse(error: true, message: NO_INTERNET_CONNECTION);
     } catch (e) {
       logger.e("Cart Add : $e");
@@ -524,7 +524,7 @@ class ApiService {
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
-      logger.e("Get Favorite : Tidak ada koneksi internet");
+      logger.e("Item Cart Delete : Tidak ada koneksi internet");
       return NO_INTERNET_CONNECTION;
     } catch (e) {
       logger.e("Item Cart Delete : $e");
@@ -588,7 +588,7 @@ class ApiService {
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
-      logger.e("Get Favorite : Tidak ada koneksi internet");
+      logger.e("Shipping Get: Tidak ada koneksi internet");
       return ShippingResponse(
           error: true, message: "Tidak ada koneksi internet.");
     } catch (e) {
@@ -624,7 +624,7 @@ class ApiService {
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
-      logger.e("Get Favorite : Tidak ada koneksi internet");
+      logger.e("Packaging Get : Tidak ada koneksi internet");
       return NO_INTERNET_CONNECTION;
     } catch (e) {
       logger.e("Packaging Get : $e");
@@ -697,7 +697,7 @@ class ApiService {
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
-      logger.e("Get Favorite : Tidak ada koneksi internet");
+      logger.e("Create Order : Tidak ada koneksi internet");
       return NO_INTERNET_CONNECTION;
     } catch (e) {
       logger.e("Create Order: ${e}");
@@ -737,7 +737,7 @@ class ApiService {
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
-      logger.e("Get Favorite : Tidak ada koneksi internet");
+      logger.e("Get Order : Tidak ada koneksi internet");
       orderResponse =
           OrderResponse(message: NO_INTERNET_CONNECTION, error: true);
     } catch (e) {
@@ -767,7 +767,7 @@ class ApiService {
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
-      logger.e("Get Favorite : Tidak ada koneksi internet");
+      logger.e("Delete Order : Tidak ada koneksi internet");
       return OrderResponse(message: NO_INTERNET_CONNECTION, error: true);
     } catch (e) {
       logger.e("Delete Order: ${e}");
@@ -794,7 +794,7 @@ class ApiService {
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
-      logger.e("Get Favorite : Tidak ada koneksi internet");
+      logger.e("Get Product by ID : Tidak ada koneksi internet");
 
       return ProductResponse(message: NO_INTERNET_CONNECTION, error: true);
     } catch (e) {
@@ -857,7 +857,7 @@ class ApiService {
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
-      logger.e("Get Favorite : Tidak ada koneksi internet");
+      logger.e("Get Product by Last Update : Tidak ada koneksi internet");
       return ProductLatestResponse(
           message: NO_INTERNET_CONNECTION, error: true);
     } catch (e) {
@@ -885,7 +885,7 @@ class ApiService {
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
-      logger.e("Get Favorite : Tidak ada koneksi internet");
+      logger.e("Get Product : Tidak ada koneksi internet");
 
       return ProductsResponse(message: NO_INTERNET_CONNECTION, error: true);
     } catch (e) {
@@ -895,8 +895,8 @@ class ApiService {
     }
   }
 
-  Future<dynamic> favoriteGet(BuildContext context) async {
-    final url = Uri.parse("${baseUrl}favorite");
+  Future<FavoritesResponse> getUserFavorites() async {
+    final url = Uri.parse("${baseUrl}favorites");
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
     try {
@@ -909,27 +909,16 @@ class ApiService {
 
       logger.d("Get Favorite : ${data}");
 
-      dynamic message;
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        var favoriteData = data["data"] as List;
-
-        List<Favorite> favorites = favoriteData
-            .map<Favorite>((json) => Favorite.fromJson(json))
-            .toList();
-
-        return favorites;
-      } else {
-        message = data["message"] ?? "Unknown error occurred";
-        return message;
-      }
+      return FavoritesResponse.fromJson(data);
+      
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
-      return NO_INTERNET_CONNECTION;
+      return FavoritesResponse(error: true, message: NO_INTERNET_CONNECTION);
     } catch (e) {
       logger.e("Get Favorite : ${e}");
-      return "Terjadi Kesalahan";
+      return FavoritesResponse(error: true, message: SOMETHING_WAS_WRONG);
     }
   }
 

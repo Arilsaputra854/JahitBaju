@@ -9,7 +9,9 @@ import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/data/source/remote/response/favorite_response.dart';
 import 'package:jahit_baju/data/source/remote/response/product_response.dart';
 import 'package:jahit_baju/util/util.dart';
+import 'package:jahit_baju/viewmodels/favorite_view_model.dart';
 import 'package:jahit_baju/views/product_screen/rtw_product_screen.dart';
+import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
 class FavoritePage extends StatefulWidget {
@@ -28,7 +30,8 @@ class _HomePageState extends State<FavoritePage> {
   Widget build(BuildContext context) {
     deviceWidth = MediaQuery.of(context).size.width;
     deviceHeight = MediaQuery.of(context).size.height;
-    return Container(
+    return Consumer<FavoriteViewModel>(builder: (context, viewModel, child) {
+      return Container(
         color: Colors.white,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,7 +45,7 @@ class _HomePageState extends State<FavoritePage> {
             ),
             SizedBox(height: 5),
             FutureBuilder(
-                future: getFavorite(),
+                future: viewModel.getFavorite(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return itemCartShimmer();
@@ -50,9 +53,7 @@ class _HomePageState extends State<FavoritePage> {
                     if (snapshot.hasData && snapshot.data !=null) {
                       favorites = snapshot.data!;
                       if (favorites.isNotEmpty) {
-                        return SingleChildScrollView(
-                          child: _buildCartItem(),
-                        );
+                        return _buildCartItem(viewModel);
                       } else {
                         return Container(
                           height: 100.h,
@@ -83,6 +84,7 @@ class _HomePageState extends State<FavoritePage> {
                 }),
           ],
         ));
+    },);
   }
 
   Widget itemCartShimmer() {
@@ -134,18 +136,18 @@ class _HomePageState extends State<FavoritePage> {
     );
   }
 
-  Widget _buildCartItem() {
+  Widget _buildCartItem(FavoriteViewModel viewModel) {
     return Container(
         width: deviceWidth,
         margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8), color: Colors.white),
-        child: ListView.builder(
+        child: SingleChildScrollView(child: ListView.builder(
             itemCount: favorites.length,
             shrinkWrap: true,
             itemBuilder: (context, index) {
               return FutureBuilder<Product?>(
-                  future: getProduct(favorites[index]!.productId),
+                  future: viewModel.getProduct(favorites[index]!.productId),
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
                       Product product = snapshot.data!;
@@ -256,24 +258,9 @@ class _HomePageState extends State<FavoritePage> {
                       return Container();
                     }
                   });
-            }));
+            }),));
   }
 
-  Future<List<Favorite>> getFavorite() async {
-    ApiService apiService = ApiService(context);
-    List<Favorite> favorites = await apiService.favoriteGet(context);
-    return favorites;
-  }
-
-  Future<Product?> getProduct(String productId) async {
-    ApiService apiService = ApiService(context);
-    ProductResponse response = await apiService.productsGetById(productId);
-    if (response.error) {
-       Fluttertoast.showToast(msg: response.message!);
-    } else {
-      return response.product!;
-    }
-  }
 
   void _goToProductScreen(product) {
     Navigator.push(context,

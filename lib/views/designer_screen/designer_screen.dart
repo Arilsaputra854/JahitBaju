@@ -87,6 +87,7 @@ class _DesignerScreenState extends State<DesignerScreen> {
                             snapshot.data![index].description,
                             textAlign: TextAlign.center,
                             style: TextStyle(
+                              fontStyle: FontStyle.italic,
                                 fontSize: 12.sp,),
                           ),],
                           )

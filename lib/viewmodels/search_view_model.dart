@@ -10,7 +10,53 @@ class SearchViewModel extends ChangeNotifier {
   String? _errorMsg;
   String? get errorMsg =>_errorMsg;
 
+
+  List<Product>? _productsRTW;
+  List<Product>? get productsRTW => _productsRTW;
+
+  List<Product>? _filteredRTW;
+  List<Product>? get filteredRTW => _filteredRTW;
+
+  String? _selectedCategory;
+  String? get selectedCategory => _selectedCategory;
+  
+  String? _selectedTags;
+  String? get selectedTags => _selectedTags;
+
+  String? _searchQuery;
+  String? get searchQuery => _searchQuery;
+
+
   SearchViewModel(this.repository);
+
+
+  setSearchQuery(String? newSearchQuery){
+    _searchQuery = newSearchQuery;
+    notifyListeners();
+  }
+
+
+  setSelectedTags(String? newSelectedTags){
+    _selectedTags = newSelectedTags;
+    notifyListeners();
+  }
+
+  setSelectedCategory(String? newSelectedCategory){
+    _selectedCategory = newSelectedCategory;
+    notifyListeners();
+  }
+
+
+  setListOfProductRTW(List<Product> newProductRTW){
+    _productsRTW = newProductRTW;
+    notifyListeners();
+  }
+
+
+  setFilteredRTW(List<Product> newFilteredRTW){
+    _filteredRTW = newFilteredRTW;
+    notifyListeners();
+  }
 
   Future<dynamic> getListProducts() async {    
     var data = await repository.getAllProduct();
@@ -19,6 +65,7 @@ class SearchViewModel extends ChangeNotifier {
     }else if(data is String){
       _errorMsg = data.toString();
     }
+    notifyListeners();
   }
 
   bool sendSurvei() {

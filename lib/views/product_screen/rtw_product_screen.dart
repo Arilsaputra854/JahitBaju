@@ -50,7 +50,6 @@ class _ProductScreenState extends State<ProductScreen> {
 
   bool loading = false;
 
-
   @override
   initState() {
     apiService = ApiService(context);
@@ -73,8 +72,7 @@ class _ProductScreenState extends State<ProductScreen> {
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
-          body: SingleChildScrollView(
-              child: showRTW()),
+          body: SingleChildScrollView(child: showRTW()),
           bottomNavigationBar: _bottomNavigationWidget(),
         ),
         if (loading) loadingWidget()
@@ -292,12 +290,18 @@ class _ProductScreenState extends State<ProductScreen> {
         if (productResponse.product!.stock > 0) {
           if (_selectedSize != "" && _selectedSize.isNotEmpty) {
             CartResponse? response = await apiService.cartAdd(
-                product: widget.product, quantity: 1, selectedSize: _selectedSize, customDesignSvg: null,look: null, weight: widget.product.weight!);
+                product: widget.product,
+                quantity: 1,
+                selectedSize: _selectedSize,
+                customDesignSvg: null,
+                look: null,
+                weight: widget.product.weight!);
 
-            if(response != null && response.error){
-              Fluttertoast.showToast(msg: response.message!);  
-            }else{
-              Fluttertoast.showToast(msg: "Berhasil menambahkan produk ke keranjang.");  
+            if (response != null && response.error) {
+              Fluttertoast.showToast(msg: response.message!);
+            } else {
+              Fluttertoast.showToast(
+                  msg: "Berhasil menambahkan produk ke keranjang.");
             }
           } else {
             Fluttertoast.showToast(msg: "Silakan pilih ukuran terlebih dahulu");
@@ -315,26 +319,30 @@ class _ProductScreenState extends State<ProductScreen> {
     });
   }
 
-  Future getFavoriteStatus() async {
+  Future<bool> getFavoriteStatus() async {
     ApiService apiService = ApiService(context);
-    List<Favorite> favorites = await apiService.favoriteGet(context);
+    FavoritesResponse response = await apiService.getUserFavorites();
 
-    if (favorites.isNotEmpty) {
-      favorites.forEach((favorite) {
-        if (favorite.productId == widget.product.id) {
-          favoriteId = favorite.id!;
-          isFavorited = true;
-        } else {
-          isFavorited = false;
-        }
-      });
+    if (response.error) {
+      isFavorited = false;
     }
+    for (var favorite in response.favorites!) {
+      if (favorite.productId == widget.product.id) {
+        favoriteId = favorite.id!;
+        isFavorited = true;
+      } else {
+        isFavorited = false;
+      }
+    }
+
+    return isFavorited;
   }
 
   Future<void> addProductFavorite(Product product) async {
     ApiService apiService = ApiService(context);
 
-    Favorite favorite = Favorite(productId: product.id, lastUpdate: DateTime.now());
+    Favorite favorite =
+        Favorite(productId: product.id, lastUpdate: DateTime.now());
 
     if (!isFavorited) {
       FavoriteResponse response = await apiService.favoriteAdd(favorite);
@@ -575,7 +583,7 @@ class _ProductScreenState extends State<ProductScreen> {
           height: 10,
         ),
         FutureBuilder(
-            future:getNoteProduct(Product.READY_TO_WEAR),
+            future: getNoteProduct(Product.READY_TO_WEAR),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Center(
@@ -602,84 +610,83 @@ class _ProductScreenState extends State<ProductScreen> {
   _bottomNavigationWidget() {
     return Stack(
       alignment: AlignmentDirectional.center,
-      children: [Container(
-                padding: EdgeInsets.all(20),
-                child: Row(
-                  mainAxisAlignment:
-                      MainAxisAlignment.spaceBetween, // Untuk distribusi tombol
-                  children: [
-                    // Tombol Tambah ke Keranjang
-                    Expanded(
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          backgroundColor: Colors.white,
-                          disabledBackgroundColor: Colors.grey,
-                          padding: EdgeInsets.symmetric(vertical: 15),
-                        ),
-                        onPressed: loading ? null : () => addToCart(),
-                        child: Wrap(
-                          alignment: WrapAlignment.center,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          spacing: 5, // Jarak antara ikon dan teks
-                          children: [
-                            Icon(
-                              Icons.shopping_bag,
-                              color: loading
-                                  ? const Color.fromARGB(255, 95, 92, 92)
-                                  : Colors.black,
-                            ),
-                            Text(
-                              "Tambah ke Keranjang",
-                              style: TextStyle(
-                                fontSize: 12.sp,
-                                color: loading
-                                    ? const Color.fromARGB(255, 95, 92, 92)
-                                    : Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              softWrap: true,
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
+      children: [
+        Container(
+          padding: EdgeInsets.all(20),
+          child: Row(
+            mainAxisAlignment:
+                MainAxisAlignment.spaceBetween, // Untuk distribusi tombol
+            children: [
+              // Tombol Tambah ke Keranjang
+              Expanded(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    SizedBox(width: 10),
-                    // Tombol Beli Sekarang
-                    Expanded(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          backgroundColor:
-                              loading ? Colors.grey : Colors.red,
-                          padding: EdgeInsets.symmetric(vertical: 15),
-                        ),
-                        onPressed: () {
-                          buyNow(context, _selectedSize, widget.product);
-                        },
-                        child: Text(
-                          "Beli Sekarang",
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            color: loading
-                                ? const Color.fromARGB(255, 95, 92, 92)
-                                : Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          softWrap:
-                              true, // Agar teks membungkus jika terlalu panjang
-                          textAlign: TextAlign.center,
-                        ),
+                    backgroundColor: Colors.white,
+                    disabledBackgroundColor: Colors.grey,
+                    padding: EdgeInsets.symmetric(vertical: 15),
+                  ),
+                  onPressed: loading ? null : () => addToCart(),
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 5, // Jarak antara ikon dan teks
+                    children: [
+                      Icon(
+                        Icons.shopping_bag,
+                        color: loading
+                            ? const Color.fromARGB(255, 95, 92, 92)
+                            : Colors.black,
                       ),
-                    ),
-                  ],
+                      Text(
+                        "Tambah ke Keranjang",
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: loading
+                              ? const Color.fromARGB(255, 95, 92, 92)
+                              : Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        softWrap: true,
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
               ),
+              SizedBox(width: 10),
+              // Tombol Beli Sekarang
+              Expanded(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    backgroundColor: loading ? Colors.grey : Colors.red,
+                    padding: EdgeInsets.symmetric(vertical: 15),
+                  ),
+                  onPressed: () {
+                    buyNow(context, _selectedSize, widget.product);
+                  },
+                  child: Text(
+                    "Beli Sekarang",
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: loading
+                          ? const Color.fromARGB(255, 95, 92, 92)
+                          : Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    softWrap: true, // Agar teks membungkus jika terlalu panjang
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         widget.product.stock <= 0
             ? Positioned.fill(
                 child: Container(

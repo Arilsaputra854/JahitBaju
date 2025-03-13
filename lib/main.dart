@@ -6,6 +6,7 @@ import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/viewmodels/address_view_model.dart';
 import 'package:jahit_baju/viewmodels/cart_view_model.dart';
 import 'package:jahit_baju/viewmodels/designer_view_model.dart';
+import 'package:jahit_baju/viewmodels/favorite_view_model.dart';
 import 'package:jahit_baju/viewmodels/forgot_password_view_model.dart';
 import 'package:jahit_baju/viewmodels/home_screen_view_model.dart';
 import 'package:jahit_baju/viewmodels/home_view_model.dart';
@@ -39,6 +40,7 @@ void main() async {
     ChangeNotifierProvider(create: (context) => OtpScreenViewModel(ApiService(context))),
     ChangeNotifierProvider(create: (context) => LookViewModel(ApiService(context))),
     ChangeNotifierProvider(create: (context) => AddressViewModel(ApiService(context))),
+    ChangeNotifierProvider(create: (context) => FavoriteViewModel(ApiService(context))),
   ],
   child: ScreenUtilInit(
     designSize: Size(360, 640),

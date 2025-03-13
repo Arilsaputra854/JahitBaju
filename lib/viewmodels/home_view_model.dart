@@ -6,10 +6,29 @@ class HomeViewModel extends ChangeNotifier {
   
   Repository repository;
 
+
+  List<String>? _tags;
+  List<String>? get tags =>_tags;
+
+
+  List<Product>? _products;
+  List<Product>? get products =>_products;
+
   String? _errorMsg;
   String? get errorMsg =>_errorMsg;
 
   HomeViewModel(this.repository);
+
+  setProducts(List<Product> newProducts){
+    _products = newProducts;
+    notifyListeners();
+  }
+
+
+  setTags(List<String> newTags){
+    _tags = newTags;
+    notifyListeners();
+  }
 
   Future<List<Product>?> getListProducts() async {    
     return await repository.getAllProduct();

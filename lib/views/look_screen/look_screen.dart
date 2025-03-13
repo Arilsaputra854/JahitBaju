@@ -31,7 +31,7 @@ class _LookScreenState extends State<LookScreen> {
         children: [
           Scaffold(
             appBar: AppBar(
-              title: Text("Look", style: TextStyle(fontWeight: FontWeight.bold)),
+              title: Text(widget.designer.name, style: TextStyle(fontWeight: FontWeight.bold)),
               centerTitle: true,
             ),
             body: Container(
@@ -39,8 +39,15 @@ class _LookScreenState extends State<LookScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Pilih look dari desainer pilihan kamu.",
+                  Text("Profil Designer",
+                      style: TextStyle(fontSize: 14.sp,fontWeight: FontWeight.bold)),
+                      SizedBox(height: 5,),
+                  Text(widget.designer.description,
                       style: TextStyle(fontSize: 12.sp)),
+                  Divider(),
+                      SizedBox(height: 5,),
+                  Text("Pilih Look",
+                      style: TextStyle(fontSize: 14.sp,fontWeight: FontWeight.bold)),
                   _listOfDesignerWidget(viewmodel)
                 ],
               ),
