@@ -58,6 +58,19 @@ class _ShippingScreenState extends State<ShippingScreen> {
         create: (context) => ShippingViewModel(ApiService(context)),
         child:
             Consumer<ShippingViewModel>(builder: (context, viewModel, child) {
+              if(viewModel.totalWeight == null){
+                if(widget.product != null){
+                  viewModel.setTotalWeight(widget.product!.weight!);
+                }else if(widget.cart != null){
+                  int totalWeight = 0;
+                  for (CartItem item in widget.cart!.items) {
+                    totalWeight += item.weight;
+                  }
+                  viewModel.setTotalWeight(totalWeight);
+                }else{
+                  viewModel.setTotalWeight(widget.look!.weight);
+                }
+              }
           return Stack(children: [
             Scaffold(
                 appBar: AppBar(
@@ -116,7 +129,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
             rtwPrice: rtwPrice,
             discount: discount,
             packagingPrice: packaging!.price.toInt(),
-            shippingPrice: shipping!.price.toInt(),
+            shippingPrice: shipping!.price!.toInt(),
             shippingId: shipping!.id,
             packagingId: packaging!.id,
             cartId: widget.cart!.id,
@@ -124,7 +137,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
                 ? _descriptionController.text
                 : "-",
             totalPrice:
-                (shipping!.price + widget.cart!.totalPrice + packaging!.price)
+                (shipping!.price! + widget.cart!.totalPrice + packaging!.price)
                     .toInt(),
             orderStatus: Order.WAITING_FOR_PAYMENT,
             paymentUrl: "");
@@ -167,14 +180,14 @@ class _ShippingScreenState extends State<ShippingScreen> {
                 : "-",
             product: widget.product,
             look: widget.look,
-            totalPrice: (shipping!.price +
+            totalPrice: (shipping!.price! +
                     (widget.product?.price ?? 0) +
                     (widget.look?.price ?? 0) +
                     packaging!.price)
                 .toInt(),
             orderStatus: Order.WAITING_FOR_PAYMENT,
             paymentUrl: "",
-            shippingPrice: shipping!.price.toInt(),
+            shippingPrice: shipping!.price!.toInt(),
             packagingPrice: packaging!.price.toInt(),
             discount: discount);
 
@@ -259,20 +272,20 @@ class _ShippingScreenState extends State<ShippingScreen> {
             Text(
               shipping != null && packaging != null
                   ? widget.cart != null
-                      ? convertToRupiah(shipping!.price +
+                      ? convertToRupiah(shipping!.price! +
                           widget.cart!.totalPrice +
                           packaging!.price)
                       : widget.product != null && widget.look != null
-                          ? convertToRupiah(shipping!.price +
+                          ? convertToRupiah(shipping!.price! +
                               widget.product!.price +
                               widget.look!.price +
                               packaging!.price)
                           : widget.product != null
-                              ? convertToRupiah(shipping!.price +
+                              ? convertToRupiah(shipping!.price! +
                                   widget.product!.price +
                                   packaging!.price)
                               : widget.look != null
-                                  ? convertToRupiah(shipping!.price +
+                                  ? convertToRupiah(shipping!.price! +
                                       widget.look!.price +
                                       packaging!.price)
                                   : convertToRupiah(0)
@@ -465,7 +478,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
                                       borderRadius: BorderRadius.circular(12)),
                                   padding: EdgeInsets.all(10),
                                   child: Text(
-                                      snapshot.data ?? "Tidak ada alamat.",
+                                      snapshot.data?.streetAddress ?? "Tidak ada alamat.",
                                       maxLines: 1,
                                       style: TextStyle(
                                           fontWeight: FontWeight.normal,

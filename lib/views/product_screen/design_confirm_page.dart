@@ -233,14 +233,14 @@ class _DesignConfirmPageState extends State<DesignConfirmPage> {
 
       if (response != null && !response.error) {
         // 3. Add to cart with the uploaded design's filename
-        CartResponse cartResponse = await apiService.cartAdd(
+        CartResponse? cartResponse = await apiService.cartAdd(
           look: widget.look,
-          1,
-          widget.size,
-          response.file?.filename ?? '',
+          quantity: 1,
+          selectedSize: widget.size,
+          customDesignSvg: response.file!.filename, weight: widget.look.weight,          
         );
 
-        if (cartResponse.error) {
+        if (cartResponse != null && cartResponse.error) {
           Fluttertoast.showToast(
               msg: cartResponse.message ?? ApiService.SOMETHING_WAS_WRONG);
         } else {

@@ -14,6 +14,7 @@ class Look {
   String lastUpdate;
   int sold;
   int seen;
+  int weight;
   List<LookTexture>? textures;
 
   Look({
@@ -29,6 +30,7 @@ class Look {
     required this.lastUpdate,
     required this.sold,
     required this.seen,
+    required this.weight,
     this.textures,
   });
 
@@ -50,6 +52,7 @@ class Look {
       lastUpdate: json['last_update'],
       sold: json['sold'],
       seen: json['seen'],
+      weight: json['weight'],
       textures: json['textures'] != null
           ? (json['textures'] as List)
               .map((item) => LookTexture.fromJson(item))

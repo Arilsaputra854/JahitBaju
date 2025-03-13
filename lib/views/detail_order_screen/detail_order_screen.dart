@@ -249,9 +249,14 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                     thickness: 1,
                     height: 8,
                   ),
+                  Text("Alamat Penerima :\n${widget.order.buyerAddress ?? "-"}",
+                    style:
+                        TextStyle(fontWeight: FontWeight.normal, fontSize: 12.sp),
+                  ),
                 ],
               ),
             ),
+
             FutureBuilder<Shipping?>(
               future: getShippingById(widget.order.shippingId),
               builder: (context, snapshot) {
@@ -287,7 +292,7 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
                             Text(snapshot.data!.name,
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 14.sp)),
-                            Text(convertToRupiah(snapshot.data!.price))
+                            Text(convertToRupiah(widget.order.shippingPrice))
                           ],
                         )
                       ],
@@ -458,13 +463,12 @@ class _DetailOrderScreenState extends State<DetailOrderScreen> {
              
                   return FutureBuilder<Look?>(
               future: getLook(
-                  widget.order.items[index].customDesign!),
+                  widget.order.items[index].lookId!),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return itemCartShimmer();
                 }
-                if (snapshot.hasData || snapshot.data != null) {
-                  
+                if (snapshot.hasData) {                  
                   return Card(
                     color: Colors.white,
                     elevation: 4,

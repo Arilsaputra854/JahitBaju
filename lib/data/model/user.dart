@@ -4,36 +4,49 @@ class User {
   String name;
   String phoneNumber;
   String password;
-  String? address;
-  String imageUrl;
+  String? addressId;
+  String? imageUrl;
   bool emailVerified;
   bool customAccess;
-  final DateTime? lastUpdate;
+  String role;
+  DateTime? lastUpdate;
+  String? token;
+  String? refreshToken;
+  Address? address;
 
   User({
     this.id = "",
     required this.email,
     required this.name,
-     this.phoneNumber= "",
+    this.phoneNumber = "",
     required this.password,
-     this.address,
-     this.imageUrl= "",
+    this.addressId,
+    this.imageUrl,
     this.emailVerified = false,
     this.customAccess = false,
+    this.role = "User",
     this.lastUpdate,
+    this.token,
+    this.refreshToken,
+    this.address,
   });
-factory User.fromJson(Map<String, dynamic> json) {
+
+  factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'] ?? "",  // Use empty string if 'id' is null
-      email: json['email'] ?? "",  // Use empty string if 'email' is null
-      name: json['name'] ?? "",  // Use empty string if 'name' is null
-      phoneNumber: json['phone_number']?? "",  // Nullable field
-      password: json['password'] ?? "",  // Use empty string if 'password' is null
-      address: json['address'],  // Nullable field
-      imageUrl: json['img_url']?? "",  // Nullable field
+      id: json['id'] ?? "",
+      email: json['email'] ?? "",
+      name: json['name'] ?? "",
+      phoneNumber: json['phone_number'] ?? "",
+      password: json['password'] ?? "",
+      addressId: json['address_id'],
+      imageUrl: json['img_url'],
       emailVerified: json['email_verified'] ?? false,
       customAccess: json['custom_access'] ?? false,
+      role: json['role'] ?? "User",
       lastUpdate: json['last_update'] != null ? DateTime.parse(json['last_update']) : null,
+      token: json['token'],
+      refreshToken: json['refresh_token'],
+      address: json['address'] != null ? Address.fromJson(json['address']) : null,
     );
   }
 
@@ -44,11 +57,65 @@ factory User.fromJson(Map<String, dynamic> json) {
       'name': name,
       'phone_number': phoneNumber,
       'password': password,
-      'address': address,
+      'address_id': addressId,
       'img_url': imageUrl,
-      'email_verified' : emailVerified,
-      'custom_access' : customAccess,
-      'last_update': lastUpdate?.toIso8601String() ?? DateTime.now().toIso8601String(),
+      'email_verified': emailVerified,
+      'custom_access': customAccess,
+      'role': role,
+      'last_update': lastUpdate?.toIso8601String(),
+      'token': token,
+      'refresh_token': refreshToken,
+      'address': address?.toJson(),
+    };
+  }
+}
+
+class Address {
+  String? id;
+  String streetAddress;
+  String? rt;
+  String? rw;
+  String? subdistrict;
+  int city;
+  int province;
+  int postalCode;
+  DateTime? createdAt;
+  DateTime? updatedAt;
+
+  Address({
+    this.id,
+    required this.streetAddress,
+    this.rt,
+    this.rw,
+    this.subdistrict,
+    required this.city,
+    required this.province,
+    required this.postalCode,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  factory Address.fromJson(Map<String, dynamic> json) {
+    return Address(
+      id: json['id'] ?? "",
+      streetAddress: json['street_address'] ?? "",
+      rt: json['rt'] ?? "",
+      rw: json['rw'] ?? "",
+      subdistrict: json['subdistrict'] ?? "",
+      city: json['city'] ?? 0,
+      province: json['province'] ?? 0,
+      postalCode: json['postal_code'] ?? 0,
+      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
+      updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at']) : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'street_address': streetAddress,      
+      'city': city.toString(),
+      'province': province.toString(),
+      'postal_code': postalCode.toString()
     };
   }
 }

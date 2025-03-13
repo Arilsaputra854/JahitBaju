@@ -60,7 +60,7 @@ class _HomePageState extends State<ProfilePage> {
           nameController.text = user?.name ?? "";
           emailController.text = user?.email ?? "";
           phoneController.text = user?.phoneNumber ?? "";
-          addressController.text = user?.address ?? "";
+          addressController.text = user?.address?.streetAddress ?? "";
           passwordController.text = user?.password ?? "";
 
           return SingleChildScrollView(
@@ -84,7 +84,7 @@ class _HomePageState extends State<ProfilePage> {
                             child:
                                 user?.imageUrl == "" || user?.imageUrl == null
                                     ? Image.asset("assets/icon/profile.png")
-                                    : Image.network(user!.imageUrl,
+                                    : Image.network(user!.imageUrl!,
                                         fit: BoxFit.cover,
                                         width: double.infinity),
                           ),
@@ -176,7 +176,7 @@ class _HomePageState extends State<ProfilePage> {
                         return null;
                       },
                       decoration: standartInputDecoration(
-                          user?.address??"Alamat",
+                          user?.address?.streetAddress??"Alamat",
                           Icons.location_pin),
                     ),
                     const SizedBox(height: 10),
@@ -267,26 +267,26 @@ class _HomePageState extends State<ProfilePage> {
     ApiService apiService = ApiService(context);
 
 
-    UserResponse response =  await apiService
-          .userUpdate(
-        nameController.text,
-        emailController.text,
-        passwordController.text,
-        null,
-        addressController.text,
-        phoneController.text,
-      );
+    // UserResponse response =  await apiService
+    //       .userUpdate(
+    //     nameController.text,
+    //     emailController.text,
+    //     passwordController.text,
+    //     null,
+    //     new Address(streetAddress: addressController.text, city: city, province: province, postalCode: postalCode),
+    //     phoneController.text,
+    //   );
 
-    if(response.error){
+    // if(response.error){
 
-        Fluttertoast.showToast(msg: response.message!);
-    }else{
+    //     Fluttertoast.showToast(msg: response.message!);
+    // }else{
 
-        Fluttertoast.showToast(msg: "Data berhasil diupdate!");
+    //     Fluttertoast.showToast(msg: "Data berhasil diupdate!");
 
-        loadUserFromDatabase();
-        setState(() {});
-    }
+    //     loadUserFromDatabase();
+    //     setState(() {});
+    // }
 
   }
 

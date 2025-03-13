@@ -1,0 +1,2 @@
+/Volumes/DATA/2. Kerjaan/PT IWITA Kreatif/Jahit Baju/Aplikasi/jahit_baju/android/app/.cxx/Debug/6k4r1m6y/arm64-v8a/CMakeFiles/edit_cache.dir
+/Volumes/DATA/2. Kerjaan/PT IWITA Kreatif/Jahit Baju/Aplikasi/jahit_baju/android/app/.cxx/Debug/6k4r1m6y/arm64-v8a/CMakeFiles/rebuild_cache.dir

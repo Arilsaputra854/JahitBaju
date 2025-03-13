@@ -6,6 +6,7 @@ class Order {
   final String shippingId;
   final String packagingId;
   final String? cartId;
+  final String? buyerAddress;
   final Product? product;
   final Look? look;
   final int totalPrice;
@@ -46,6 +47,7 @@ class Order {
     this.look,
     this.size,
     this.quantity,
+    this.buyerAddress,
     required this.totalPrice,
     required this.rtwPrice,
     required this.customPrice,
@@ -75,6 +77,7 @@ class Order {
       shippingId: json['shipping_id'] ?? "",
       packagingId: json['packaging_id'] ?? "",
       cartId: json['cart_id'] ?? "",
+      buyerAddress: json['buyer_address'] ?? "",
       totalPrice: json['total_price'] ?? 0,
       customPrice: json['custom_price'] ?? 0,
       rtwPrice: json['rtw_price'] ?? 0,
@@ -113,6 +116,7 @@ class Order {
       'custom_price': customPrice,
       'shipping_price': shippingPrice,
       'packaging_price': packagingPrice,
+      'buyer_address': buyerAddress,
       'discount': discount,
       'order_created': orderCreated.toIso8601String(),
       'order_status': orderStatus,

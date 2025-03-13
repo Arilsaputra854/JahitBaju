@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:jahit_baju/data/repository/repository.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
+import 'package:jahit_baju/viewmodels/address_view_model.dart';
 import 'package:jahit_baju/viewmodels/cart_view_model.dart';
 import 'package:jahit_baju/viewmodels/designer_view_model.dart';
 import 'package:jahit_baju/viewmodels/forgot_password_view_model.dart';
@@ -37,6 +38,7 @@ void main() async {
     ChangeNotifierProvider(create: (context) => LoginViewModel(ApiService(context))),
     ChangeNotifierProvider(create: (context) => OtpScreenViewModel(ApiService(context))),
     ChangeNotifierProvider(create: (context) => LookViewModel(ApiService(context))),
+    ChangeNotifierProvider(create: (context) => AddressViewModel(ApiService(context))),
   ],
   child: ScreenUtilInit(
     designSize: Size(360, 640),

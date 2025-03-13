@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:jahit_baju/data/model/look.dart';
+import 'package:jahit_baju/data/model/user.dart';
 import 'package:jahit_baju/data/source/remote/response/app_banner_response.dart';
 import 'package:jahit_baju/data/source/remote/response/care_guide_response.dart';
+import 'package:jahit_baju/data/source/remote/response/city_response.dart';
 import 'package:jahit_baju/data/source/remote/response/custom_design_response.dart';
 import 'package:jahit_baju/data/source/remote/response/customization_feature_response.dart';
 import 'package:jahit_baju/data/source/remote/response/designer_response.dart';
@@ -16,6 +18,7 @@ import 'package:jahit_baju/data/source/remote/response/look_response.dart';
 import 'package:jahit_baju/data/source/remote/response/packaging_response.dart';
 import 'package:jahit_baju/data/source/remote/response/product_note_response.dart';
 import 'package:jahit_baju/data/source/remote/response/product_term_response.dart';
+import 'package:jahit_baju/data/source/remote/response/province_response.dart';
 import 'package:jahit_baju/data/source/remote/response/register_response.dart';
 import 'package:jahit_baju/data/source/remote/response/shipping_response.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
@@ -149,7 +152,7 @@ class ApiService {
   }
 
   Future<UserResponse> userUpdate(String? name, String? email, String? password,
-      String? imageUrl, String? address, String? phoneNumber,
+      String? imageUrl, Address? address, String? phoneNumber,
       {String? resetToken}) async {
     final url = Uri.parse("${baseUrl}users/current");
 
@@ -173,8 +176,8 @@ class ApiService {
       if (imageUrl != null && imageUrl.isNotEmpty) {
         body['img_url'] = imageUrl;
       }
-      if (address != null && address.isNotEmpty) {
-        body['address'] = address;
+      if (address != null) {
+        body['address'] = address.toJson();
       }
       if (phoneNumber != null && phoneNumber.isNotEmpty) {
         body['phone_number'] = phoneNumber;
@@ -184,6 +187,9 @@ class ApiService {
       if (body.isEmpty) {
         return UserResponse(message: "Field is empty", error: true);
       }
+
+
+      logger.d("body address :${body}");
 
       final response = await http.patch(
         url,
@@ -439,14 +445,13 @@ class ApiService {
     return cartResponse;
   }
 
-  Future<CartResponse> cartAdd(
-      int quantity, String selectedSize, String? customDesignSvg,
-      {Product? product, Look? look}) async {
+  Future<CartResponse?> cartAdd(
+
+      {required int quantity, required String selectedSize, String? customDesignSvg, Product? product, Look? look, required int weight}) async {
     final url = Uri.parse("${baseUrl}cart");
 
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
-    CartResponse cartResponse;
     try {
       final response = await http.post(
         url,
@@ -460,11 +465,13 @@ class ApiService {
                 'quantity': quantity,
                 'price': look.price,
                 'size': selectedSize,
+                'weight' : weight,
                 'custom_design': customDesignSvg
               })
             : jsonEncode(<String, dynamic>{
                 'product_id': product!.id,
                 'quantity': quantity,
+                'weight' : weight,
                 'price': product.price,
                 'size': selectedSize,
               }),
@@ -474,24 +481,22 @@ class ApiService {
       logger.d("Cart Add : ${data}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        cartResponse = CartResponse.fromJson(data);
+        return CartResponse.fromJson(data);
       } else if (response.statusCode == 401) {
         showDialogSession(context);
-        cartResponse = CartResponse(error: true, message: UNAUTHORIZED);
+        return CartResponse(error: true, message: UNAUTHORIZED);
       } else {
-        cartResponse =
+        return
             CartResponse(error: true, message: SOMETHING_WAS_WRONG_SERVER);
       }
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
-      cartResponse = CartResponse(error: true, message: NO_INTERNET_CONNECTION);
+      return CartResponse(error: true, message: NO_INTERNET_CONNECTION);
     } catch (e) {
       logger.e("Cart Add : $e");
-      cartResponse = CartResponse(error: true, message: SOMETHING_WAS_WRONG);
     }
-    return cartResponse;
   }
 
   Future<dynamic> itemCartDelete(CartItem item) async {
@@ -527,13 +532,17 @@ class ApiService {
     }
   }
 
-  Future<ShippingsResponse> getAllShipping() async {
-    final url = Uri.parse("${baseUrl}shipping");
+  Future<ShippingsResponse> getAllShipping(int totalWeight) async {
+    final url = Uri.parse("${baseUrl}shippings");
+    var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
     try {
-      final response = await http.get(url, headers: <String, String>{
+      final response = await http.post(url, headers: <String, String>{
         'Content-Type': 'application/json',
-      });
+        'Authorization': '${token}'
+      },body: jsonEncode(<String, dynamic>{
+                'total_weight': totalWeight,
+              }));
 
       var data = jsonDecode(response.body);
       logger.d("Shipping Get : ${data}");
@@ -1431,6 +1440,55 @@ class ApiService {
     } catch (e) {
       logger.e("get look order : $e");
       return  LookOrderResponse(error: true, message: "Network error : $e");
+    }
+  }
+
+
+  Future<CityResponse> getListCity() async {
+    final url = Uri.parse("${baseUrl}shipping/cities");
+    final response = await http.get(url, headers: <String, String>{
+      'Content-Type': 'application/json'
+    });
+
+    try {
+      var data = jsonDecode(response.body);
+
+      logger.d("get city response : ${data}");
+
+      return CityResponse.fromJson(data);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
+
+      logger.e("get city response : Tidak ada koneksi internet");
+
+      return CityResponse(message: NO_INTERNET_CONNECTION, error: true);
+    } catch (e) {
+      logger.e("get city response : $e");
+      return  CityResponse(error: true, message: "Network error : $e");
+    }
+  }
+
+  Future<ProvinceResponse> getListProvinces() async {
+    final url = Uri.parse("${baseUrl}shipping/provinces");
+    final response = await http.get(url, headers: <String, String>{
+      'Content-Type': 'application/json'
+    });
+
+    try {
+      var data = jsonDecode(response.body);
+
+      logger.d("get province response : ${data}");
+
+      return ProvinceResponse.fromJson(data);
+    } on SocketException catch (e) {
+      showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
+
+      logger.e("get province response : Tidak ada koneksi internet");
+
+      return ProvinceResponse(message: NO_INTERNET_CONNECTION, error: true);
+    } catch (e) {
+      logger.e("get province response : $e");
+      return  ProvinceResponse(error: true, message: "Network error : $e");
     }
   }
 

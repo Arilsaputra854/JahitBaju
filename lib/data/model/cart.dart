@@ -56,6 +56,7 @@ class CartItem {
   final String? lookId;
   final String size;
   final int quantity;
+  final int weight;
   final double price;
   final String? customDesign;
   final DateTime? lastUpdate;
@@ -68,6 +69,7 @@ class CartItem {
     this.lookId,
     required this.size,
     required this.quantity,
+    required this.weight,
     required this.price,
     this.customDesign,
     this.lastUpdate,
@@ -82,6 +84,7 @@ class CartItem {
       lookId: json['look_id'],
       size: json['size'],
       quantity: json['quantity'],
+      weight: json['weight'],
       price: json['price'].toDouble(),
       customDesign: json['custom_design'],
       lastUpdate: json['last_update'] != null?  DateTime.parse(json['last_update']) : null,
@@ -97,6 +100,7 @@ class CartItem {
       'look_id': lookId,
       'size': size,
       'quantity': quantity,
+      'weight': weight,
       'price': price,
       'custom_design' : customDesign,
       'last_update': lastUpdate?.toIso8601String() ?? DateTime.now().toIso8601String(),

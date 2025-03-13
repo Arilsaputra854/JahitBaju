@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jahit_baju/data/model/order.dart';
+import 'package:jahit_baju/data/model/user.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/data/source/remote/response/shipping_response.dart';
 import 'package:jahit_baju/data/source/remote/response/user_response.dart';
@@ -13,26 +14,42 @@ class ShippingViewModel extends ChangeNotifier {
   String? _errorMsg;
   String? get errorMsg => _errorMsg;
 
+  int? _totalWeight;
+  int? get totalWeight => _totalWeight;
+
   ShippingViewModel(this.apiService);
 
+  setTotalWeight(int totalWeight){
+    _totalWeight = totalWeight;
+    notifyListeners();
+  }
+
   Future<List<Shipping>?> getListShippingMethod() async {
-    ShippingsResponse  response = await apiService.getAllShipping();
-    if (!response.error) {
-      return response.shippings;
+    if (_totalWeight != null) {
+      ShippingsResponse response =
+          await apiService.getAllShipping(_totalWeight!);
+      if (!response.error) {
+        return response.shippings;
+      } else {
+        _errorMsg = response.message ?? ApiService.SOMETHING_WAS_WRONG_SERVER;
+        notifyListeners();
+        return [];
+      }
     } else {
-      _errorMsg = response.message ?? ApiService.SOMETHING_WAS_WRONG_SERVER;
+      _errorMsg = "Berat produk wajib untuk kalkulasi harga pengiriman.";
+      notifyListeners();
       return [];
     }
   }
 
-  Future<String?> getUserAddress() async {
+  Future<Address?> getUserAddress() async {
     UserResponse response = await apiService.userGet();
 
-    if(response.error){
+    if (response.error) {
       _errorMsg = response.message;
       notifyListeners();
-    return null;
-    }else{
+      return null;
+    } else {
       return response.data?.address;
     }
   }
@@ -51,7 +68,6 @@ class ShippingViewModel extends ChangeNotifier {
 
   Future<Order?> createOrder(Order? order) async {
     if (order != null) {
-
       OrderResponse orderResponse = await apiService.orderCreate(order);
 
       if (orderResponse.data is Order) {
@@ -64,11 +80,10 @@ class ShippingViewModel extends ChangeNotifier {
   }
 
   Future<Order?> buyNow(Order? order, String? filename) async {
-    
     if (order != null) {
-
-      OrderResponse orderResponse = await apiService.buyNow(order,filename: filename);
-      if (orderResponse.error) {        
+      OrderResponse orderResponse =
+          await apiService.buyNow(order, filename: filename);
+      if (orderResponse.error) {
         _errorMsg = orderResponse.message;
         return null;
       }

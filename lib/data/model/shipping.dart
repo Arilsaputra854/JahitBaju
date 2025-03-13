@@ -2,7 +2,7 @@ class Shipping {
   String id;
   String name;
   String imgUrl;
-  int price;
+  int? price;
   final DateTime? lastUpdate;
   
 
@@ -10,7 +10,7 @@ class Shipping {
     required this.id,
     required this.name,
     required this.imgUrl,
-    required this.price,
+    this.price,
     required this.lastUpdate,
   });
 
@@ -19,7 +19,7 @@ factory Shipping.fromJson(Map<String, dynamic> json) {
       id: json['id'], 
       name: json['name'],  
       imgUrl: json['img_url'],  
-      price: json['price'], 
+      price: json['price'] ?? 0, 
       lastUpdate: json['last_update'] != null ? DateTime.parse(json['last_update']) : null,
     );
   }

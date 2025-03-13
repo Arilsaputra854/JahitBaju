@@ -291,11 +291,11 @@ class _ProductScreenState extends State<ProductScreen> {
       if (productResponse.product != null) {
         if (productResponse.product!.stock > 0) {
           if (_selectedSize != "" && _selectedSize.isNotEmpty) {
-            CartResponse response = await apiService.cartAdd(
-                product: widget.product, 1, _selectedSize, null);
+            CartResponse? response = await apiService.cartAdd(
+                product: widget.product, quantity: 1, selectedSize: _selectedSize, customDesignSvg: null,look: null, weight: widget.product.weight!);
 
-            if(response.error){
-              Fluttertoast.showToast(msg: response.message ?? ApiService.SOMETHING_WAS_WRONG);  
+            if(response != null && response.error){
+              Fluttertoast.showToast(msg: response.message!);  
             }else{
               Fluttertoast.showToast(msg: "Berhasil menambahkan produk ke keranjang.");  
             }
