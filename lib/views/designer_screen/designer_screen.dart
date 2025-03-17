@@ -33,14 +33,14 @@ class _DesignerScreenState extends State<DesignerScreen> {
         ),
         body: Container(
           margin: EdgeInsets.all(20),
-          child: Column(
+          child: SingleChildScrollView(child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text("Pilih desainer favorit kamu dari daftar berikut.",
                   style: TextStyle(fontSize: 12.sp)),
               _listOfDesignerWidget()
             ],
-          ),
+          ),)
         ));
   }
 

@@ -36,7 +36,7 @@ class _LookScreenState extends State<LookScreen> {
             ),
             body: Container(
               margin: EdgeInsets.all(20),
-              child: Column(
+              child: SingleChildScrollView(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text("Profil Designer",
@@ -50,7 +50,7 @@ class _LookScreenState extends State<LookScreen> {
                       style: TextStyle(fontSize: 14.sp,fontWeight: FontWeight.bold)),
                   _listOfDesignerWidget(viewmodel)
                 ],
-              ),
+              ),)
             ),
           ),
           if (viewmodel.loading) loadingWidget(),
@@ -58,48 +58,62 @@ class _LookScreenState extends State<LookScreen> {
       );
     });
   }
+Widget _listOfDesignerWidget(LookViewModel viewmodel) {
+  if (widget.designer.looks != null && widget.designer.looks!.isNotEmpty) {
+    // Sort list berdasarkan nama
+    List<Look> sortedLooks = List.from(widget.designer.looks!)
+      ..sort((a, b) => _compareLookNames(a.name, b.name));
 
-  Widget _listOfDesignerWidget(LookViewModel viewmodel) {
-    if (widget.designer.looks != null && widget.designer.looks!.isNotEmpty) {
-      return GridView.builder(
-        shrinkWrap: true,
-        itemCount: widget.designer.looks!.length,
-        physics: NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 250,
-          mainAxisSpacing: 10,
-          crossAxisSpacing: 10,
-          childAspectRatio: 1,
-        ),
-        itemBuilder: (context, index) {
-          String lookId = widget.designer.looks![index].id;
-          // Simpan Future hanya jika belum ada
-          _lookAccessFutures[lookId] ??= viewmodel.getLookAccess(lookId);
+    return GridView.builder(
+      shrinkWrap: true,
+      itemCount: sortedLooks.length,
+      physics: NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 250,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
+        childAspectRatio: 1,
+      ),
+      itemBuilder: (context, index) {
+        String lookId = sortedLooks[index].id;
+        _lookAccessFutures[lookId] ??= viewmodel.getLookAccess(lookId);
 
-          return FutureBuilder(
-            future: _lookAccessFutures[lookId],
-            builder: (context, snapshot) {
-              if (snapshot.hasData && snapshot.data != null) {
-                return InkWell(
-                  onTap: () async {
-                    if (snapshot.data!) {
-                      goToProductScreen(widget.designer.looks![index]);
-                    } else {
-                      dialogBuyLook(widget.designer.looks![index], viewmodel);
-                    }
-                  },
-                  child: _buildLookCard(widget.designer.looks![index], snapshot.data!),
-                );
-              }
-              return lookShimmer();
-            },
-          );
-        },
-      );
-    } else {
-      return _emptyLookWidget();
-    }
+        return FutureBuilder(
+          future: _lookAccessFutures[lookId],
+          builder: (context, snapshot) {
+            if (snapshot.hasData && snapshot.data != null) {
+              return InkWell(
+                onTap: () async {
+                  if (snapshot.data!) {
+                    goToProductScreen(sortedLooks[index]);
+                  } else {
+                    dialogBuyLook(sortedLooks[index], viewmodel);
+                  }
+                },
+                child: _buildLookCard(sortedLooks[index], snapshot.data!),
+              );
+            }
+            return lookShimmer();
+          },
+        );
+      },
+    );
+  } else {
+    return _emptyLookWidget();
   }
+}
+
+int _compareLookNames(String a, String b) {
+  RegExp regExp = RegExp(r'(\d+)');
+  Match? matchA = regExp.firstMatch(a);
+  Match? matchB = regExp.firstMatch(b);
+
+  if (matchA != null && matchB != null) {
+    return int.parse(matchA.group(0)!).compareTo(int.parse(matchB.group(0)!));
+  }
+  return a.compareTo(b);
+}
+
 
 
 Widget lookShimmer() {

@@ -42,7 +42,7 @@ import 'response/term_condition_response.dart';
 import 'response/user_response.dart';
 
 class ApiService {
-  final String baseUrl = "https://bonefish-supreme-sculpin.ngrok-free.app/api/";
+  final String baseUrl = "https://v1.jahitbajuofficial.com/api/";
 
   TokenStorage tokenStorage = TokenStorage();
   Logger logger = Logger();
