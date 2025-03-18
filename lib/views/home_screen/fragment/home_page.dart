@@ -27,16 +27,14 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  bool accessCustom = false;
 
   var deviceWidth;
-  var loading = false;
 
   @override
   void initState() {
-    getAccessCustom().then((access) {
-      accessCustom = access ?? false;
-    });
+    HomeViewModel viewModel = Provider.of<HomeViewModel>(context, listen: false);
+    viewModel.getAccessCustom();
+    viewModel.getCustomizationFeature();
     super.initState();
   }
 
@@ -110,21 +108,16 @@ class _HomePageState extends State<HomePage> {
                                         ],
                                       ),
                                     ),
-                                    FutureBuilder<CustomizationAccess?>(
-                                      future: getCustomizationFeature(),
-                                      builder: (context, snapshot) {
-                                        if (snapshot.hasData &&
-                                            snapshot.data != null) {
-                                          return Padding(
+                                    Padding(
                                             padding: EdgeInsets.all(10),
                                             child: InkWell(
-                                              onTap: accessCustom
+                                              onTap: viewModel.customAccess
                                                   ? () {
                                                       goToDesignerScreen();
                                                     }
                                                   : () {
                                                       popUpBuyCostumization(
-                                                          snapshot.data);
+                                                          viewModel.customizationAccess,viewModel);
                                                     },
                                               child: Card(
                                                 color: Colors
@@ -171,7 +164,7 @@ class _HomePageState extends State<HomePage> {
                                                             CrossAxisAlignment
                                                                 .center,
                                                         children: [
-                                                          if (!accessCustom)
+                                                          if (!viewModel.customAccess)
                                                             Container(
                                                               width: 80.w,
                                                               height: 80.w,
@@ -191,10 +184,8 @@ class _HomePageState extends State<HomePage> {
                                                                       .center,
                                                               children: [
                                                                 Text(
-                                                                  accessCustom
-                                                                      ? snapshot
-                                                                          .data!
-                                                                          .name
+                                                                  viewModel.customAccess
+                                                                      ? viewModel.customizationAccess?.name ?? "Nama fitur"
                                                                       : "Fitur Terkunci",
                                                                   style:
                                                                       TextStyle(
@@ -215,9 +206,8 @@ class _HomePageState extends State<HomePage> {
                                                                           right:
                                                                               5),
                                                                   child: Text(
-                                                                    snapshot
-                                                                        .data!
-                                                                        .description!,
+                                                                    viewModel.customizationAccess
+                                                                        ?.description ?? "Deskripsi fitur",
                                                                     style:
                                                                         TextStyle(
                                                                       fontSize:
@@ -239,12 +229,7 @@ class _HomePageState extends State<HomePage> {
                                                 ),
                                               ),
                                             ),
-                                          );
-                                        }
-
-                                        return itemCartShimmer();
-                                      },
-                                    ),
+                                          ),
                                     SizedBox(
                                       height: 20.h,
                                     ),
@@ -262,7 +247,7 @@ class _HomePageState extends State<HomePage> {
                   });
                 }),
           ),
-          if (loading) loadingWidget()
+          if (viewModel.loading) loadingWidget()
         ],
       );
     });
@@ -516,30 +501,8 @@ class _HomePageState extends State<HomePage> {
         context, MaterialPageRoute(builder: (context) => DesignerScreen()));
   }
 
-  Future<CustomizationAccess?> getCustomizationFeature() async {
-    ApiService apiService = ApiService(context);
 
-    CustomizationAccessResponse response =
-        await apiService.getCustomizationFeature();
-    if (!response.error && response.customizationAccess != null) {
-      return response.customizationAccess!;
-    } else {
-      Fluttertoast.showToast(msg: ApiService.SOMETHING_WAS_WRONG);
-      return null;
-    }
-  }
-
-  Future<bool?> getAccessCustom() async {
-    ApiService apiService = ApiService(context);
-    UserResponse response = await apiService.userGet();
-    if (response.error) {
-      Fluttertoast.showToast(msg: ApiService.SOMETHING_WAS_WRONG);
-      return false;
-    }
-    return response.data!.customAccess;
-  }
-
-  popUpBuyCostumization(CustomizationAccess? data) {
+  popUpBuyCostumization(CustomizationAccess? data,HomeViewModel viewModel) {
     return showDialog(
       context: context,
       barrierDismissible: false,
@@ -557,7 +520,7 @@ class _HomePageState extends State<HomePage> {
             ),
             TextButton(
               onPressed: () {
-                buyFeature();
+                viewModel.buyFeature();
               },
               child: Text('Beli'),
             ),
@@ -578,20 +541,4 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> buyFeature() async {
-    setState(() {
-      loading = true;
-    });
-    ApiService apiService = ApiService(context);
-    BuyFeatureResponse response = await apiService.buyCostumizationFeature();
-    if (response.error && response.data != null) {
-      Fluttertoast.showToast(
-          msg: response.message ?? ApiService.SOMETHING_WAS_WRONG);
-    } else {
-      goToPaymentScreen(response.data!);
-    }
-    setState(() {
-      loading = false;
-    });
-  }
 }

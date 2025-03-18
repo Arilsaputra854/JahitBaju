@@ -126,7 +126,7 @@ class ApiService {
 
     final response = await http.get(url, headers: <String, String>{
       'Content-Type': 'application/json',
-      'Authorization': '${token}'
+      'Authorization': 'Bearer ${token}'
     });
 
     try {
@@ -159,7 +159,7 @@ class ApiService {
     String? token =
         resetToken ?? await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
-    logger.d("Token: ${token}");
+    logger.d("Token: Bearer ${token}");
 
     try {
       Map<String, dynamic> body = {};
@@ -196,7 +196,7 @@ class ApiService {
         body: jsonEncode(body),
         headers: <String, String>{
           "Content-Type": "application/json",
-          'Authorization': '${token}'
+          'Authorization': 'Bearer ${token}'
         },
       );
 
@@ -226,7 +226,7 @@ class ApiService {
         url,
         headers: <String, String>{
           'Content-Type': 'application/json',
-          'Authorization': '${token}'
+          'Authorization': 'Bearer ${token}'
         },
         body: jsonEncode(<String, String>{
           'otp': otpCode,
@@ -261,7 +261,7 @@ class ApiService {
         url,
         headers: <String, String>{
           'Content-Type': 'application/json',
-          'Authorization': '${token}'
+          'Authorization': 'Bearer ${token}'
         },
       );
 
@@ -353,7 +353,7 @@ class ApiService {
       final response = await http.post(url,
           headers: <String, String>{
             'Content-Type': 'application/json',
-            'Authorization': '${token}'
+            'Authorization': 'Bearer ${token}'
           },
           body: order.look != null
               ? jsonEncode(<String, dynamic>{
@@ -412,7 +412,7 @@ class ApiService {
 
     final response = await http.get(url, headers: <String, String>{
       'Content-Type': 'application/json',
-      'Authorization': '${token}'
+      'Authorization': 'Bearer ${token}'
     });
 
     CartResponse cartResponse;
@@ -457,7 +457,7 @@ class ApiService {
         url,
         headers: <String, String>{
           'Content-Type': 'application/json',
-          'Authorization': '${token}'
+          'Authorization': 'Bearer ${token}'
         },
         body: look != null
             ? jsonEncode(<String, dynamic>{
@@ -507,7 +507,7 @@ class ApiService {
     try {
       final response = await http.delete(url, headers: <String, String>{
         'Content-Type': 'application/json',
-        'Authorization': '${token}'
+        'Authorization': 'Bearer ${token}'
       });
 
       var data = jsonDecode(response.body);
@@ -539,7 +539,7 @@ class ApiService {
     try {
       final response = await http.post(url, headers: <String, String>{
         'Content-Type': 'application/json',
-        'Authorization': '${token}'
+        'Authorization': 'Bearer ${token}'
       },body: jsonEncode(<String, dynamic>{
                 'total_weight': totalWeight,
               }));
@@ -576,7 +576,7 @@ class ApiService {
     try {
       final response = await http.get(url, headers: <String, String>{
         'Content-Type': 'application/json',
-        'Authorization': '${token}'
+        'Authorization': 'Bearer ${token}'
       });
 
       var data = jsonDecode(response.body);
@@ -667,7 +667,7 @@ class ApiService {
         url,
         headers: <String, String>{
           'Content-Type': 'application/json',
-          'Authorization': '${token}'
+          'Authorization': 'Bearer ${token}'
         },
         body: jsonEncode(<String, dynamic>{
           'shipping_id': order.shippingId,
@@ -710,7 +710,7 @@ class ApiService {
     final url = Uri.parse("${baseUrl}order");
     final response = await http.get(url, headers: <String, String>{
       'Content-Type': 'application/json',
-      'Authorization': '${token}'
+      'Authorization': 'Bearer ${token}'
     });
 
     OrderResponse orderResponse;
@@ -753,7 +753,7 @@ class ApiService {
     final url = Uri.parse("${baseUrl}order/${orderId}");
     final response = await http.delete(url, headers: <String, String>{
       'Content-Type': 'application/json',
-      'Authorization': '${token}'
+      'Authorization': 'Bearer ${token}'
     });
 
     try {
@@ -782,7 +782,7 @@ class ApiService {
     try {
       final response = await http.get(url, headers: <String, String>{
         'Content-Type': 'application/json',
-        'Authorization': '${token}'
+        'Authorization': 'Bearer ${token}'
       });
 
       var data = jsonDecode(response.body);
@@ -811,7 +811,7 @@ class ApiService {
     try {
       final response = await http.get(url, headers: <String, String>{
         'Content-Type': 'application/json',
-        'Authorization': '${token}'
+        'Authorization': 'Bearer ${token}'
       });
 
       var data = jsonDecode(response.body);
@@ -902,7 +902,7 @@ class ApiService {
     try {
       final response = await http.get(url, headers: <String, String>{
         'Content-Type': 'application/json',
-        'Authorization': '${token}'
+        'Authorization': 'Bearer ${token}'
       });
 
       var data = jsonDecode(response.body);
@@ -928,7 +928,7 @@ class ApiService {
     final response = await http.delete(url,
         headers: <String, String>{
           'Content-Type': 'application/json',
-          'Authorization': '${token}'
+          'Authorization': 'Bearer ${token}'
         },
         body: jsonEncode(<String, dynamic>{"id": id}));
 
@@ -958,7 +958,7 @@ class ApiService {
     final response = await http.post(url,
         headers: <String, String>{
           'Content-Type': 'application/json',
-          'Authorization': '${token}'
+          'Authorization': 'Bearer ${token}'
         },
         body: jsonEncode(<String, dynamic>{"product_id": favorite.productId}));
 
@@ -1061,7 +1061,7 @@ class ApiService {
     try {
       var request = http.MultipartRequest('POST', url)
         ..headers['Content-Type'] = 'application/json'
-        ..headers['Authorization'] = '$token'
+        ..headers['Authorization'] = 'Bearer ${token}'
         ..files.add(await http.MultipartFile.fromPath('file', file.path,
             contentType: MediaType('image', 'svg+xml')));
 
@@ -1093,7 +1093,7 @@ class ApiService {
     try {
       final response = await http.get(url, headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
+        'Authorization': 'Bearer Bearer ${token}',
       });
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -1118,7 +1118,7 @@ class ApiService {
     try {
       final response = await http.get(url, headers: {
         'Content-Type': 'application/json',
-        'Authorization': '$token',
+        'Authorization': 'Bearer ${token}',
       });
 
       var data = jsonDecode(response.body);
@@ -1174,7 +1174,7 @@ class ApiService {
 
     final response = await http.get(url, headers: <String, String>{
       'Content-Type': 'application/json',
-      'Authorization': '$token',
+      'Authorization': 'Bearer ${token}',
     });
 
     ProductNoteResponse productNoteResponse;
@@ -1215,7 +1215,7 @@ class ApiService {
 
     final response = await http.get(url, headers: <String, String>{
       'Content-Type': 'application/json',
-      'Authorization': '$token',
+      'Authorization': 'Bearer ${token}',
     });
 
     DesignerResponse designerResponse;
@@ -1289,7 +1289,7 @@ class ApiService {
     final url = Uri.parse("${baseUrl}app-feature/buy?type=CUSTOMIZATION");
     final response = await http.post(url, headers: <String, String>{
       'Content-Type': 'application/json',
-      'Authorization': '${token}'
+      'Authorization': 'Bearer ${token}'
     });
 
     BuyFeatureResponse buyFeatureResponse;
@@ -1319,7 +1319,7 @@ class ApiService {
     final url = Uri.parse("${baseUrl}app-feature/buy/${orderId}");
     final response = await http.get(url, headers: <String, String>{
       'Content-Type': 'application/json',
-      'Authorization': '${token}'
+      'Authorization': 'Bearer ${token}'
     });
 
     try {
@@ -1355,7 +1355,7 @@ class ApiService {
     final url = Uri.parse("${baseUrl}look/${lookId}");
     final response = await http.get(url, headers: <String, String>{
       'Content-Type': 'application/json',
-      'Authorization': '${token}'
+      'Authorization': 'Bearer ${token}'
     });
 
     try {
@@ -1382,7 +1382,7 @@ class ApiService {
     final url = Uri.parse("${baseUrl}look/buy");
     final response = await http.post(url, headers: <String, String>{
       'Content-Type': 'application/json',
-      'Authorization': '${token}'
+      'Authorization': 'Bearer ${token}'
     },body: jsonEncode( <String, String>{
       "look_id" : lookId
     }));
@@ -1411,7 +1411,7 @@ class ApiService {
     final url = Uri.parse("${baseUrl}look/buy/${lookId}");
     final response = await http.get(url, headers: <String, String>{
       'Content-Type': 'application/json',
-      'Authorization': '${token}'
+      'Authorization': 'Bearer ${token}'
     });
 
     try {

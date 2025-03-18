@@ -96,27 +96,26 @@ void showSnackBar(BuildContext context, String message, {required bool isError})
   );
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
-
-void showDialogSession(BuildContext context){
+void showDialogSession(BuildContext context) {
   showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Sesi Anda Telah Habis'),
-          content: Text('Silakan login kembali untuk melanjutkan.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                logoutUser(context);
-              },
-              child: Text('OK'),
-            ),
-          ],
-        );
-      },
-    );
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext dialogContext) { // Gunakan dialogContext agar tidak bentrok dengan context utama
+      return AlertDialog(
+        title: Text('Sesi Anda Telah Habis'),
+        content: Text('Silakan login kembali untuk melanjutkan.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext, rootNavigator: true).pop(); // Tutup dialog
+              logoutUser(context); // Logout dan navigasi ke login screen
+            },
+            child: Text('OK'),
+          ),
+        ],
+      );
+    },
+  );
 }
 
 
