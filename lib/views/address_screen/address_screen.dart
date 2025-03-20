@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/model/city.dart';
 import 'package:jahit_baju/data/model/province.dart';
@@ -9,6 +10,7 @@ import 'package:jahit_baju/data/source/remote/response/user_response.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/viewmodels/address_view_model.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 
 class AddressScreen extends StatefulWidget {
   Address? currentAddress;
@@ -58,6 +60,8 @@ class _AddressScreenState extends State<AddressScreen> {
                       const SizedBox(height: 16),
                       _provinceWidget(viewmodel),
                       const SizedBox(height: 16),
+                      _postalCodeWidget(viewmodel),
+                      const SizedBox(height: 16),
                       Center(
                           child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
@@ -70,8 +74,14 @@ class _AddressScreenState extends State<AddressScreen> {
                                   setState(() {
                                     loading = true;
                                   });
-                                  updateAddressUser(
-                                      _addressController.text, viewmodel);
+                                  await viewmodel
+                                      .updateAddressUser(
+                                          _addressController.text, viewmodel)
+                                      .then((user) {
+                                    if (user != null) {
+                                      Navigator.pop(context);
+                                    }
+                                  });
                                 }
                               },
                               child: const Text(
@@ -93,24 +103,123 @@ class _AddressScreenState extends State<AddressScreen> {
     );
   }
 
-  Future<void> updateAddressUser(
-      String newAddress, AddressViewModel viewmodel) async {
-    Address address = new Address(
-        streetAddress: newAddress,
-        city: int.parse(viewmodel.selectedCity!.cityId),
-        province: int.parse(viewmodel.selectedProvince!.provinceId),
-        postalCode: int.parse(viewmodel.selectedCity!.postalCode));
-    UserResponse response =
-        await apiService.userUpdate(null, null, null, null, address, null);
-    if (response.error) {
-      Fluttertoast.showToast(msg: response.message!);
-    } else {
-      Fluttertoast.showToast(msg: "Alamat berhasil diupdate!");
-      Navigator.pop(context);
-    }
-    setState(() {
-      loading = false;
-    });
+  Widget _cityWidget(AddressViewModel viewmodel) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Kabupaten/Kota",
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        TypeAheadFormField<City>(
+          textFieldConfiguration: TextFieldConfiguration(
+            controller: TextEditingController(
+                text: viewmodel.selectedCity?.cityName ?? ""),
+            decoration: InputDecoration(
+              hintText: "Masukkan nama kota",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+            ),
+          ),
+          suggestionsCallback: (pattern) async {
+            return viewmodel.listOfCity
+                    ?.where((city) => city.cityName
+                        .toLowerCase()
+                        .contains(pattern.toLowerCase()))
+                    .toList() ??
+                [];
+          },
+          itemBuilder: (context, City suggestion) {
+            return ListTile(
+              title: Text("${suggestion.type} ${suggestion.cityName}"),
+            );
+          },
+          onSuggestionSelected: (City suggestion) {
+            viewmodel.setSelectedCity(suggestion);
+          },
+          noItemsFoundBuilder: (context) => const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text("Kota tidak ditemukan"),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _postalCodeWidget(AddressViewModel viewmodel) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        "Kode Pos",
+        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 8),
+      TextField(
+        controller: TextEditingController(
+            text: viewmodel.postalCode != null ? viewmodel.postalCode.toString() : ""),
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly,LengthLimitingTextInputFormatter(5),],
+
+        decoration: InputDecoration(
+          hintText: "Masukkan Kode Pos",
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+        ),
+        onChanged: (value) {
+          viewmodel.setPostalCode(int.parse(value));
+        },
+      ),
+    ],
+  );
+}
+
+
+  Widget _provinceWidget(AddressViewModel viewmodel) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Provinsi",
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        TypeAheadFormField<Province>(
+          textFieldConfiguration: TextFieldConfiguration(
+            controller: TextEditingController(
+                text: viewmodel.selectedProvince?.provinceName ?? ""),
+            decoration: InputDecoration(
+              hintText: "Masukkan nama provinsi",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+            ),
+          ),
+          suggestionsCallback: (pattern) async {
+            return viewmodel.listOfProvince
+                    ?.where((province) => province.provinceName
+                        .toLowerCase()
+                        .contains(pattern.toLowerCase()))
+                    .toList() ??
+                [];
+          },
+          itemBuilder: (context, Province suggestion) {
+            return ListTile(
+              title: Text(suggestion.provinceName),
+            );
+          },
+          onSuggestionSelected: (Province suggestion) {
+            viewmodel.setSelectedProvince(suggestion);
+          },
+          noItemsFoundBuilder: (context) => const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text("Provinsi tidak ditemukan"),
+          ),
+        ),
+      ],
+    );
   }
 
   _addressWidget() {
@@ -142,85 +251,6 @@ class _AddressScreenState extends State<AddressScreen> {
           },
         )
       ],
-    );
-  }
-
-  _cityWidget(AddressViewModel viewmodel) {
-    return FutureBuilder(
-      future: viewmodel.fetchListCity(),
-      builder: (context, snapshot) {
-        if (snapshot.hasData && snapshot.data != null) {
-          //saya mau kode for ini berjalan sekali
-          if (viewmodel.selectedCity == null) {
-            for (City element in snapshot.data!) {
-              if (widget.currentAddress!.city == int.parse(element.cityId)) {
-                viewmodel.setSelectedCity(element);
-              }
-            }
-          }
-          return DropdownButtonFormField<City>(
-            value: viewmodel.selectedCity,
-            hint: const Text("Pilih Kota"),
-            isExpanded: true,
-            items: snapshot.data!.map((City city) {
-              return DropdownMenuItem<City>(
-                value: city,
-                child: Text("${city.type} ${city.cityName}"),
-              );
-            }).toList(),
-            onChanged: (City? newValue) {
-              if (newValue != null) {
-                viewmodel.setSelectedCity(newValue);
-              }
-            },
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            ),
-          );
-        }
-        return itemCartShimmer();
-      },
-    );
-  }
-
-  _provinceWidget(AddressViewModel viewmodel) {
-    return FutureBuilder(
-      future: viewmodel.fetchListProvince(),
-      builder: (context, snapshot) {
-        if (snapshot.hasData && snapshot.data != null) {
-          if (viewmodel.selectedCity == null) {
-            for (Province element in snapshot.data!) {
-              if (widget.currentAddress!.province ==
-                  int.parse(element.provinceId)) {
-                viewmodel.setSelectedProvince(element);
-              }
-            }
-          }
-
-          return DropdownButtonFormField<Province>(
-            value: viewmodel.selectedProvince,
-            hint: const Text("Pilih Provinsi"),
-            isExpanded: true,
-            items: snapshot.data!.map((Province province) {
-              return DropdownMenuItem<Province>(
-                value: province,
-                child: Text("${province.provinceName}"),
-              );
-            }).toList(),
-            onChanged: (Province? newValue) {
-              if (newValue != null) {
-                viewmodel.setSelectedProvince(newValue);
-              }
-            },
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            ),
-          );
-        }
-        return itemCartShimmer();
-      },
     );
   }
 }

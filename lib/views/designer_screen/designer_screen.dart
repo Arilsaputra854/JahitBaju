@@ -32,16 +32,17 @@ class _DesignerScreenState extends State<DesignerScreen> {
           centerTitle: true,
         ),
         body: Container(
-          margin: EdgeInsets.all(20),
-          child: SingleChildScrollView(child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Pilih desainer favorit kamu dari daftar berikut.",
-                  style: TextStyle(fontSize: 12.sp)),
-              _listOfDesignerWidget()
-            ],
-          ),)
-        ));
+            margin: EdgeInsets.all(20),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Pilih desainer favorit kamu dari daftar berikut.",
+                      style: TextStyle(fontSize: 12.sp)),
+                  _listOfDesignerWidget()
+                ],
+              ),
+            )));
   }
 
   Widget _listOfDesignerWidget() {
@@ -73,25 +74,48 @@ class _DesignerScreenState extends State<DesignerScreen> {
                     child: IntrinsicWidth(
                       child: IntrinsicHeight(
                         child: Container(
-                          padding: EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 20),
-                          alignment: Alignment.center,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [Text(
-                            snapshot.data![index].name,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 12.sp, fontWeight: FontWeight.bold),
-                          ),Text(
-                            snapshot.data![index].description,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontStyle: FontStyle.italic,
-                                fontSize: 12.sp,),
-                          ),],
-                          )
-                        ),
+                            padding: EdgeInsets.symmetric(
+                                vertical: 10, horizontal: 20),
+                            alignment: Alignment.center,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  snapshot.data![index].name,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      fontSize: 12.sp,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                 Text.rich(
+                                  maxLines: 6, // Sesuaikan jumlah baris yang diinginkan
+  overflow: TextOverflow.ellipsis, 
+                                  TextSpan(
+                                    children: [
+                                      TextSpan(
+                                        text:
+                                            'Showcase ',
+                                        style: TextStyle(
+                                          fontStyle: FontStyle
+                                              .normal,
+                                          fontSize: 12.sp,
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: snapshot.data![index]
+                                            .description, 
+                                        style: TextStyle(
+                                          fontStyle: FontStyle
+                                              .italic,
+                                          fontSize: 12.sp,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            )),
                       ),
                     ),
                   ),

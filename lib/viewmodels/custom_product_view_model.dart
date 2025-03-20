@@ -19,10 +19,9 @@ class CustomProductViewModel extends ChangeNotifier {
   String? _currentSVG;
   String? get currentSVG => _currentSVG;
 
-
   Map<String, String> _currentFeatureColor = {};
   Map<String, String> get currentFeatureColor => _currentFeatureColor;
-  
+
   String? _currentFeature;
   String? get currentFeature => _currentFeature;
 
@@ -58,38 +57,31 @@ class CustomProductViewModel extends ChangeNotifier {
 
   CustomProductViewModel(this.apiService);
 
-void resetData() {
-  _look = null;
-  _currentColor = null;
-  _currentFeatureColor = {};
-  _currentSVG = null;
-  _currentFeature = null;
-  _selectedSize = null;
-  _productNotes = null;
-  _careGuides = null;
-  _sizeGuide = null;
-  _product = null;
-  _favoriteId = null;
-  _isProductFavorited = null;
-  _errorMsg = null;
-  notifyListeners();
-}
-
+  void resetData() {
+    _look = null;
+    _currentColor = null;
+    _currentFeatureColor = {};
+    _currentSVG = null;
+    _currentFeature = null;
+    _selectedSize = null;
+    _product = null;
+    _favoriteId = null;
+    _isProductFavorited = null;
+    _errorMsg = null;
+    notifyListeners();
+  }
 
   setCurrentFeature(String newFeature) {
     _currentFeature = newFeature;
     notifyListeners();
-    
   }
-
 
   setLook(Look newLook) {
-    if(_look == null){
-    _look = newLook;
-    notifyListeners();
+    if (_look == null) {
+      _look = newLook;
+      notifyListeners();
     }
   }
-
 
   setCurrentFeatureColor(Map<String, String> newCurrentFeatureColor) {
     _currentFeatureColor = newCurrentFeatureColor;
@@ -123,9 +115,8 @@ void resetData() {
   }
 
   Future<void> fetchSvg() async {
-    
-        _loading = true;
-        notifyListeners();
+    _loading = true;
+    notifyListeners();
     if (look != null) {
       final response = await http.get(Uri.parse(look!.designUrl));
       if (response.statusCode == 200) {
@@ -138,7 +129,7 @@ void resetData() {
         notifyListeners();
       }
     } else {
-        _loading = false;
+      _loading = false;
       _errorMsg = "Tidak dapat memuat desain, silakan coba lagi nanti.";
       notifyListeners();
     }
@@ -235,6 +226,7 @@ void resetData() {
   }
 
   Future<void> getSizeGuide() async {
+    
     if (_sizeGuide == null) {
       _loading = true;
       notifyListeners();

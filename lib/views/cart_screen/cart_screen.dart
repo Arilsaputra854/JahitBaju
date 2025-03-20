@@ -45,6 +45,7 @@ class _CartScreenState extends State<CartScreen> {
         create: (context) => CartViewModel(ApiService(context)),
         child: Consumer<CartViewModel>(builder: (context, viewModel, child) {
           return Scaffold(
+            backgroundColor: Colors.white,
               appBar: AppBar(
                 title: const Text("Cart",style: TextStyle(                      
                       fontWeight: FontWeight.bold,

@@ -5,7 +5,9 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/data/source/remote/response/login_response.dart';
 import 'package:jahit_baju/data/source/remote/response/otp_response.dart';
+import 'package:jahit_baju/helper/secure/token_storage.dart';
 import 'package:jahit_baju/views/otp_screen/otp_screen.dart';
+import 'package:logger/logger.dart';
 
 class OtpScreenViewModel extends ChangeNotifier {
   String? _message;
@@ -18,6 +20,7 @@ class OtpScreenViewModel extends ChangeNotifier {
   Timer? _timer;
 
   OtpScreenViewModel(this.apiService);
+  Logger log = Logger();
 
   bool get loading => _loading;
   int? get otp => _otp;
@@ -25,6 +28,14 @@ class OtpScreenViewModel extends ChangeNotifier {
   String? get email => _email;
   bool get isRequestOtp => _isRequestOtp;
   String? get message => _message;
+
+  final TokenStorage _tokenStorage = TokenStorage();
+  void initialize() {
+    resetTimer();
+    _email = null;
+    _isRequestOtp = true;
+    _otp = null;
+  }
 
   void setEmail(String email) {
     _email = email;
@@ -36,85 +47,59 @@ class OtpScreenViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-
   Future<void> sendOtpVerification(int type) async {
-    if (email != null) {
+    _message = null;
+    notifyListeners();
+    if (email == null) return;
+
+    _loading = true;
+    notifyListeners(); // Notifikasi loading state
+
+    try {
+      OtpResponse response;
       if (type == OtpScreen.RESET_PASSWORD) {
-        LoginResponse response = await apiService.userResetRequestOtp(email!);
-
-        if (response.error) {
-          if (response.message!.contains(
-              "OTP is already valid and not expired. Please verify it.")) {
-            _message = "Kode OTP masih valid. silakan cek email kamu.";
-
-            
-            _isRequestOtp = false;
-            notifyListeners();
-
-            startCountdown();
-          }
-          if (response.message!.contains("User not found.")) {
-            _message = "Email yang kamu masukkan tidak ditemukan.";
-
-            _isRequestOtp = true;
-            notifyListeners();
-          }
-          if (response.message!.contains("OTP has expired")) {
-              resetTimer();
-              _message = "Kode OTP telah kadaluarsa.";
-              _isRequestOtp = true;
-              notifyListeners();
-          }
-        } else {
-          if (response.message!
-              .contains("OTP has been successfully sent to your email.")) {
-            _message = "Kode OTP berhasil dikirim.";
-            _isRequestOtp = false;
-            notifyListeners();
-          }
-          startCountdown();
-        }
-      } else if (type == OtpScreen.REGISTER) {
-        OtpResponse response = await apiService.userRequestOtp();
-
-        if (response.error) {
-          if (response.message!.contains("User not found.")) {
-            _message = "Email yang kamu masukkan tidak ditemukan.";
-
-            _isRequestOtp = true;
-            notifyListeners();
-          }
-          if (response.message!.contains(
-              "OTP is already valid and not expired. Please verify it.")) {
-            _message = "Kode OTP masih valid. silakan cek email kamu.";
-
-            _isRequestOtp = false;
-            notifyListeners();
-
-            startCountdown();
-          }
-          if (response.message!.contains("OTP has expired")) {
-              resetTimer();
-              _message = "Kode OTP telah kadaluarsa.";
-              _isRequestOtp = true;
-              notifyListeners();
-          }
-        } else {
-          if (response.message!
-              .contains("OTP has been successfully sent to your email.")) {
-            _message = "Kode OTP berhasil dikirim.";
-            _isRequestOtp = false;
-            notifyListeners();
-          }
-          startCountdown();
-        }
+        response = await apiService.userResetRequestOtp(email!);
+      } else {
+        response = await apiService.userRequestOtp();
       }
-      ;
+
+      if (response.error) {
+        if (response.message!.contains("OTP has expired")) {
+          resetTimer();
+          _message = "Kode OTP telah kadaluarsa.";
+          _isRequestOtp = true;
+          notifyListeners();
+        } else if (response.message!.contains("User not found.")) {
+          _message = "Email tidak ditemukan.";
+          _isRequestOtp = true;
+          notifyListeners();
+        } else if (response.message!.contains("OTP is already valid")) {
+          _message = "Kode OTP masih valid.";
+          _isRequestOtp = false;
+          notifyListeners();
+          startCountdown();
+        } else {
+          _isRequestOtp = false;
+          notifyListeners();
+          startCountdown();
+        }
+      } else {
+        _message = "Kode OTP berhasil dikirim.";
+        _isRequestOtp = false;
+        startCountdown();
+        notifyListeners();
+      }
+    } catch (e) {
+      _message = "Terjadi kesalahan, silakan coba lagi.";
     }
+
+    _loading = false;
+    notifyListeners(); // Notifikasi perubahan state setelah proses selesai
   }
 
-
   Future<dynamic> verifyOtpVerification(int type) async {
+    _message = null;
+    notifyListeners();
     if (email != null) {
       if (type == OtpScreen.RESET_PASSWORD) {
         OtpResponse response =
@@ -135,43 +120,54 @@ class OtpScreenViewModel extends ChangeNotifier {
         } else {
           if (response.token != null) {
             _message = "Verifikasi email berhasil!";
-              _isRequestOtp = false;
-              resetTimer();
+            _isRequestOtp = false;
+            resetTimer();
             notifyListeners();
             return response.token;
           }
         }
       } else if (type == OtpScreen.REGISTER) {
-        LoginResponse response =
+        OtpResponse response =
             await apiService.userEmailVerify(otp.toString());
 
         if (response.error) {
-          _message = response.message!;          
-          notifyListeners();
-        } else {
-          if(response.token != null){
-            _message = "Verifikasi email berhasil!";
-              _isRequestOtp = false;
+          if (response.message != null) {
+            if (response.message!.contains("OTP has expired")) {
               resetTimer();
+              _message = "Kode OTP telah kadaluarsa.";
+              _isRequestOtp = true;
+              notifyListeners();
+            } else {
+              _message = "Kode OTP yang kamu masukkan salah.";
+              notifyListeners();
+            }
+          }
+        } else {
+          if (response.token != null) {
+            _message = "Verifikasi email berhasil!";
+            _isRequestOtp = false;
+            resetTimer();
             notifyListeners();
+
+            await _tokenStorage.saveToken(response.token!);
+            log.d("Verify otp verification ${response.token}");
             return response.token;
-          }else{
-            _message = ApiService.SOMETHING_WAS_WRONG_SERVER;
-            notifyListeners();
           }
         }
       }
-      
     }
   }
 
   void resetTimer() {
+    _message = null;
     _secondsRemaining = 300;
     _timer?.cancel();
     notifyListeners();
   }
 
   void startCountdown() {
+    resetTimer();
+    _message = null;
     _message = null;
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -179,10 +175,11 @@ class OtpScreenViewModel extends ChangeNotifier {
         _secondsRemaining--;
         notifyListeners();
       } else {
+        _isRequestOtp = true;
+        _otp = null;
         timer.cancel();
         notifyListeners();
       }
     });
   }
-
 }

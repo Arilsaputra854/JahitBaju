@@ -9,6 +9,7 @@ class Look {
   List<String>? features;
   String description;
   List<String>? size;
+  List<String>? materials;
   final double price;
   final double lookPrice;
   String lastUpdate;
@@ -24,6 +25,7 @@ class Look {
     required this.designUrl,
     this.features,
     required this.description,
+    required this.materials,
     this.size,
     required this.price,
     required this.lookPrice,
@@ -41,6 +43,9 @@ class Look {
       name: json['name'],
       features: json['features'] != null
           ? List<String>.from(json['features'])
+          : null,
+      materials: json['materials'] != null
+          ? List<String>.from(json['materials'])
           : null,
       price: (json['price'] as num).toDouble(),
       lookPrice: (json['look_price'] as num).toDouble(),

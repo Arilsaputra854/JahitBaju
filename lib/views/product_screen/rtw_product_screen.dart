@@ -403,7 +403,7 @@ class _ProductScreenState extends State<ProductScreen> {
           height: 10,
         ),
         Text(
-          viewModel.careGuides!,
+          viewModel.careGuides ?? "Panduan perawatan",
           style: TextStyle(
             fontSize: 14.sp,
           ),
@@ -428,7 +428,7 @@ class _ProductScreenState extends State<ProductScreen> {
           height: 10,
         ),
         Text(
-          viewModel.productNotes!,
+          viewModel.productNotes?? "Catatan produk",
           style: TextStyle(
             fontSize: 14.sp,
           ),

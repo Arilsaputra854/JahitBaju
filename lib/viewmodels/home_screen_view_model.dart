@@ -35,10 +35,10 @@ class HomeScreenViewModel extends ChangeNotifier {
       }
     }
 
+
     notifyListeners();
     _cartSize = value;
   }
-
 
   void refresh() {
     notifyListeners();

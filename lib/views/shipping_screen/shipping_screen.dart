@@ -5,6 +5,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/model/look.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/data/source/remote/response/look_response.dart';
+import 'package:jahit_baju/viewmodels/address_view_model.dart';
 import 'package:jahit_baju/viewmodels/shipping_view_model.dart';
 import 'package:jahit_baju/data/model/cart.dart';
 import 'package:jahit_baju/data/model/order.dart';
@@ -41,36 +42,39 @@ class _ShippingScreenState extends State<ShippingScreen> {
   var deliveryChoosedIndex = -1;
   var packagingChoosedIndex = -1;
 
-  Shipping? shipping;
-  Packaging? packaging;
-
   int discount = 0;
-  bool loading = false;
 
   var deviceWidth, deviceHeight;
+
+  @override
+  void initState() {
+    final viewModel = Provider.of<ShippingViewModel>(context, listen: false);
+    viewModel.getListShippingMethod();
+    viewModel.getListPackaging();
+    viewModel.getUserAddress();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     deviceWidth = MediaQuery.of(context).size.width;
     deviceHeight = MediaQuery.of(context).size.height;
 
-    return ChangeNotifierProvider(
-        create: (context) => ShippingViewModel(ApiService(context)),
-        child:
+    return 
             Consumer<ShippingViewModel>(builder: (context, viewModel, child) {
-              if(viewModel.totalWeight == null){
-                if(widget.product != null){
-                  viewModel.setTotalWeight(widget.product!.weight!);
-                }else if(widget.cart != null){
-                  int totalWeight = 0;
-                  for (CartItem item in widget.cart!.items) {
-                    totalWeight += item.weight;
-                  }
-                  viewModel.setTotalWeight(totalWeight);
-                }else{
-                  viewModel.setTotalWeight(widget.look!.weight);
-                }
+          if (viewModel.totalWeight == null) {
+            if (widget.product != null) {
+              viewModel.setTotalWeight(widget.product!.weight!);
+            } else if (widget.cart != null) {
+              int totalWeight = 0;
+              for (CartItem item in widget.cart!.items) {
+                totalWeight += item.weight;
               }
+              viewModel.setTotalWeight(totalWeight);
+            } else {
+              viewModel.setTotalWeight(widget.look!.weight);
+            }
+          }
           return Stack(children: [
             Scaffold(
                 appBar: AppBar(
@@ -97,17 +101,14 @@ class _ShippingScreenState extends State<ShippingScreen> {
                       ],
                     ))),
                 bottomNavigationBar: _bottomNavBar(viewModel)),
-            if (loading) loadingWidget()
+            if (viewModel.loading) loadingWidget()
           ]);
-        }));
+        });
   }
 
   _goToPaymentScreen(ShippingViewModel viewModel) async {
-    setState(() {
-      loading = true;
-    });
-    if ((deliveryChoosedIndex != -1 && shipping != "") &&
-        (packagingChoosedIndex != -1 && packaging != "")) {
+    if ((deliveryChoosedIndex != -1 && viewModel.shipping != "") &&
+        (packagingChoosedIndex != -1 && viewModel.packaging != "")) {
       if (widget.cart != null) {
         int customPrice = 0, rtwPrice = 0;
         for (var cart in widget.cart!.items) {
@@ -128,17 +129,18 @@ class _ShippingScreenState extends State<ShippingScreen> {
             customPrice: customPrice,
             rtwPrice: rtwPrice,
             discount: discount,
-            packagingPrice: packaging!.price.toInt(),
-            shippingPrice: shipping!.price!.toInt(),
-            shippingId: shipping!.id,
-            packagingId: packaging!.id,
+            packagingPrice: viewModel.packaging!.price.toInt(),
+            shippingPrice: viewModel.shipping!.price!.toInt(),
+            shippingId: viewModel.shipping!.id,
+            packagingId: viewModel.packaging!.id,
             cartId: widget.cart!.id,
             description: _descriptionController.text.isNotEmpty
                 ? _descriptionController.text
                 : "-",
-            totalPrice:
-                (shipping!.price! + widget.cart!.totalPrice + packaging!.price)
-                    .toInt(),
+            totalPrice: (viewModel.shipping!.price! +
+                    widget.cart!.totalPrice +
+                    viewModel.packaging!.price)
+                .toInt(),
             orderStatus: Order.WAITING_FOR_PAYMENT,
             paymentUrl: "");
         Logger log = Logger();
@@ -152,10 +154,6 @@ class _ShippingScreenState extends State<ShippingScreen> {
                   builder: (context) => PaymentScreen(order: orderFromServer)),
               (route) => route.settings.name == "Home",
             );
-
-            setState(() {
-              loading = false;
-            });
           }
         });
       } else {
@@ -171,8 +169,8 @@ class _ShippingScreenState extends State<ShippingScreen> {
         Order order = Order(
             customPrice: customPrice,
             rtwPrice: rtwPrice,
-            shippingId: shipping!.id,
-            packagingId: packaging!.id,
+            shippingId: viewModel.shipping!.id,
+            packagingId: viewModel.packaging!.id,
             size: widget.size,
             quantity: 1,
             description: _descriptionController.text.isNotEmpty
@@ -180,15 +178,15 @@ class _ShippingScreenState extends State<ShippingScreen> {
                 : "-",
             product: widget.product,
             look: widget.look,
-            totalPrice: (shipping!.price! +
+            totalPrice: (viewModel.shipping!.price! +
                     (widget.product?.price ?? 0) +
                     (widget.look?.price ?? 0) +
-                    packaging!.price)
+                    viewModel.packaging!.price)
                 .toInt(),
             orderStatus: Order.WAITING_FOR_PAYMENT,
             paymentUrl: "",
-            shippingPrice: shipping!.price!.toInt(),
-            packagingPrice: packaging!.price.toInt(),
+            shippingPrice: viewModel.shipping!.price!.toInt(),
+            packagingPrice: viewModel.packaging!.price.toInt(),
             discount: discount);
 
         await viewModel.buyNow(order, widget.filename).then((orderFromServer) {
@@ -199,22 +197,16 @@ class _ShippingScreenState extends State<ShippingScreen> {
                   builder: (context) => PaymentScreen(order: orderFromServer)),
               (route) => route.settings.name == "Home",
             );
-            setState(() {
-              loading = false;
-            });
           }
         });
       }
     } else {
-      setState(() {
-        loading = false;
-      });
       Fluttertoast.showToast(
           msg: "Silakan pilih jasa pengiriman dan tipe packaging.");
     }
   }
 
-  Widget price() {
+  Widget price(ShippingViewModel viewModel) {
     return Container(
         child: Column(
       children: [
@@ -243,7 +235,9 @@ class _ShippingScreenState extends State<ShippingScreen> {
               style: TextStyle(fontSize: 14.sp),
             ),
             Text(
-              shipping != null ? convertToRupiah(shipping!.price) : "Rp 0.00",
+              viewModel.shipping != null
+                  ? convertToRupiah(viewModel.shipping!.price)
+                  : "Rp 0.00",
               style: TextStyle(fontSize: 14.sp),
             ),
           ],
@@ -256,7 +250,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
               style: TextStyle(fontSize: 14.sp),
             ),
             Text(
-              packaging != null ? convertToRupiah(packaging!.price) : "Rp 0.00",
+              viewModel.packaging != null ? convertToRupiah(viewModel.packaging!.price) : "Rp 0.00",
               style: TextStyle(fontSize: 14.sp),
             ),
           ],
@@ -270,24 +264,24 @@ class _ShippingScreenState extends State<ShippingScreen> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
             ),
             Text(
-              shipping != null && packaging != null
+              viewModel.shipping != null && viewModel.packaging != null
                   ? widget.cart != null
-                      ? convertToRupiah(shipping!.price! +
+                      ? convertToRupiah(viewModel.shipping!.price! +
                           widget.cart!.totalPrice +
-                          packaging!.price)
+                          viewModel.packaging!.price)
                       : widget.product != null && widget.look != null
-                          ? convertToRupiah(shipping!.price! +
+                          ? convertToRupiah(viewModel.shipping!.price! +
                               widget.product!.price +
                               widget.look!.price +
-                              packaging!.price)
+                              viewModel.packaging!.price)
                           : widget.product != null
-                              ? convertToRupiah(shipping!.price! +
+                              ? convertToRupiah(viewModel.shipping!.price! +
                                   widget.product!.price +
-                                  packaging!.price)
+                                  viewModel.packaging!.price)
                               : widget.look != null
-                                  ? convertToRupiah(shipping!.price! +
+                                  ? convertToRupiah(viewModel.shipping!.price! +
                                       widget.look!.price +
-                                      packaging!.price)
+                                      viewModel.packaging!.price)
                                   : convertToRupiah(0)
                   : convertToRupiah(0),
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
@@ -298,17 +292,18 @@ class _ShippingScreenState extends State<ShippingScreen> {
     ));
   }
 
-  Widget deliveryList(var data) {
+  Widget deliveryList(ShippingViewModel viewModel) {
     return ListView.builder(
         shrinkWrap: true,
-        itemCount: data.length,
+        itemCount: viewModel.listOfShipping.length,
         itemBuilder: (context, index) {
           return InkWell(
               onTap: () {
                 setState(() {
                   deliveryChoosedIndex = index;
-                  shipping = data[index];
                 });
+
+                viewModel.setShipping(viewModel.listOfShipping[index]);
               },
               child: Card(
                   child: Container(
@@ -325,7 +320,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
                 child: Row(
                   children: [
                     CachedNetworkImage(
-                      imageUrl: data[index].imgUrl,
+                      imageUrl: viewModel.listOfShipping[index].imgUrl,
                       errorWidget: (context, url, error) {
                         return Icon(Icons.warning);
                       },
@@ -337,10 +332,11 @@ class _ShippingScreenState extends State<ShippingScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(data[index].name,
+                        Text(viewModel.listOfShipping[index].name,
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 14.sp)),
-                        Text(convertToRupiah(data[index].price))
+                        Text(convertToRupiah(
+                            viewModel.listOfShipping[index].price))
                       ],
                     )
                   ],
@@ -349,18 +345,19 @@ class _ShippingScreenState extends State<ShippingScreen> {
         });
   }
 
-  Widget packaginglist(var data) {
+  Widget packaginglist(ShippingViewModel viewModel) {
     return Container(
         height: 80.h,
         child: ListView.builder(
             shrinkWrap: true,
             scrollDirection: Axis.horizontal,
-            itemCount: data.length,
+            itemCount: viewModel.listOfPackaging.length,
             itemBuilder: (context, index) {
               return InkWell(
                   onTap: () {
+
+                    viewModel.setPackaging(viewModel.listOfPackaging[index]);
                     setState(() {
-                      packaging = data[index];
                       packagingChoosedIndex = index;
                     });
                   },
@@ -381,15 +378,15 @@ class _ShippingScreenState extends State<ShippingScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(data[index].name,
+                            Text(viewModel.listOfPackaging[index].name,
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 14.sp)),
-                            Text(data[index].description,
+                            Text(viewModel.listOfPackaging[index].description,
                                 style: TextStyle(
                                     fontWeight: FontWeight.normal,
                                     fontSize: 12.sp)),
-                            Text(convertToRupiah(data[index].price))
+                            Text(convertToRupiah(viewModel.listOfPackaging[index].price))
                           ],
                         )
                       ],
@@ -407,7 +404,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                price(),
+                price(viewModel),
                 const SizedBox(height: 15),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -418,8 +415,9 @@ class _ShippingScreenState extends State<ShippingScreen> {
                         vertical: 15,
                         horizontal: 30), // Padding agar tombol lebih besar
                   ),
-                  onPressed:
-                      loading ? null : () => _goToPaymentScreen(viewModel),
+                  onPressed: viewModel.loading
+                      ? null
+                      : () => _goToPaymentScreen(viewModel),
                   child: Text(
                     "Bayar",
                     style: TextStyle(
@@ -435,9 +433,13 @@ class _ShippingScreenState extends State<ShippingScreen> {
         ));
   }
 
-  void goToAddress(address) {
+  void goToAddress(address, ShippingViewModel viewModel) {
     Navigator.push(context,
-        MaterialPageRoute(builder: (context) => AddressScreen(address)));
+        MaterialPageRoute(builder: (context) => AddressScreen(address))).then((_){
+
+  viewModel.getListShippingMethod();
+
+        });
   }
 
   _addressWidget(ShippingViewModel viewModel) {
@@ -451,46 +453,28 @@ class _ShippingScreenState extends State<ShippingScreen> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
             ),
             const SizedBox(height: 5),
-           FutureBuilder(
-                    future: viewModel.getUserAddress(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Shimmer(
-                          child: SizedBox(
-                            height: 20,
-                          ),
-                          gradient: LinearGradient(
-                              colors: [Colors.white, Colors.grey]),
-                        );
-                      }
-
-                      if (snapshot.data == null) {
-                        Fluttertoast.showToast(msg: "Silakan atur alamat pengiriman.");
-                      }
-                      return InkWell(
-                          onTap: () => goToAddress(snapshot.data),
-                          child: Card(
-                              child: Container(
-                                  width: deviceWidth,
-                                  decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      border: Border.all(width: 2),
-                                      borderRadius: BorderRadius.circular(12)),
-                                  padding: EdgeInsets.all(10),
-                                  child: Text(
-                                      snapshot.data?.streetAddress ?? "Tidak ada alamat.",
-                                      maxLines: 1,
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.normal,
-                                          fontSize: 14.sp)))));
-                      
-                    },
-                  )
+            InkWell(
+                onTap: () => goToAddress(viewModel.userAddress, viewModel),
+                child: Card(
+                    child: Container(
+                        width: deviceWidth,
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(width: 2),
+                            borderRadius: BorderRadius.circular(12)),
+                        padding: EdgeInsets.all(10),
+                        child: Text(
+                            viewModel.userAddress?.streetAddress ??
+                                "Tidak ada alamat.",
+                            maxLines: 1,
+                            style: TextStyle(
+                                fontWeight: FontWeight.normal,
+                                fontSize: 14.sp)))))
           ],
         ));
   }
 
-  void showAddressRequiredDialog(BuildContext context) {
+  void showAddressRequiredDialog(BuildContext context, ShippingViewModel viewModel) {
     showDialog(
       context: context,
       barrierDismissible:
@@ -502,7 +486,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                goToAddress("");
+                goToAddress("", viewModel);
               },
               child: Text("OK"),
             ),
@@ -523,25 +507,14 @@ class _ShippingScreenState extends State<ShippingScreen> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
             ),
             const SizedBox(height: 5),
-            FutureBuilder(
-                future: viewModel.getListPackaging(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
-                  List<Packaging> data = snapshot.data;
-
-                  return data.isNotEmpty
-                      ? packaginglist(data)
-                      : Center(
-                          child: Text(
-                            "Tidak ada packaging.",
-                            style: TextStyle(fontSize: 12.sp),
-                          ),
-                        );
-                })
+            viewModel.listOfPackaging.isNotEmpty
+                ? packaginglist(viewModel)
+                : Center(
+                    child: Text(
+                      "Tidak ada packaging.",
+                      style: TextStyle(fontSize: 12.sp),
+                    ),
+                  )
           ],
         ));
   }
@@ -557,23 +530,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
             ),
             const SizedBox(height: 5),
-            FutureBuilder<List<Shipping>?>(
-                future: viewModel.getListShippingMethod(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return itemCartShimmer();
-                  }
-                  if(snapshot.data != null && snapshot.hasData){
-                    return deliveryList(snapshot.data);
-                  }else{
-                    return Center(
-                          child: Text(
-                            "Tidak ada expedisi.",
-                            style: TextStyle(fontSize: 12.sp),
-                          ),
-                        );
-                  }
-                })
+            deliveryList(viewModel)
           ],
         ));
   }

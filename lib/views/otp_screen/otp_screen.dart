@@ -24,10 +24,10 @@ class OtpScreen extends StatefulWidget {
   OtpScreen(this.email, this.type, {super.key});
 
   @override
-  State<OtpScreen> createState() => _ResetPasswordState();
+  State<OtpScreen> createState() => _OtpScreenState();
 }
 
-class _ResetPasswordState extends State<OtpScreen> {
+class _OtpScreenState extends State<OtpScreen> {
   bool init = false;
 
   @override
@@ -41,14 +41,16 @@ class _ResetPasswordState extends State<OtpScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {    
+  void initState() {
+    final viewModel = Provider.of<OtpScreenViewModel>(context, listen: false);
+    viewModel.initialize();
+    viewModel.setEmail(widget.email);
+    super.initState();
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Consumer<OtpScreenViewModel>(builder: (context, viewModel, child) {
-      viewModel.setEmail(widget.email);
-
-      if(viewModel.message != null){
-        Fluttertoast.showToast(msg: viewModel.message!);
-      }
       return Stack(
         alignment: Alignment.center,
         children: [
@@ -120,7 +122,12 @@ class _ResetPasswordState extends State<OtpScreen> {
             textStyle:
                 const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             onSubmit: (value) async {
-              viewmodel.setOtp(int.parse(value));
+              int? otpValue = int.tryParse(value);
+              if (otpValue != null) {
+                viewmodel.setOtp(otpValue);
+              } else {
+                Fluttertoast.showToast(msg: "Kode OTP harus berupa angka.");
+              }
             },
           ),
           const SizedBox(
@@ -144,11 +151,16 @@ class _ResetPasswordState extends State<OtpScreen> {
                             await viewmodel.sendOtpVerification(widget.type);
                           }
                         : () async {
-                            String? token =  await viewmodel.verifyOtpVerification(widget.type);                            
-                            if(token != null){
-                              if(widget.type == OtpScreen.REGISTER){
-                                goToLoginScreen(context);                                
-                              }else{
+                            String? token = await viewmodel
+                                .verifyOtpVerification(widget.type);
+
+                            if (viewmodel.message != null) {
+                              Fluttertoast.showToast(msg: viewmodel.message!);
+                            }
+                            if (token != null) {
+                              if (widget.type == OtpScreen.REGISTER) {
+                                goToHomeScreen();
+                              } else {
                                 goToResetPasswordScreen(token);
                               }
                             }

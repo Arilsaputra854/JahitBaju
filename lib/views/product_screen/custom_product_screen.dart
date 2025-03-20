@@ -22,7 +22,6 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-
 class CustomProductScreen extends StatefulWidget {
   final Look look;
   final Designer designer;
@@ -51,16 +50,17 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
 
   @override
   initState() {
-
     _controller = WebViewController();
     _controller.enableZoom(false);
 
-    final viewModel = Provider.of<CustomProductViewModel>(context, listen: false);
+    final viewModel =
+        Provider.of<CustomProductViewModel>(context, listen: false);
     viewModel.resetData();
 
-        viewModel.getNoteProduct(Product.CUSTOM);
-        viewModel.getCareGuide();
-        viewModel.setLook(widget.look);
+    viewModel.getNoteProduct(Product.CUSTOM);
+    viewModel.getCareGuide();
+    viewModel.getSizeGuide();
+    viewModel.setLook(widget.look);
     svgColor = widget.look.textures ?? [];
     svgFeatures = widget.look.features ?? [];
     fetchAllAndConvertToBase64();
@@ -84,7 +84,7 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
-              body: SingleChildScrollView(child: showCustom(viewModel)),
+              body: SingleChildScrollView(child:  showCustom(viewModel)),
               bottomNavigationBar: _bottomNavigationWidget(viewModel),
             ),
             if (viewModel.loading) loadingWidget()
@@ -167,7 +167,6 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
                 SizedBox(
                   height: 10,
                 ),
-                //_tagsWidget(),
               ],
             ))
       ],
@@ -175,7 +174,7 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
   }
 
   _textureWidget(CustomProductViewModel viewModel) {
-    if (svgColor.isNotEmpty && viewModel.currentSVG != null) {
+    if (svgColor.isNotEmpty && viewModel.currentFeature != null && viewModel.currentSVG != null) {
       return Container(
         padding: EdgeInsets.all(2),
         color: Colors.white,
@@ -186,17 +185,18 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
           itemBuilder: (context, index) {
             return InkWell(
                 onLongPress: () {
-                  //_previewTextureDetails(svgColor[index].texture);
+                  _previewTextureDetails(svgColor[index].texture);
                 },
                 onTap: () async {
                   try {
-                    if (viewModel.currentFeature != "") {
+                    if (viewModel.currentFeature != "" &&
+                        viewModel.currentSVG != null) {
                       if (svgColor[index].texture.hex != null) {
-                          viewModel.setCurrentColor(svgColor[index].texture.hex!);
-                        } else if (svgColor[index].texture.urlTexture != null) {
-                          
-                          viewModel.setCurrentColor(svgColor[index].texture.urlTexture!);
-                        }
+                        viewModel.setCurrentColor(svgColor[index].texture.hex!);
+                      } else if (svgColor[index].texture.urlTexture != null) {
+                        viewModel.setCurrentColor(
+                            svgColor[index].texture.urlTexture!);
+                      }
 
                       if (svgColor[index].texture.urlTexture != null) {
                         // Ambil dan konversi gambar ke Base64
@@ -217,9 +217,9 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
                             viewModel.currentColor!);
                       }
 
-                      
-                        viewModel.currentFeatureColor[viewModel.currentFeature!] = viewModel.currentColor!;
-                        viewModel.setCurrentSVG(updatedSvg);
+                      viewModel.currentFeatureColor[viewModel.currentFeature!] =
+                          viewModel.currentColor!;
+                      viewModel.setCurrentSVG(updatedSvg);
                     }
                   } catch (e) {
                     Fluttertoast.showToast(
@@ -398,62 +398,50 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
   }
 
   Future<void> fetchAllAndConvertToBase64() async {
-    if (svgColor != null) {
+    Map<String, String>? cachedTextures = await cache.getBase64Map();
+    if (cachedTextures != null && cachedTextures.isNotEmpty) {
       setState(() {
-        //loading = true;
+        base64Textures = cachedTextures;
       });
+      log.d(
+          "Base64 textures loaded from cache : ${json.encode(cachedTextures)}");
 
-      Map<String, String>? cachedTextures = await cache.getBase64Map();
-      if (cachedTextures != null && cachedTextures.isNotEmpty) {
-        setState(() {
-          base64Textures = cachedTextures;
-        });
-        log.d(
-            "Base64 textures loaded from cache : ${json.encode(cachedTextures)}");
+    } else {
+      log.d("start fetching base64 texture from server");
+      for (LookTexture texture in svgColor) {
+        if (texture.texture.urlTexture != null) {
+          if (base64Textures[texture.textureId] == null) {
+            try {
+              final response =
+                  await http.get(Uri.parse(texture.texture.urlTexture!));
 
-        setState(() {
-          //loading = false;
-        });
-      } else {
-        log.d("start fetching base64 texture from server");
-        for (LookTexture texture in svgColor) {
-          if (texture.texture.urlTexture != null) {
-            if (base64Textures[texture.textureId] == null) {
-              try {
-                final response =
-                    await http.get(Uri.parse(texture.texture.urlTexture!));
-
-                if (response.statusCode == 200) {
-                  String base64Image = base64Encode(response.bodyBytes);
-                  log.d("finish fetch ${base64Textures[texture.textureId]}");
-                  setState(() {
-                    base64Textures[texture.textureId] = base64Image;
-                  });
-                } else {
-                  // Menangani error jika request gagal
-                  log.d(
-                      'Fetch and Convert to Base64: Gagal memuat gambar, status code: ${response.statusCode}');
-                  return null;
-                }
-              } catch (e) {
-                // Menangani error jika ada masalah dengan request HTTP
-                log.d('Fetch and Convert to Base64: Terjadi kesalahan ${e}');
+              if (response.statusCode == 200) {
+                String base64Image = base64Encode(response.bodyBytes);
+                log.d("finish fetch ${base64Textures[texture.textureId]}");
+                setState(() {
+                  base64Textures[texture.textureId] = base64Image;
+                });
+              } else {
+                // Menangani error jika request gagal
+                log.d(
+                    'Fetch and Convert to Base64: Gagal memuat gambar, status code: ${response.statusCode}');
                 return null;
               }
+            } catch (e) {
+              // Menangani error jika ada masalah dengan request HTTP
+              log.d('Fetch and Convert to Base64: Terjadi kesalahan ${e}');
+              return null;
             }
           }
         }
-
-        await cache.saveBase64Map(base64Textures);
-
-        log.d("Base64 textures saved to cache");
-        log.d("finish fetching all texture.");
-        setState(() {
-          //loading = false;
-        });
       }
+
+      await cache.saveBase64Map(base64Textures);
+
+      log.d("Base64 textures saved to cache");
+      log.d("finish fetching all texture.");
     }
-  }
+    }
 
   _featureWidget(CustomProductViewModel viewModel) {
     return Container(
@@ -473,7 +461,6 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
                   onPressed: viewModel.currentFeature != svgFeatures[index]
                       ? () {
                           viewModel.setCurrentFeature(svgFeatures[index]);
-                          
                         }
                       : null,
                   child: Text(
@@ -497,74 +484,76 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
             fontSize: 16.sp,
           ),
         ),
-        if(viewModel.look != null)
-        Container(
-          margin: EdgeInsets.only(bottom: 10),
-          height: 50.h,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: viewModel.look?.size?.length ?? 0,
-            itemBuilder: (context, index) {
-              final size = viewModel.look!.size![index];
-              final isSelected = viewModel.selectedSize == size;
+        if (viewModel.look != null)
+          Container(
+            margin: EdgeInsets.only(bottom: 10),
+            height: 50.h,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: viewModel.look?.size?.length ?? 0,
+              itemBuilder: (context, index) {
+                final size = viewModel.look!.size![index];
+                final isSelected = viewModel.selectedSize == size;
 
-              return GestureDetector(
-                onTap: () {
-                  viewModel.setSelectedSize(size);
-                },
-                child: Container(
-                  padding: EdgeInsets.all(5),
-                  width: 50.h,
-                  height: 50.h,
-                  margin: EdgeInsets.symmetric(horizontal: 6),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isSelected ? Colors.red : Color(0xFFFFAAAA),
-                    border: isSelected
-                        ? Border.all(color: Colors.black, width: 2)
-                        : null,
-                  ),
-                  child: Center(
-                    child: Text(
-                      textAlign: TextAlign.center,
-                      size,
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.bold,
-                        color: isSelected ? Colors.white : Colors.black,
+                return GestureDetector(
+                  onTap: () {
+                    viewModel.setSelectedSize(size);
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(5),
+                    width: 50.h,
+                    height: 50.h,
+                    margin: EdgeInsets.symmetric(horizontal: 6),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isSelected ? Colors.red : Color(0xFFFFAAAA),
+                      border: isSelected
+                          ? Border.all(color: Colors.black, width: 2)
+                          : null,
+                    ),
+                    child: Center(
+                      child: Text(
+                        textAlign: TextAlign.center,
+                        size,
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.bold,
+                          color: isSelected ? Colors.white : Colors.black,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              );
-            },
-          ),
-        )
+                );
+              },
+            ),
+          )
       ],
     );
   }
 
   void goToDesignConfirmation(
       String htmlContent, CustomProductViewModel viewModel) {
-    if (viewModel.currentSVG!.contains("none")) {
-      Fluttertoast.showToast(
-          msg: "Silakan kostumisasi desain kamu hingga selesai.");
-      return;
-    }
-    if (viewModel.selectedSize == null) {
-      Fluttertoast.showToast(msg: "Silakan pilih ukuran terlebih dahulu.");
-      return;
-    }
+    if (viewModel.currentSVG != null) {
+      if (viewModel.currentSVG!.contains("none")) {
+        Fluttertoast.showToast(
+            msg: "Silakan kostumisasi desain kamu hingga selesai.");
+        return;
+      }
+      if (viewModel.selectedSize == null) {
+        Fluttertoast.showToast(msg: "Silakan pilih ukuran terlebih dahulu.");
+        return;
+      }
 
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => DesignConfirmPage(
-                viewModel.currentSVG!,
-                htmlContent,
-                viewModel.currentFeatureColor,
-                widget.look,
-                viewModel.selectedSize!)));
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => DesignConfirmPage(
+                  viewModel.currentSVG!,
+                  htmlContent,
+                  viewModel.currentFeatureColor,
+                  widget.look,
+                  viewModel.selectedSize!)));
+    }
   }
 
   sizeGuideWidget(CustomProductViewModel viewModel) {
@@ -586,6 +575,7 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
           CachedNetworkImage(
             imageUrl: viewModel.sizeGuide!,
             errorWidget: (context, url, error) {
+              log.d("Size Guide : cannot load image, error ${error}");
               return Icon(Icons.image_not_supported);
             },
           )
@@ -648,6 +638,7 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
   }
 
   _bottomNavigationWidget(CustomProductViewModel viewModel) {
+    if(viewModel.currentSVG != null) {
     return Stack(
       alignment: AlignmentDirectional.center,
       children: [
@@ -707,6 +698,9 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
             )),
       ],
     );
+    }else{
+      return Container();
+    }
   }
 
   _descriptionWidget(CustomProductViewModel viewModel) {
@@ -749,13 +743,13 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
         SizedBox(
           height: 10,
         ),
-        if (widget.look.textures != null)
+        if (widget.look.materials != null)
           ListView.builder(
             shrinkWrap: true,
-            itemCount: widget.look.textures!.length,
+            itemCount: widget.look.materials!.length,
             itemBuilder: (context, index) {
               return Text(
-                "-${widget.look.textures![index].texture.title}",
+                "-${widget.look.materials![index]}",
                 style: TextStyle(
                   fontSize: 14.sp,
                 ),

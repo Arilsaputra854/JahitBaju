@@ -2,15 +2,12 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/viewmodels/login_view_model.dart';
-import 'package:jahit_baju/viewmodels/register_view_model.dart';
 import 'package:jahit_baju/views/forgot_password/forgot_password.dart';
 import 'package:jahit_baju/views/home_screen/home_screen.dart';
 import 'package:jahit_baju/views/otp_screen/otp_screen.dart';
 import 'package:jahit_baju/views/register/register_screen.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -159,8 +156,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(5)),
-                              backgroundColor: viewmodel.loading? Colors.grey : Colors.white),
-                          onPressed: viewmodel.loading? null : () async {
+                              backgroundColor: Colors.white),
+                          onPressed: () async {
                             if (formKey.currentState!.validate()) {
                               FocusScope.of(context).unfocus();
                               login(viewmodel);

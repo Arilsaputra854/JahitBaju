@@ -38,10 +38,10 @@ dependencies:
   intro_slider:
   provider:
   fluttertoast: ^8.2.8
-  flutter_launcher_icons: ^0.13.1
   flutter_otp_text_field:
   http: ^0.13.5
   loading_animation_widget:
+  flutter_typeahead: ^4.0.0
   intl:
   swipe_image_gallery:
   flutter_svg:
@@ -66,15 +66,14 @@ dependencies:
   flutter_screenutil:
   wakelock: ^0.6.2
 
-icons_launcher:
+flutter_launcher_icons:
+  remove_alpha_ios: true
+  android: "launcher_icon"
+  ios: true
   image_path: "assets/logo/jahit_baju_logo.png"
-  platforms:
-    android:
-      enable: true
-    ios:
-      enable: true
 
 dev_dependencies:
+  flutter_launcher_icons: "^0.14.3"
   flutter_test:
     sdk: flutter
 

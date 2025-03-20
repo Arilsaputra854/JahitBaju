@@ -43,6 +43,7 @@ import 'response/user_response.dart';
 
 class ApiService {
   final String baseUrl = "https://v1.jahitbajuofficial.com/api/";
+  //final String baseUrl = "https://bonefish-supreme-sculpin.ngrok-free.app/api/";
 
   TokenStorage tokenStorage = TokenStorage();
   Logger logger = Logger();
@@ -218,7 +219,7 @@ class ApiService {
     }
   }
 
-  Future<LoginResponse> userEmailVerify(String otpCode) async {
+  Future<OtpResponse> userEmailVerify(String otpCode) async {
     final url = Uri.parse("${baseUrl}users/current/verify-email");
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
     try {
@@ -237,18 +238,17 @@ class ApiService {
 
       logger.d("User Email Verify : $data");
 
-      LoginResponse responseBody = LoginResponse.fromJson(data);
+      return OtpResponse.fromJson(data);
 
-      return responseBody;
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("User Email Verify : Tidak ada koneksi internet");
-      return LoginResponse(message: NO_INTERNET_CONNECTION, error: true);
+      return OtpResponse(message: NO_INTERNET_CONNECTION, error: true);
     } catch (e) {
       logger.e("User Email Verify : $e");
 
-      return LoginResponse(message: "Network error : $e", error: true);
+      return OtpResponse(message: "Network error : $e", error: true);
     }
   }
 
@@ -315,7 +315,7 @@ class ApiService {
     }
   }
 
-  Future<LoginResponse> userResetRequestOtp(String email) async {
+  Future<OtpResponse> userResetRequestOtp(String email) async {
     final url = Uri.parse("${baseUrl}users/request-reset-otp");
 
     try {
@@ -330,17 +330,16 @@ class ApiService {
       var data = jsonDecode(response.body);
       logger.d("User Reset Request OTP : ${data}");
 
-      LoginResponse responseBody = LoginResponse.fromJson(data);
-      return responseBody;
+      return OtpResponse.fromJson(data);
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("User Reset Request OTP : Tidak ada koneksi internet");
-      return LoginResponse(message: NO_INTERNET_CONNECTION, error: true);
+      return OtpResponse(message: NO_INTERNET_CONNECTION, error: true);
     } catch (e) {
       logger.e("User Reset Request OTP : $e");
 
-      return LoginResponse(message: "Network error : $e", error: true);
+      return OtpResponse(message: "Network error : $e", error: true);
     }
   }
 
@@ -812,7 +811,7 @@ class ApiService {
       final response = await http.get(url, headers: <String, String>{
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ${token}'
-      });
+      }).timeout(Duration(seconds: 10));
 
       var data = jsonDecode(response.body);
 
@@ -1177,36 +1176,34 @@ class ApiService {
       'Authorization': 'Bearer ${token}',
     });
 
-    ProductNoteResponse productNoteResponse;
     try {
       var data = jsonDecode(response.body);
       logger.d("Product Note : ${data}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        productNoteResponse = ProductNoteResponse.fromJson(data);
+        return ProductNoteResponse.fromJson(data);
       } else if (response.statusCode >= 500) {
-        productNoteResponse = ProductNoteResponse(
+        return ProductNoteResponse(
             error: true, message: SOMETHING_WAS_WRONG_SERVER);
       } else if (response.statusCode == 401) {
         showDialogSession(context);
-        productNoteResponse =
+        return
             ProductNoteResponse(error: true, message: UNAUTHORIZED);
       } else {
-        productNoteResponse =
+        return
             ProductNoteResponse(error: true, message: SOMETHING_WAS_WRONG);
       }
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Product Note : Tidak ada koneksi internet");
-      productNoteResponse =
+      return
           ProductNoteResponse(error: true, message: NO_INTERNET_CONNECTION);
     } catch (e) {
       logger.e("Product Note :  $e");
-      productNoteResponse =
+      return
           ProductNoteResponse(error: true, message: SOMETHING_WAS_WRONG);
     }
-    return productNoteResponse;
   }
 
   Future<DesignerResponse> getDesigner() async {

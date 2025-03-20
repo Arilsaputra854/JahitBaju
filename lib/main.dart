@@ -16,6 +16,7 @@ import 'package:jahit_baju/viewmodels/look_view_model.dart';
 import 'package:jahit_baju/viewmodels/otp_screen_view_model.dart';
 import 'package:jahit_baju/viewmodels/payment_view_model.dart';
 import 'package:jahit_baju/viewmodels/product_view_model.dart';
+import 'package:jahit_baju/viewmodels/profile_view_model.dart';
 import 'package:jahit_baju/viewmodels/register_view_model.dart';
 import 'package:jahit_baju/viewmodels/reset_password_view_model.dart';
 import 'package:jahit_baju/viewmodels/search_view_model.dart';
@@ -46,6 +47,7 @@ void main() async {
         ChangeNotifierProvider(create: (context) => FavoriteViewModel(ApiService(context))),
         ChangeNotifierProvider(create: (context) => ProductViewModel(ApiService(context))),
         ChangeNotifierProvider(create: (context) => CustomProductViewModel(ApiService(context))),
+        ChangeNotifierProvider(create: (context) => ProfileViewModel(ApiService(context))),
       ],
       child: ScreenUtilInit(
         designSize: Size(360, 640),

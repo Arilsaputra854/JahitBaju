@@ -77,7 +77,7 @@ class LoginViewModel extends ChangeNotifier {
       }
     } else {
       _message = null;
-      await _tokenStorage.saveToken(response.token!);
+      await _tokenStorage.saveToken(response.token ?? null);
       _loading = false;
       notifyListeners();
       return true;
