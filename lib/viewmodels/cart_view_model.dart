@@ -1,3 +1,4 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:jahit_baju/data/model/look.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
@@ -49,7 +50,8 @@ class CartViewModel extends ChangeNotifier {
           }else{
             _errorMsg = ApiService.SOMETHING_WAS_WRONG;
           }
-        } catch (e) {
+        } catch (e,stackTrace) {
+        FirebaseCrashlytics.instance.recordError(e, stackTrace);
           _errorMsg = "Error fetching product ${cartItem.productId}: $e";
         }
       }
@@ -72,7 +74,8 @@ class CartViewModel extends ChangeNotifier {
           }else{
             _errorMsg =  ApiService.SOMETHING_WAS_WRONG;
           }
-        } catch (e) {
+        } catch (e,stackTrace) {
+        FirebaseCrashlytics.instance.recordError(e, stackTrace);
           _errorMsg = "Error fetching product ${cartItem.productId}: $e";
         }
       }

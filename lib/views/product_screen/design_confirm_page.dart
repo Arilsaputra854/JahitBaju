@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -251,7 +252,8 @@ class _DesignConfirmPageState extends State<DesignConfirmPage> {
         // Handle upload failure
         Fluttertoast.showToast(msg: "Gagal menyimpan desain, coba lagi nanti.");
       }
-    } catch (e) {
+    } catch (e,stackTrace) {
+        FirebaseCrashlytics.instance.recordError(e, stackTrace);
       // Handle any errors that occur during the process
       Fluttertoast.showToast(msg: "Terjadi kesalahan");
     }

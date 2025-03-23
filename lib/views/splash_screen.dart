@@ -39,7 +39,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   getAppVersion() {
-    version = "1.0.5";
+    version = "1.0.7";
   }
 
   @override

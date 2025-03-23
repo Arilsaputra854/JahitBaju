@@ -431,6 +431,7 @@ class _HomePageState extends State<HomePage> {
         },
       );
     } catch (e) {
+      
       return AspectRatio(
           aspectRatio: 16 / 9,
           child: Container(
@@ -519,8 +520,12 @@ class _HomePageState extends State<HomePage> {
               child: Text('Batal'),
             ),
             TextButton(
-              onPressed: () {
-                viewModel.buyFeature();
+              onPressed: () async {
+                await viewModel.buyFeature().then((featureOrder){
+                  if(featureOrder != null){
+                    goToPaymentScreen(featureOrder);
+                  }
+                });
               },
               child: Text('Beli'),
             ),

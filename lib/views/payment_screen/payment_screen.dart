@@ -1,3 +1,4 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:jahit_baju/data/model/look_order.dart';
@@ -224,9 +225,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
         await launchUrl(url, mode: LaunchMode.externalApplication).then((v) {
           validateOrderProductPaymentXenditGateway();
         });
-      } catch (e) {
+      } catch (e,stackTrace) {
+        FirebaseCrashlytics.instance.recordError(e, stackTrace);
         Fluttertoast.showToast(
-            msg: "Terjadi kesalahan, silakan coba lagi nanti.");
+            msg: "Terjadi kesalahan, Error ${e}");
       }
     } else if(widget.featureOrder != null){
       url = Uri.parse(widget.featureOrder!.paymentUrl);
@@ -234,7 +236,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
         await launchUrl(url, mode: LaunchMode.externalApplication).then((v) {
           validateOrderFeaturePaymentXenditGateway();
         });
-      } catch (e) {
+      } catch (e,stackTrace) {
+        FirebaseCrashlytics.instance.recordError(e, stackTrace);
         Fluttertoast.showToast(
             msg: "Terjadi kesalahan, silakan coba lagi nanti.");
       }
@@ -244,7 +247,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
         await launchUrl(url, mode: LaunchMode.externalApplication).then((v) {
           validateLookOrderPaymentXenditGateway();
         });
-      } catch (e) {
+      } catch (e,stackTrace) {
+
+        FirebaseCrashlytics.instance.recordError(e, stackTrace);
         Fluttertoast.showToast(
             msg: "Terjadi kesalahan, silakan coba lagi nanti.");
       }

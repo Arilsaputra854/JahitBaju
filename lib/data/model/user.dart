@@ -75,10 +75,11 @@ class Address {
   String streetAddress;
   String? rt;
   String? rw;
-  String? subdistrict;
-  int city;
-  int province;
-  int postalCode;
+  String? district;
+  String? village;
+  String? city;
+  String? province;
+  int? postalCode;
   DateTime? createdAt;
   DateTime? updatedAt;
 
@@ -87,7 +88,8 @@ class Address {
     required this.streetAddress,
     this.rt,
     this.rw,
-    this.subdistrict,
+    this.district,
+    this.village,
     required this.city,
     required this.province,
     required this.postalCode,
@@ -101,10 +103,11 @@ class Address {
       streetAddress: json['street_address'] ?? "",
       rt: json['rt'] ?? "",
       rw: json['rw'] ?? "",
-      subdistrict: json['subdistrict'] ?? "",
-      city: json['city'] ?? 0,
-      province: json['province'] ?? 0,
-      postalCode: json['postal_code'] ?? 0,
+      district: json['district'] ?? null,
+      village: json['village'] ?? null,
+      city: json['city'],
+      province: json['province'] ?? null,
+      postalCode: json['postal_code'] ?? null,
       createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
       updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at']) : null,
     );
@@ -115,7 +118,9 @@ class Address {
       'street_address': streetAddress,      
       'city': city.toString(),
       'province': province.toString(),
-      'postal_code': postalCode.toString()
+      'postal_code': postalCode,
+      'district' : district.toString(),
+      'village' : village.toString(),
     };
   }
 }

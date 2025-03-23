@@ -19,7 +19,7 @@ factory Shipping.fromJson(Map<String, dynamic> json) {
       id: json['id'], 
       name: json['name'],  
       imgUrl: json['img_url'],  
-      price: json['price'] ?? 0, 
+      price: json['price'] ?? null, 
       lastUpdate: json['last_update'] != null ? DateTime.parse(json['last_update']) : null,
     );
   }

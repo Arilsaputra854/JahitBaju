@@ -20,11 +20,18 @@ class AddressViewModel extends ChangeNotifier {
   int? _postalCode;
   int? get postalCode => _postalCode;
 
-  City? _selectedCity;
-  City? get selectedCity => _selectedCity;
+  String? _selectedCity;
+  String? get selectedCity => _selectedCity;
 
-  Province? _selectedProvince;
-  Province? get selectedProvince => _selectedProvince;
+  String? _district;
+  String? get district => _district;
+
+
+  String? _village;
+  String? get village => _village;
+
+  String? _selectedProvince;
+  String? get selectedProvince => _selectedProvince;
 
   List<City>? _listOfCity;
   List<City>? get listOfCity => _listOfCity;
@@ -34,13 +41,34 @@ class AddressViewModel extends ChangeNotifier {
 
   AddressViewModel(this.apiService);
 
-  setSelectedCity(City newCity) {
+  init(){
+    _selectedCity = null;
+    _selectedProvince = null;
+    _village = null;
+    _district = null;
+    _postalCode = null;
+    _errorMsg = null;
+  }
+
+  setSelectedCity(String newCity) {
     _selectedCity = newCity;
     notifyListeners();
   }
 
-  setSelectedProvince(Province newProvince) {
+  setSelectedProvince(String newProvince) {
     _selectedProvince = newProvince;
+    notifyListeners();
+  }
+
+
+  setSelectedDistrict(String newDistrict) {
+    _district = newDistrict;
+    notifyListeners();
+  }
+
+
+  setSelectedVillage(String newVillage) {
+    _village = newVillage;
     notifyListeners();
   }
 
@@ -94,13 +122,16 @@ class AddressViewModel extends ChangeNotifier {
     }
   }
 
+
   Future<User?> updateAddressUser(
       String newAddress, AddressViewModel viewmodel) async {
     Address address = new Address(
         streetAddress: newAddress,
-        city: int.parse(viewmodel.selectedCity!.cityId),
-        province: int.parse(viewmodel.selectedProvince!.provinceId),
-        postalCode: int.parse(viewmodel.selectedCity!.postalCode));
+        city: viewmodel.selectedCity,
+        village: viewmodel.village,
+        district: viewmodel.district,
+        province: viewmodel.selectedProvince,
+        postalCode: viewmodel.postalCode!);
     UserResponse response =
         await apiService.userUpdate(null, null, null, null, address, null);
     if (response.error) {

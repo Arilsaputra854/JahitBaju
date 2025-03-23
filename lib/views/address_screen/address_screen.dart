@@ -23,6 +23,9 @@ class AddressScreen extends StatefulWidget {
 class _AddressScreenState extends State<AddressScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _postalCodeController = TextEditingController();
+  final TextEditingController _districtController = TextEditingController();
+  final TextEditingController _villageController = TextEditingController();
 
   late ApiService apiService;
   bool loading = false;
@@ -30,76 +33,118 @@ class _AddressScreenState extends State<AddressScreen> {
   @override
   void initState() {
     apiService = ApiService(context);
+
+    if (widget.currentAddress != null) {
+      _addressController.text = widget.currentAddress!.streetAddress;
+    }
+
+    final viewModel = Provider.of<AddressViewModel>(context, listen: false);
+    viewModel.init();
+    viewModel.fetchListCity();
+    viewModel.fetchListProvince();
+    _postalCodeController.text =
+        widget.currentAddress?.postalCode.toString() ?? "";
+    _villageController.text = widget.currentAddress?.village ?? "";
+    _districtController.text = widget.currentAddress?.district ?? "";
+    if (widget.currentAddress?.postalCode != null) {
+      viewModel.setPostalCode(widget.currentAddress!.postalCode!);
+    }
+
+    if (widget.currentAddress?.city != null) {
+      viewModel.setSelectedCity(widget.currentAddress!.city!);
+    }
+
+
+    if (widget.currentAddress?.province != null) {
+      viewModel.setSelectedProvince(widget.currentAddress!.province!);
+    }
+
+
+    if (widget.currentAddress?.district != null) {
+      viewModel.setSelectedProvince(widget.currentAddress!.district!);
+    }
+
+
+    if (widget.currentAddress?.village != null) {
+      viewModel.setSelectedProvince(widget.currentAddress!.village!);
+    }
+
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.currentAddress != null) {
-      _addressController.text = widget.currentAddress!.streetAddress;
-    }
-
-    return Consumer<AddressViewModel>(
-      builder: (context, viewmodel, child) {
-        return Stack(
-          children: [
-            Scaffold(
-              appBar: AppBar(
-                title: const Text("Ubah Alamat"),
-              ),
-              body: SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _addressWidget(),
-                      const SizedBox(height: 16),
-                      _cityWidget(viewmodel),
-                      const SizedBox(height: 16),
-                      _provinceWidget(viewmodel),
-                      const SizedBox(height: 16),
-                      _postalCodeWidget(viewmodel),
-                      const SizedBox(height: 16),
-                      Center(
-                          child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(5)),
-                                  backgroundColor: AppColor.primary),
-                              onPressed: () async {
-                                if (_formKey.currentState?.validate() ??
-                                    false) {
-                                  setState(() {
-                                    loading = true;
-                                  });
-                                  await viewmodel
-                                      .updateAddressUser(
-                                          _addressController.text, viewmodel)
-                                      .then((user) {
-                                    if (user != null) {
-                                      Navigator.pop(context);
-                                    }
-                                  });
-                                }
-                              },
-                              child: const Text(
-                                "Simpan Alamat",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: Colors.white),
-                              ))),
-                    ],
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Consumer<AddressViewModel>(
+        builder: (context, viewmodel, child) {
+          return Stack(
+            children: [
+              Scaffold(
+                backgroundColor: Colors.white,
+                appBar: AppBar(
+                  title: const Text("Ubah Alamat"),
+                ),
+                body: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _addressWidget(),
+                        const SizedBox(height: 16),
+                        _disctrictWidget(viewmodel),
+                        const SizedBox(height: 16),
+                        _villageWidget(viewmodel),
+                        const SizedBox(height: 16),
+                        _cityWidget(viewmodel),
+                        const SizedBox(height: 16),
+                        _provinceWidget(viewmodel),
+                        const SizedBox(height: 16),
+                        _postalCodeWidget(viewmodel),
+                        const SizedBox(height: 16),
+                        Center(
+                            child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(5)),
+                                    backgroundColor: AppColor.primary),
+                                onPressed: () async {
+                                  if (_formKey.currentState?.validate() ??
+                                      false) {
+                                    setState(() {
+                                      loading = true;
+                                    });
+                                    await viewmodel
+                                        .updateAddressUser(
+                                            _addressController.text, viewmodel)
+                                        .then((user) {
+                                      if (user != null) {
+                                        Navigator.pop(context);
+                                      }
+                                    });
+                                  }
+                                },
+                                child: const Text(
+                                  "Simpan Alamat",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: Colors.white),
+                                ))),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            if (loading) loadingWidget()
-          ],
-        );
-      },
+              if (loading) loadingWidget()
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -115,7 +160,7 @@ class _AddressScreenState extends State<AddressScreen> {
         TypeAheadFormField<City>(
           textFieldConfiguration: TextFieldConfiguration(
             controller: TextEditingController(
-                text: viewmodel.selectedCity?.cityName ?? ""),
+                text: viewmodel.selectedCity ?? ""),
             decoration: InputDecoration(
               hintText: "Masukkan nama kota",
               border: OutlineInputBorder(
@@ -137,7 +182,7 @@ class _AddressScreenState extends State<AddressScreen> {
             );
           },
           onSuggestionSelected: (City suggestion) {
-            viewmodel.setSelectedCity(suggestion);
+            viewmodel.setSelectedCity(suggestion.cityName);
           },
           noItemsFoundBuilder: (context) => const Padding(
             padding: EdgeInsets.all(8.0),
@@ -149,33 +194,84 @@ class _AddressScreenState extends State<AddressScreen> {
   }
 
   Widget _postalCodeWidget(AddressViewModel viewmodel) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Text(
-        "Kode Pos",
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-      ),
-      const SizedBox(height: 8),
-      TextField(
-        controller: TextEditingController(
-            text: viewmodel.postalCode != null ? viewmodel.postalCode.toString() : ""),
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly,LengthLimitingTextInputFormatter(5),],
-
-        decoration: InputDecoration(
-          hintText: "Masukkan Kode Pos",
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-          ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Kode Pos",
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        onChanged: (value) {
-          viewmodel.setPostalCode(int.parse(value));
-        },
-      ),
-    ],
-  );
-}
+        const SizedBox(height: 8),
+        TextField(
+          controller: _postalCodeController,
+          keyboardType: TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(5),
+          ],
+          decoration: InputDecoration(
+            hintText: "Masukkan Kode Pos",
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+          ),
+          onChanged: (value) {
+            viewmodel.setPostalCode(int.parse(value));
+          },
+        ),
+      ],
+    );
+  }
 
+  Widget _disctrictWidget(AddressViewModel viewmodel) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Kecamatan",
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _districtController,
+          decoration: InputDecoration(
+            hintText: "Masukkan Kecamatan",
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+          ),
+          onChanged: (value) {
+            viewmodel.setSelectedDistrict(value);
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _villageWidget(AddressViewModel viewmodel) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Kelurahan/Desa",
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _villageController,
+          decoration: InputDecoration(
+            hintText: "Masukkan Kelurahan/Desa",
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+          ),
+          onChanged: (value) {
+            viewmodel.setSelectedVillage(value);
+          },
+        ),
+      ],
+    );
+  }
 
   Widget _provinceWidget(AddressViewModel viewmodel) {
     return Column(
@@ -189,7 +285,7 @@ class _AddressScreenState extends State<AddressScreen> {
         TypeAheadFormField<Province>(
           textFieldConfiguration: TextFieldConfiguration(
             controller: TextEditingController(
-                text: viewmodel.selectedProvince?.provinceName ?? ""),
+                text: viewmodel.selectedProvince ?? ""),
             decoration: InputDecoration(
               hintText: "Masukkan nama provinsi",
               border: OutlineInputBorder(
@@ -211,7 +307,7 @@ class _AddressScreenState extends State<AddressScreen> {
             );
           },
           onSuggestionSelected: (Province suggestion) {
-            viewmodel.setSelectedProvince(suggestion);
+            viewmodel.setSelectedProvince(suggestion.provinceName);
           },
           noItemsFoundBuilder: (context) => const Padding(
             padding: EdgeInsets.all(8.0),

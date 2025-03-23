@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -84,7 +85,7 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
-              body: SingleChildScrollView(child:  showCustom(viewModel)),
+              body: SingleChildScrollView(child: showCustom(viewModel)),
               bottomNavigationBar: _bottomNavigationWidget(viewModel),
             ),
             if (viewModel.loading) loadingWidget()
@@ -174,7 +175,9 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
   }
 
   _textureWidget(CustomProductViewModel viewModel) {
-    if (svgColor.isNotEmpty && viewModel.currentFeature != null && viewModel.currentSVG != null) {
+    if (svgColor.isNotEmpty &&
+        viewModel.currentFeature != null &&
+        viewModel.currentSVG != null) {
       return Container(
         padding: EdgeInsets.all(2),
         color: Colors.white,
@@ -386,7 +389,8 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
               msg: "Tidak dapat memuat tekstur kain, silakan coba lagi nanti.");
           return null;
         }
-      } catch (e) {
+      } catch (e, stackTrace) {
+        FirebaseCrashlytics.instance.recordError(e, stackTrace);
         // Menangani error jika ada masalah dengan request HTTP
         log.d('Fetch and Convert to Base64: Terjadi kesalahan ${e}');
         Fluttertoast.showToast(msg: ApiService.SOMETHING_WAS_WRONG);
@@ -405,7 +409,6 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
       });
       log.d(
           "Base64 textures loaded from cache : ${json.encode(cachedTextures)}");
-
     } else {
       log.d("start fetching base64 texture from server");
       for (LookTexture texture in svgColor) {
@@ -427,7 +430,8 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
                     'Fetch and Convert to Base64: Gagal memuat gambar, status code: ${response.statusCode}');
                 return null;
               }
-            } catch (e) {
+            } catch (e, stackTrace) {
+              FirebaseCrashlytics.instance.recordError(e, stackTrace);
               // Menangani error jika ada masalah dengan request HTTP
               log.d('Fetch and Convert to Base64: Terjadi kesalahan ${e}');
               return null;
@@ -441,7 +445,7 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
       log.d("Base64 textures saved to cache");
       log.d("finish fetching all texture.");
     }
-    }
+  }
 
   _featureWidget(CustomProductViewModel viewModel) {
     return Container(
@@ -603,7 +607,7 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
           height: 10,
         ),
         Text(
-          viewModel.careGuides!,
+          viewModel.careGuides ?? "",
           style: TextStyle(
             fontSize: 14.sp,
           ),
@@ -628,7 +632,7 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
           height: 10,
         ),
         Text(
-          viewModel.productNotes!,
+          viewModel.productNotes ?? "",
           style: TextStyle(
             fontSize: 14.sp,
           ),
@@ -638,67 +642,71 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
   }
 
   _bottomNavigationWidget(CustomProductViewModel viewModel) {
-    if(viewModel.currentSVG != null) {
-    return Stack(
-      alignment: AlignmentDirectional.center,
-      children: [
-        Container(
-            width: deviceWidth,
-            padding: EdgeInsets.all(20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      backgroundColor: Colors.white,
-                      disabledBackgroundColor: Colors.grey,
-                      padding: EdgeInsets.symmetric(vertical: 15),
-                    ),
-                    onPressed: () async {
-                      Uri url = Uri.parse("http://wa.me/+6281284844428");
-                      try {
-                        await launchUrl(url,
-                            mode: LaunchMode.externalApplication);
-                      } catch (e) {
-                        Fluttertoast.showToast(
-                            msg: "Terjadi kesalahan, silakan coba lagi nanti.");
-                      }
-                    },
-                    child: Icon(Icons.chat)),
-                SizedBox(width: 10),
-                Expanded(
-                    child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8)),
-                          backgroundColor: Colors.red,
-                          disabledBackgroundColor: Colors.grey,
-                          padding: EdgeInsets.symmetric(
-                              vertical: 15, horizontal: 10),
+    if (viewModel.currentSVG != null) {
+      return Stack(
+        alignment: AlignmentDirectional.center,
+        children: [
+          Container(
+              width: deviceWidth,
+              padding: EdgeInsets.all(20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        onPressed: viewModel.currentSVG!.contains("none")
-                            ? null
-                            : () {
-                                goToDesignConfirmation(htmlContent, viewModel);
-                              },
-                        child: Text(
-                          "Selanjutnya",
-                          style: TextStyle(
-                            color: viewModel.currentSVG!.contains("none")
-                                ? Colors.black
-                                : Colors.white,
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.bold,
+                        backgroundColor: Colors.white,
+                        disabledBackgroundColor: Colors.grey,
+                        padding: EdgeInsets.symmetric(vertical: 15),
+                      ),
+                      onPressed: () async {
+                        Uri url = Uri.parse("http://wa.me/+6281284844428");
+                        try {
+                          await launchUrl(url,
+                              mode: LaunchMode.externalApplication);
+                        } catch (e, stackTrace) {
+                          FirebaseCrashlytics.instance
+                              .recordError(e, stackTrace);
+                          Fluttertoast.showToast(
+                              msg:
+                                  "Terjadi kesalahan, silakan coba lagi nanti.");
+                        }
+                      },
+                      child: Icon(Icons.chat)),
+                  SizedBox(width: 10),
+                  Expanded(
+                      child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8)),
+                            backgroundColor: Colors.red,
+                            disabledBackgroundColor: Colors.grey,
+                            padding: EdgeInsets.symmetric(
+                                vertical: 15, horizontal: 10),
                           ),
-                        )))
-              ],
-            )),
-      ],
-    );
-    }else{
+                          onPressed: viewModel.currentSVG!.contains("none")
+                              ? null
+                              : () {
+                                  goToDesignConfirmation(
+                                      htmlContent, viewModel);
+                                },
+                          child: Text(
+                            "Selanjutnya",
+                            style: TextStyle(
+                              color: viewModel.currentSVG!.contains("none")
+                                  ? Colors.black
+                                  : Colors.white,
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )))
+                ],
+              )),
+        ],
+      );
+    } else {
       return Container();
     }
   }

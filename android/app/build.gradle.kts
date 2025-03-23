@@ -4,6 +4,9 @@ import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
+    // START: FlutterFire Configuration
+    id("com.google.gms.google-services")
+    // END: FlutterFire Configuration
     kotlin("android")
     kotlin("kapt")
     id("dev.flutter.flutter-gradle-plugin")

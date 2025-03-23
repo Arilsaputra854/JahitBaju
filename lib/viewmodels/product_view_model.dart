@@ -1,3 +1,4 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/model/favorite.dart';
@@ -95,7 +96,8 @@ class ProductViewModel extends ChangeNotifier {
         Fluttertoast.showToast(msg: "Berhasil menambahkan ke favorit.");
       }
     }
-  } catch (e) {
+  } catch (e,stackTrace) {
+    FirebaseCrashlytics.instance.recordError(e, stackTrace);
     _errorMsg = "Terjadi kesalahan. Coba lagi.";
     Fluttertoast.showToast(msg: _errorMsg!);
   }

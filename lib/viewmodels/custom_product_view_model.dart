@@ -63,6 +63,8 @@ class CustomProductViewModel extends ChangeNotifier {
     _currentFeatureColor = {};
     _currentSVG = null;
     _currentFeature = null;
+    _careGuides = null;
+    _sizeGuide = null;
     _selectedSize = null;
     _product = null;
     _favoriteId = null;

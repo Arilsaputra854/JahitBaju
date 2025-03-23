@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:jahit_baju/data/model/look.dart';
@@ -81,7 +82,8 @@ class ApiService {
       logger.e("User Register : Tidak ada koneksi internet");
 
       return LoginResponse(error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("User Login : $e");
       return LoginResponse(message: "Network error : $e", error: true);
     }
@@ -114,7 +116,8 @@ class ApiService {
       logger.e("User Register : Tidak ada koneksi internet");
 
       return RegisterResponse(error: true, message: NO_INTERNET_CONNECTION);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("User Register : $e");
       return RegisterResponse(error: true, message: SOMETHING_WAS_WRONG);
     }
@@ -146,7 +149,8 @@ class ApiService {
 
       logger.e("User Get : Tidak ada koneksi internet");
       return UserResponse(message: "Tidak ada internet", error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("User Get : $e");
       return UserResponse(message: "Network error : $e", error: true);
     }
@@ -159,8 +163,6 @@ class ApiService {
 
     String? token =
         resetToken ?? await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
-
-    logger.d("Token: Bearer ${token}");
 
     try {
       Map<String, dynamic> body = {};
@@ -189,7 +191,6 @@ class ApiService {
         return UserResponse(message: "Field is empty", error: true);
       }
 
-
       logger.d("body address :${body}");
 
       final response = await http.patch(
@@ -213,7 +214,8 @@ class ApiService {
 
       logger.e("User Update: Tidak ada koneksi internet");
       return UserResponse(message: NO_INTERNET_CONNECTION, error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("User Update : $e");
       return UserResponse(message: "Network error : $e", error: true);
     }
@@ -239,13 +241,13 @@ class ApiService {
       logger.d("User Email Verify : $data");
 
       return OtpResponse.fromJson(data);
-
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("User Email Verify : Tidak ada koneksi internet");
       return OtpResponse(message: NO_INTERNET_CONNECTION, error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("User Email Verify : $e");
 
       return OtpResponse(message: "Network error : $e", error: true);
@@ -275,7 +277,8 @@ class ApiService {
 
       logger.e("User Request OTP : Tidak ada koneksi internet");
       return OtpResponse(message: NO_INTERNET_CONNECTION, error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("User Request OTP : $e");
 
       return OtpResponse(message: "Network error : $e", error: true);
@@ -308,7 +311,8 @@ class ApiService {
 
       logger.e("User Reset Email Verify : Tidak ada koneksi internet");
       return OtpResponse(message: NO_INTERNET_CONNECTION, error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("User Reset Email Verify : $e");
 
       return OtpResponse(message: "Network error : $e", error: true);
@@ -336,7 +340,8 @@ class ApiService {
 
       logger.e("User Reset Request OTP : Tidak ada koneksi internet");
       return OtpResponse(message: NO_INTERNET_CONNECTION, error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("User Reset Request OTP : $e");
 
       return OtpResponse(message: "Network error : $e", error: true);
@@ -398,7 +403,8 @@ class ApiService {
 
       logger.e("Order New : Tidak ada koneksi internet");
       return OrderResponse(message: NO_INTERNET_CONNECTION, error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Order now : $e");
       return OrderResponse(error: true, message: "Network error : $e");
     }
@@ -436,7 +442,8 @@ class ApiService {
 
       logger.e("Cart Get : Tidak ada koneksi internet");
       cartResponse = CartResponse(error: true, message: NO_INTERNET_CONNECTION);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Cart Get : $e");
       cartResponse = CartResponse(error: true, message: SOMETHING_WAS_WRONG);
     }
@@ -445,8 +452,12 @@ class ApiService {
   }
 
   Future<CartResponse?> cartAdd(
-
-      {required int quantity, required String selectedSize, String? customDesignSvg, Product? product, Look? look, required int weight}) async {
+      {required int quantity,
+      required String selectedSize,
+      String? customDesignSvg,
+      Product? product,
+      Look? look,
+      required int weight}) async {
     final url = Uri.parse("${baseUrl}cart");
 
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
@@ -464,13 +475,13 @@ class ApiService {
                 'quantity': quantity,
                 'price': look.price,
                 'size': selectedSize,
-                'weight' : weight,
+                'weight': weight,
                 'custom_design': customDesignSvg
               })
             : jsonEncode(<String, dynamic>{
                 'product_id': product!.id,
                 'quantity': quantity,
-                'weight' : weight,
+                'weight': weight,
                 'price': product.price,
                 'size': selectedSize,
               }),
@@ -485,15 +496,15 @@ class ApiService {
         showDialogSession(context);
         return CartResponse(error: true, message: UNAUTHORIZED);
       } else {
-        return
-            CartResponse(error: true, message: SOMETHING_WAS_WRONG_SERVER);
+        return CartResponse(error: true, message: SOMETHING_WAS_WRONG_SERVER);
       }
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Cart Add : Tidak ada koneksi internet");
       return CartResponse(error: true, message: NO_INTERNET_CONNECTION);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Cart Add : $e");
     }
   }
@@ -525,7 +536,8 @@ class ApiService {
 
       logger.e("Item Cart Delete : Tidak ada koneksi internet");
       return NO_INTERNET_CONNECTION;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Item Cart Delete : $e");
       return "Network error : $e";
     }
@@ -536,12 +548,14 @@ class ApiService {
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
 
     try {
-      final response = await http.post(url, headers: <String, String>{
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${token}'
-      },body: jsonEncode(<String, dynamic>{
-                'total_weight': totalWeight,
-              }));
+      final response = await http.post(url,
+          headers: <String, String>{
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ${token}'
+          },
+          body: jsonEncode(<String, dynamic>{
+            'total_weight': totalWeight,
+          }));
 
       var data = jsonDecode(response.body);
       logger.d("Shipping Get : ${data}");
@@ -561,10 +575,11 @@ class ApiService {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Shipping Get : Tidak ada koneksi internet");
-        return ShippingsResponse(error: true, message: NO_INTERNET_CONNECTION);
-    } catch (e) {
+      return ShippingsResponse(error: true, message: NO_INTERNET_CONNECTION);
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Shipping Get : $e");
-        return ShippingsResponse(error: true, message: SOMETHING_WAS_WRONG);
+      return ShippingsResponse(error: true, message: SOMETHING_WAS_WRONG);
     }
   }
 
@@ -590,7 +605,8 @@ class ApiService {
       logger.e("Shipping Get: Tidak ada koneksi internet");
       return ShippingResponse(
           error: true, message: "Tidak ada koneksi internet.");
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Shipping Get : $e");
       return ShippingResponse(error: true, message: "Terjadi kesalahan.");
     }
@@ -625,7 +641,8 @@ class ApiService {
 
       logger.e("Packaging Get : Tidak ada koneksi internet");
       return NO_INTERNET_CONNECTION;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Packaging Get : $e");
       return "error";
     }
@@ -649,7 +666,8 @@ class ApiService {
       logger.e("Get Packaging : Tidak ada koneksi internet");
       return PackagingResponse(
           error: true, message: "Tidak ada koneksi internet.");
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Get Packaging : $e");
       return PackagingResponse(
           error: true, message: "Terjadi kesalahan, Coba lagi nanti.");
@@ -698,7 +716,8 @@ class ApiService {
 
       logger.e("Create Order : Tidak ada koneksi internet");
       return NO_INTERNET_CONNECTION;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Create Order: ${e}");
       return OrderResponse(error: true, message: "Network error : $e");
     }
@@ -739,7 +758,8 @@ class ApiService {
       logger.e("Get Order : Tidak ada koneksi internet");
       orderResponse =
           OrderResponse(message: NO_INTERNET_CONNECTION, error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Get Order: ${e}");
       orderResponse = OrderResponse(error: true, message: "Network error : $e");
     }
@@ -768,7 +788,8 @@ class ApiService {
 
       logger.e("Delete Order : Tidak ada koneksi internet");
       return OrderResponse(message: NO_INTERNET_CONNECTION, error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Delete Order: ${e}");
       return OrderResponse(error: true, message: "Network error : $e");
     }
@@ -796,7 +817,8 @@ class ApiService {
       logger.e("Get Product by ID : Tidak ada koneksi internet");
 
       return ProductResponse(message: NO_INTERNET_CONNECTION, error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Get Product by ID : ${e}");
       return ProductResponse(
           error: true, message: "Network error : $e", product: null);
@@ -824,7 +846,8 @@ class ApiService {
       logger.e("Get Look by ID : Tidak ada koneksi internet");
 
       return LookResponse(message: NO_INTERNET_CONNECTION, error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Get Look by ID : ${e}");
       return LookResponse(
         error: true,
@@ -859,7 +882,8 @@ class ApiService {
       logger.e("Get Product by Last Update : Tidak ada koneksi internet");
       return ProductLatestResponse(
           message: NO_INTERNET_CONNECTION, error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Get Product by Last Update : ${e}");
       return ProductLatestResponse(error: true, message: e.toString());
     }
@@ -887,7 +911,8 @@ class ApiService {
       logger.e("Get Product : Tidak ada koneksi internet");
 
       return ProductsResponse(message: NO_INTERNET_CONNECTION, error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Get Product : ${e}");
       return ProductsResponse(
           error: true, message: "Terjadi kesalahan saat mengambil data produk");
@@ -909,13 +934,13 @@ class ApiService {
       logger.d("Get Favorite : ${data}");
 
       return FavoritesResponse.fromJson(data);
-      
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
       return FavoritesResponse(error: true, message: NO_INTERNET_CONNECTION);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Get Favorite : ${e}");
       return FavoritesResponse(error: true, message: SOMETHING_WAS_WRONG);
     }
@@ -945,7 +970,8 @@ class ApiService {
       logger.e("Get Favorite : Tidak ada koneksi internet");
 
       return FavoriteResponse(message: NO_INTERNET_CONNECTION, error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Delete Favorite : $e");
       return FavoriteResponse(error: true, message: "Network error : $e");
     }
@@ -975,7 +1001,8 @@ class ApiService {
       logger.e("Get Favorite : Tidak ada koneksi internet");
 
       return FavoriteResponse(message: NO_INTERNET_CONNECTION, error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Add Favorite : $e");
       return FavoriteResponse(error: true, message: "Network error : $e");
     }
@@ -998,7 +1025,8 @@ class ApiService {
       logger.e("Get Favorite : Tidak ada koneksi internet");
       termConditionResponse =
           TermConditionResponse(error: true, data: NO_INTERNET_CONNECTION);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Term Condition : $e");
       termConditionResponse =
           TermConditionResponse(error: true, data: SOMETHING_WAS_WRONG);
@@ -1022,7 +1050,8 @@ class ApiService {
 
       logger.e("Get Favorite : Tidak ada koneksi internet");
       return NO_INTERNET_CONNECTION;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Size Guide : $e");
       return "Network error : $e";
     }
@@ -1045,7 +1074,8 @@ class ApiService {
 
       logger.e("get all app banner : Tidak ada koneksi internet");
       return AppBannerResponse(message: NO_INTERNET_CONNECTION, error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("get all app banner : $e");
 
       return AppBannerResponse(message: "Network error : $e", error: true);
@@ -1078,7 +1108,8 @@ class ApiService {
       logger.e("upload custom design : Tidak ada koneksi internet");
       return CustomDesignResponse(
           error: true, message: 'Tidak ada koneksi internet');
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("upload custom design : Terjadi kesalahan");
       return CustomDesignResponse(error: true, message: 'Terjadi kesalahan');
     }
@@ -1104,7 +1135,8 @@ class ApiService {
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
       logger.e("get custom design : Tidak ada koneksi internet");
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       showSnackBar(context, "Terjadi kesalahan", isError: true);
       logger.e("get custom design : Tidak ada koneksi internet");
     }
@@ -1128,7 +1160,8 @@ class ApiService {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
       logger.e("get Product Term : Tidak ada koneksi internet");
       return ProductTermResponse(error: true, message: NO_INTERNET_CONNECTION);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("get Product Term : Terjadi kesalahan $e");
       return ProductTermResponse(error: true, message: "Terjadi kesalahan");
     }
@@ -1159,7 +1192,8 @@ class ApiService {
       logger.e("Care Guide :  Tidak ada koneksi internet");
       careGuideResponse =
           CareGuideResponse(error: true, message: NO_INTERNET_CONNECTION);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Care Guide :  $e");
       careGuideResponse =
           CareGuideResponse(error: true, message: SOMETHING_WAS_WRONG);
@@ -1187,22 +1221,19 @@ class ApiService {
             error: true, message: SOMETHING_WAS_WRONG_SERVER);
       } else if (response.statusCode == 401) {
         showDialogSession(context);
-        return
-            ProductNoteResponse(error: true, message: UNAUTHORIZED);
+        return ProductNoteResponse(error: true, message: UNAUTHORIZED);
       } else {
-        return
-            ProductNoteResponse(error: true, message: SOMETHING_WAS_WRONG);
+        return ProductNoteResponse(error: true, message: SOMETHING_WAS_WRONG);
       }
     } on SocketException catch (e) {
       showSnackBar(context, NO_INTERNET_CONNECTION, isError: true);
 
       logger.e("Product Note : Tidak ada koneksi internet");
-      return
-          ProductNoteResponse(error: true, message: NO_INTERNET_CONNECTION);
-    } catch (e) {
+      return ProductNoteResponse(error: true, message: NO_INTERNET_CONNECTION);
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Product Note :  $e");
-      return
-          ProductNoteResponse(error: true, message: SOMETHING_WAS_WRONG);
+      return ProductNoteResponse(error: true, message: SOMETHING_WAS_WRONG);
     }
   }
 
@@ -1238,7 +1269,8 @@ class ApiService {
       logger.e("Get Designer : Tidak ada koneksi internet");
       designerResponse =
           DesignerResponse(error: true, message: NO_INTERNET_CONNECTION);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Get Designer :  $e");
       designerResponse =
           DesignerResponse(error: true, message: SOMETHING_WAS_WRONG);
@@ -1274,7 +1306,8 @@ class ApiService {
       logger.e("Customization Feature: Tidak ada koneksi internet");
       return CustomizationAccessResponse(
           error: true, message: NO_INTERNET_CONNECTION);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Customization Feature: $e");
       return CustomizationAccessResponse(
           error: true, message: SOMETHING_WAS_WRONG);
@@ -1303,7 +1336,8 @@ class ApiService {
 
       buyFeatureResponse =
           BuyFeatureResponse(message: NO_INTERNET_CONNECTION, error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Buy Customization Feature : $e");
       buyFeatureResponse =
           BuyFeatureResponse(error: true, message: "Network error : $e");
@@ -1340,12 +1374,12 @@ class ApiService {
 
       logger.e("Get Feature Order : Tidak ada koneksi internet");
       return OrderFeatureResponse(message: NO_INTERNET_CONNECTION, error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("Get Feature Order: ${e}");
       return OrderFeatureResponse(error: true, message: "Network error : $e");
     }
   }
-
 
   Future<LookAccessResponse> getLookAccess(String lookId) async {
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
@@ -1367,22 +1401,22 @@ class ApiService {
       logger.e("look Access : Tidak ada koneksi internet");
 
       return LookAccessResponse(message: NO_INTERNET_CONNECTION, error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("look Access : $e");
-      return  LookAccessResponse(error: true, message: "Network error : $e");
+      return LookAccessResponse(error: true, message: "Network error : $e");
     }
   }
-
 
   Future<LookOrderResponse> buyLook(String lookId) async {
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
     final url = Uri.parse("${baseUrl}look/buy");
-    final response = await http.post(url, headers: <String, String>{
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ${token}'
-    },body: jsonEncode( <String, String>{
-      "look_id" : lookId
-    }));
+    final response = await http.post(url,
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${token}'
+        },
+        body: jsonEncode(<String, String>{"look_id": lookId}));
 
     try {
       var data = jsonDecode(response.body);
@@ -1396,12 +1430,12 @@ class ApiService {
       logger.e("look order : Tidak ada koneksi internet");
 
       return LookOrderResponse(message: NO_INTERNET_CONNECTION, error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("look order : $e");
-      return  LookOrderResponse(error: true, message: "Network error : $e");
+      return LookOrderResponse(error: true, message: "Network error : $e");
     }
   }
-
 
   Future<LookOrderResponse> getLookOrder(String lookId) async {
     var token = await tokenStorage.readToken(TokenStorage.TOKEN_KEY);
@@ -1423,18 +1457,17 @@ class ApiService {
       logger.e("get look order : Tidak ada koneksi internet");
 
       return LookOrderResponse(message: NO_INTERNET_CONNECTION, error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("get look order : $e");
-      return  LookOrderResponse(error: true, message: "Network error : $e");
+      return LookOrderResponse(error: true, message: "Network error : $e");
     }
   }
 
-
   Future<CityResponse> getListCity() async {
     final url = Uri.parse("${baseUrl}shipping/cities");
-    final response = await http.get(url, headers: <String, String>{
-      'Content-Type': 'application/json'
-    });
+    final response = await http.get(url,
+        headers: <String, String>{'Content-Type': 'application/json'});
 
     try {
       var data = jsonDecode(response.body);
@@ -1448,17 +1481,17 @@ class ApiService {
       logger.e("get city response : Tidak ada koneksi internet");
 
       return CityResponse(message: NO_INTERNET_CONNECTION, error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("get city response : $e");
-      return  CityResponse(error: true, message: "Network error : $e");
+      return CityResponse(error: true, message: "Network error : $e");
     }
   }
 
   Future<ProvinceResponse> getListProvinces() async {
     final url = Uri.parse("${baseUrl}shipping/provinces");
-    final response = await http.get(url, headers: <String, String>{
-      'Content-Type': 'application/json'
-    });
+    final response = await http.get(url,
+        headers: <String, String>{'Content-Type': 'application/json'});
 
     try {
       var data = jsonDecode(response.body);
@@ -1472,10 +1505,10 @@ class ApiService {
       logger.e("get province response : Tidak ada koneksi internet");
 
       return ProvinceResponse(message: NO_INTERNET_CONNECTION, error: true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       logger.e("get province response : $e");
-      return  ProvinceResponse(error: true, message: "Network error : $e");
+      return ProvinceResponse(error: true, message: "Network error : $e");
     }
   }
-
 }

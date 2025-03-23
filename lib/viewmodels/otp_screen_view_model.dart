@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
@@ -89,7 +90,8 @@ class OtpScreenViewModel extends ChangeNotifier {
         startCountdown();
         notifyListeners();
       }
-    } catch (e) {
+    } catch (e,stackTrace) {
+        FirebaseCrashlytics.instance.recordError(e, stackTrace);
       _message = "Terjadi kesalahan, silakan coba lagi.";
     }
 

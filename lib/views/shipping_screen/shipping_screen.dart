@@ -77,6 +77,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
           }
           return Stack(children: [
             Scaffold(
+              backgroundColor: Colors.white,
                 appBar: AppBar(
                   elevation: 0,
                   title: const Text("Pengiriman",
@@ -297,7 +298,8 @@ class _ShippingScreenState extends State<ShippingScreen> {
         shrinkWrap: true,
         itemCount: viewModel.listOfShipping.length,
         itemBuilder: (context, index) {
-          return InkWell(
+          if(viewModel.listOfShipping[index].price != null) {
+            return InkWell(
               onTap: () {
                 setState(() {
                   deliveryChoosedIndex = index;
@@ -342,6 +344,13 @@ class _ShippingScreenState extends State<ShippingScreen> {
                   ],
                 ),
               )));
+          }else{
+            return Text(
+                      "Silakan atur alamat terlebihdahulu.",
+                      style: TextStyle(fontSize: 12.sp),
+                    );
+          }
+          
         });
   }
 
@@ -438,6 +447,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
         MaterialPageRoute(builder: (context) => AddressScreen(address))).then((_){
 
   viewModel.getListShippingMethod();
+  viewModel.getUserAddress();
 
         });
   }
@@ -502,6 +512,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Divider(),
             Text(
               "Packaging",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
@@ -523,14 +534,21 @@ class _ShippingScreenState extends State<ShippingScreen> {
     return Container(
         padding: EdgeInsets.symmetric(horizontal: 20),
         child: Column(
+          
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Divider(),
             Text(
               "Jasa Ekpedisi",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
             ),
             const SizedBox(height: 5),
-            deliveryList(viewModel)
+            viewModel.userAddress != null ? deliveryList(viewModel) :  Center(
+                    child: Text(
+                      "Silakan atur alamat terlebihdahulu.",
+                      style: TextStyle(fontSize: 12.sp),
+                    ),
+                  )
           ],
         ));
   }
@@ -541,6 +559,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Divider(),
             Text(
               "Catatan",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
