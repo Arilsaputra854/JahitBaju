@@ -98,10 +98,10 @@ class _SearchPageState extends State<SearchPage> {
                               DropdownButton<String>(
                                 hint: Text("Kategori",
                                     style: TextStyle(fontSize: 12.sp)),
-                                value: viewModel.selectedCategory?.isNotEmpty == true 
-      ? viewModel.selectedCategory 
-      : null,
-
+                                value: viewModel.selectedCategory?.isNotEmpty ==
+                                        true
+                                    ? viewModel.selectedCategory
+                                    : null,
                                 items: viewModel.categories.map((value) {
                                   return DropdownMenuItem(
                                     value: value,
@@ -190,7 +190,11 @@ class _SearchPageState extends State<SearchPage> {
                 )),
           ),
           backgroundColor: Colors.white,
-          body: productWidget(viewModel));
+          body: RefreshIndicator(
+              onRefresh: () async {
+                await viewModel.refresh();
+              },
+              child: productWidget(viewModel)));
     }));
   }
 
@@ -324,15 +328,15 @@ class _SearchPageState extends State<SearchPage> {
   productWidget(SearchViewModel viewModel) {
     if (viewModel.selectedCategory != null &&
         viewModel.selectedCategory!.isNotEmpty) {
-      Future.delayed(Duration.zero, (){
+      Future.delayed(Duration.zero, () {
         viewModel.setFilteredRTW(viewModel.productsRTW!.where((product) {
-        if (product.category != null && product.category!.isNotEmpty) {
-          return product.category!.any(
-              (category) => viewModel.selectedCategory!.contains(category));
-        } else {
-          return false;
-        }
-      }).toList());
+          if (product.category != null && product.category!.isNotEmpty) {
+            return product.category!.any(
+                (category) => viewModel.selectedCategory!.contains(category));
+          } else {
+            return false;
+          }
+        }).toList());
       });
     }
 
@@ -343,7 +347,7 @@ class _SearchPageState extends State<SearchPage> {
     if ((viewModel.selectedCategory == null &&
             viewModel.selectedTags == null) &&
         viewModel.searchQuery == null) {
-      Future.delayed(Duration.zero,(){
+      Future.delayed(Duration.zero, () {
         viewModel.setFilteredRTW(List.from(viewModel.productsRTW!));
       });
     }

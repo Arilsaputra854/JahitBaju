@@ -6,6 +6,7 @@ import 'package:jahit_baju/data/model/look.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/data/source/remote/response/look_response.dart';
 import 'package:jahit_baju/viewmodels/address_view_model.dart';
+import 'package:jahit_baju/viewmodels/home_screen_view_model.dart';
 import 'package:jahit_baju/viewmodels/shipping_view_model.dart';
 import 'package:jahit_baju/data/model/cart.dart';
 import 'package:jahit_baju/data/model/order.dart';
@@ -14,6 +15,8 @@ import 'package:jahit_baju/data/model/product.dart';
 import 'package:jahit_baju/data/model/shipping.dart';
 import 'package:jahit_baju/util/util.dart';
 import 'package:jahit_baju/views/address_screen/address_screen.dart';
+import 'package:jahit_baju/views/home_screen/fragment/home_page.dart';
+import 'package:jahit_baju/views/home_screen/home_screen.dart';
 import 'package:jahit_baju/views/payment_screen/payment_screen.dart';
 import 'package:logger/web.dart';
 import 'package:provider/provider.dart';
@@ -48,21 +51,10 @@ class _ShippingScreenState extends State<ShippingScreen> {
 
   @override
   void initState() {
-    Future.microtask((){
+    Future.microtask(() {
       final viewModel = Provider.of<ShippingViewModel>(context, listen: false);
-    viewModel.getListShippingMethod();
-    viewModel.getListPackaging();
-    viewModel.getUserAddress();
-    });
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    deviceWidth = MediaQuery.of(context).size.width;
-    deviceHeight = MediaQuery.of(context).size.height;
-
-    return Consumer<ShippingViewModel>(builder: (context, viewModel, child) {
+      viewModel.getListPackaging();
+      viewModel.getUserAddress();
       if (viewModel.totalWeight == null) {
         if (widget.product != null) {
           viewModel.setTotalWeight(widget.product!.weight!);
@@ -76,6 +68,17 @@ class _ShippingScreenState extends State<ShippingScreen> {
           viewModel.setTotalWeight(widget.look!.weight);
         }
       }
+      viewModel.getListShippingMethod();
+    });
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    deviceWidth = MediaQuery.of(context).size.width;
+    deviceHeight = MediaQuery.of(context).size.height;
+
+    return Consumer<ShippingViewModel>(builder: (context, viewModel, child) {
       return Stack(children: [
         Scaffold(
             backgroundColor: Colors.white,
@@ -150,7 +153,7 @@ class _ShippingScreenState extends State<ShippingScreen> {
 
         viewModel.createOrder(order).then((orderFromServer) {
           print("error ${viewModel.errorMsg}");
-          if(viewModel.errorMsg != null){
+          if (viewModel.errorMsg != null) {
             Fluttertoast.showToast(msg: viewModel.errorMsg!);
           }
           if (orderFromServer != null) {
@@ -196,6 +199,21 @@ class _ShippingScreenState extends State<ShippingScreen> {
             discount: discount);
 
         await viewModel.buyNow(order, widget.filename).then((orderFromServer) {
+          if (viewModel.errorMsg != null) {
+            if (viewModel.errorMsg!.contains("product stock is not enogh")) {
+              Fluttertoast.showToast(msg: "Stok produk telah habis");
+              Provider.of<HomeScreenViewModel>(context, listen: false)
+                  .refresh();
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => HomeScreen()),
+                (route) => false,
+              );
+            }else{
+              
+              Fluttertoast.showToast(msg: viewModel.errorMsg!);
+            }
+          }
           if (orderFromServer != null) {
             Navigator.pushAndRemoveUntil(
               context,

@@ -118,4 +118,9 @@ class SearchViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  refresh() {
+    _productsRTW = [];
+    getListProducts();
+  }
 }

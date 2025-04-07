@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:jahit_baju/data/model/look_order.dart';
 import 'package:jahit_baju/data/source/remote/response/feature_order_reaspones.dart';
 import 'package:jahit_baju/data/source/remote/response/look_order_response.dart';
+import 'package:jahit_baju/viewmodels/home_screen_view_model.dart';
 import 'package:logger/web.dart';
 
 import 'package:flutter/material.dart';
@@ -24,14 +25,13 @@ class PaymentScreen extends StatefulWidget {
   Order? order;
   FeatureOrder? featureOrder;
   LookOrder? lookOrder;
-  PaymentScreen({this.order, this.featureOrder,this.lookOrder, super.key});
+  PaymentScreen({this.order, this.featureOrder, this.lookOrder, super.key});
 
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
-
   var isPaymentSuccess = false;
   Order? paidOrder;
   FeatureOrder? paidFeature;
@@ -40,7 +40,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     return ChangeNotifierProvider(
         create: (context) => PaymentViewModel(ApiService(context)),
         child: Consumer<PaymentViewModel>(builder: (context, viewmodel, child) {
@@ -74,7 +73,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           height: 5,
                         ),
                         Text(
-                            "Id : ${widget.order?.id ?? widget.featureOrder?.id ?? widget.lookOrder?.id?? ""}",
+                            "Id : ${widget.order?.id ?? widget.featureOrder?.id ?? widget.lookOrder?.id ?? ""}",
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 12.sp)),
                         SizedBox(
@@ -125,15 +124,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                 if (widget.order != null) {
                                   paidOrder =
                                       await validateOrderProductPaymentXenditGateway();
-                                      log.d("Paid Order : ${paidOrder}");
-                                } else if(widget.featureOrder != null) {
+                                  log.d("Paid Order : ${paidOrder}");
+                                } else if (widget.featureOrder != null) {
                                   paidFeature =
                                       await validateOrderFeaturePaymentXenditGateway();
-                                      log.d("Paid Feature : ${paidFeature}");
-                                } else if(widget.lookOrder != null) {
+                                  log.d("Paid Feature : ${paidFeature}");
+                                } else if (widget.lookOrder != null) {
                                   paidLook =
                                       await validateLookOrderPaymentXenditGateway();
-                                      log.d("Paid Look : ${paidLook}");
+                                  log.d("Paid Look : ${paidLook}");
                                 }
                               },
                               child: Text(
@@ -191,7 +190,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         await apiService.getFeatureOrder(widget.featureOrder!.id!);
 
     if (!response.error && response.data != null) {
-      if (response.data!.paymentStatus == "PAID"&& paidFeature != null) {
+      if (response.data!.paymentStatus == "PAID" && paidFeature != null) {
         setState(() {
           isPaymentSuccess = true;
         });
@@ -200,14 +199,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
   }
 
-
   Future<LookOrder?> validateLookOrderPaymentXenditGateway() async {
     ApiService apiService = ApiService(context);
     LookOrderResponse response =
         await apiService.getLookOrder(widget.lookOrder!.id!);
 
     if (!response.error && response.look != null) {
-      if (response.look!.paymentStatus == "PAID"&& paidLook != null) {
+      if (response.look!.paymentStatus == "PAID" && paidLook != null) {
         setState(() {
           isPaymentSuccess = true;
         });
@@ -215,7 +213,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
       return response.look;
     }
   }
-
 
   Future<void> openXenditGateway() async {
     var url;
@@ -225,30 +222,28 @@ class _PaymentScreenState extends State<PaymentScreen> {
         await launchUrl(url, mode: LaunchMode.externalApplication).then((v) {
           validateOrderProductPaymentXenditGateway();
         });
-      } catch (e,stackTrace) {
+      } catch (e, stackTrace) {
         FirebaseCrashlytics.instance.recordError(e, stackTrace);
-        Fluttertoast.showToast(
-            msg: "Terjadi kesalahan, Error ${e}");
+        Fluttertoast.showToast(msg: "Terjadi kesalahan, Error ${e}");
       }
-    } else if(widget.featureOrder != null){
+    } else if (widget.featureOrder != null) {
       url = Uri.parse(widget.featureOrder!.paymentUrl);
       try {
         await launchUrl(url, mode: LaunchMode.externalApplication).then((v) {
           validateOrderFeaturePaymentXenditGateway();
         });
-      } catch (e,stackTrace) {
+      } catch (e, stackTrace) {
         FirebaseCrashlytics.instance.recordError(e, stackTrace);
         Fluttertoast.showToast(
             msg: "Terjadi kesalahan, silakan coba lagi nanti.");
       }
-    }  else if(widget.lookOrder != null){
+    } else if (widget.lookOrder != null) {
       url = Uri.parse(widget.lookOrder!.paymentUrl!);
       try {
         await launchUrl(url, mode: LaunchMode.externalApplication).then((v) {
           validateLookOrderPaymentXenditGateway();
         });
-      } catch (e,stackTrace) {
-
+      } catch (e, stackTrace) {
         FirebaseCrashlytics.instance.recordError(e, stackTrace);
         Fluttertoast.showToast(
             msg: "Terjadi kesalahan, silakan coba lagi nanti.");
@@ -306,7 +301,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text("Order ID:", style: TextStyle(fontSize: 12.sp)),
-                        Text("${paidOrder?.id ?? paidFeature?.id ?? paidLook?.id}",
+                        Text(
+                            "${paidOrder?.id ?? paidFeature?.id ?? paidLook?.id}",
                             style: TextStyle(fontSize: 12.sp)),
                       ],
                     ),
@@ -319,13 +315,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             style: TextStyle(fontSize: 12.sp)),
                         (widget.order != null)
                             ? Text(
-                                "${customFormatDate(paidOrder?.paymentDate?? DateTime.now())}",
+                                "${customFormatDate(paidOrder?.paymentDate ?? DateTime.now())}",
                                 style: TextStyle(fontSize: 12.sp))
-                            : widget.featureOrder != null ? Text(
-                                "${customFormatDate(paidFeature?.paymentDate ?? DateTime.now())}",
-                                style: TextStyle(fontSize: 12.sp)): Text(
-                                "${customFormatDate(paidLook?.paymentDate ?? DateTime.now())}",
-                                style: TextStyle(fontSize: 12.sp))
+                            : widget.featureOrder != null
+                                ? Text(
+                                    "${customFormatDate(paidFeature?.paymentDate ?? DateTime.now())}",
+                                    style: TextStyle(fontSize: 12.sp))
+                                : Text(
+                                    "${customFormatDate(paidLook?.paymentDate ?? DateTime.now())}",
+                                    style: TextStyle(fontSize: 12.sp))
                       ],
                     ),
                     SizedBox(height: 8),
@@ -335,7 +333,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       children: [
                         Text("Status Pembayaran:",
                             style: TextStyle(fontSize: 12.sp)),
-                        Text("${paidOrder?.xenditStatus ?? paidFeature?.paymentStatus ?? paidLook?.paymentStatus}",
+                        Text(
+                            "${paidOrder?.xenditStatus ?? paidFeature?.paymentStatus ?? paidLook?.paymentStatus}",
                             style: TextStyle(fontSize: 12.sp)),
                       ],
                     ),
@@ -346,7 +345,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       children: [
                         Text("Metode pembayaran:",
                             style: TextStyle(fontSize: 12.sp)),
-                        Text("${paidOrder?.paymentMethod ?? paidFeature?.paymentMethod ?? paidLook?.paymentMethod}",
+                        Text(
+                            "${paidOrder?.paymentMethod ?? paidFeature?.paymentMethod ?? paidLook?.paymentMethod}",
                             style: TextStyle(fontSize: 12.sp)),
                       ],
                     ),
@@ -355,12 +355,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
                 ElevatedButton(
                   onPressed: () {
+                    Provider.of<HomeScreenViewModel>(context, listen: false)
+                        .refresh();
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(builder: (context) => HomeScreen()),
                       (route) => false, // Menghapus semua aktivitas sebelumnya
                     );
-                    context.read<HomeViewModel>().refresh();
                   },
                   child: Text(
                     "Selesai",

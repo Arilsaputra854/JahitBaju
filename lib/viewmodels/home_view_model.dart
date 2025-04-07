@@ -93,5 +93,6 @@ class HomeViewModel extends ChangeNotifier {
 
   void refresh() {
     notifyListeners();
+    getListProducts();
   }
 }

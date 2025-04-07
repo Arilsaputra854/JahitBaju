@@ -225,7 +225,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 onRefresh: () async {
                   setState(() {
-                    viewModel.setProducts([]);
+                    viewModel.refresh();
                   });
                 }),
           ),

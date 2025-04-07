@@ -148,6 +148,7 @@ class ShippingViewModel extends ChangeNotifier {
 
   Future<Order?> buyNow(Order? order, String? filename) async {
     _loading = true;
+    _errorMsg = null;
     notifyListeners();
     if (order != null) {
       OrderResponse orderResponse =
