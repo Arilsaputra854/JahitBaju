@@ -14,6 +14,7 @@ import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/data/source/remote/response/product_response.dart';
 import 'package:jahit_baju/data/source/remote/response/survei_response.dart';
 import 'package:jahit_baju/helper/secure/token_storage.dart';
+import 'package:jahit_baju/main.dart';
 import 'package:jahit_baju/views/login/login_screen.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:logger/web.dart';
@@ -97,25 +98,28 @@ void showSnackBar(BuildContext context, String message, {required bool isError})
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 void showDialogSession(BuildContext context) {
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext dialogContext) { // Gunakan dialogContext agar tidak bentrok dengan context utama
-      return AlertDialog(
-        title: Text('Sesi Anda Telah Habis'),
-        content: Text('Silakan login kembali untuk melanjutkan.'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(dialogContext, rootNavigator: true).pop(); // Tutup dialog
+  
+
               logoutUser(context); // Logout dan navigasi ke login screen
-            },
-            child: Text('OK'),
-          ),
-        ],
-      );
-    },
-  );
+              Fluttertoast.showToast(msg: "Sesi anda telah habis, silakan login kembali");
+  // showDialog(
+  //   context: context,
+  //   barrierDismissible: false,
+  //   builder: (BuildContext dialogContext) { // Gunakan dialogContext agar tidak bentrok dengan context utama
+  //     return AlertDialog(
+  //       title: Text('Sesi Anda Telah Habis'),
+  //       content: Text('Silakan login kembali untuk melanjutkan.'),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () {
+  //             Navigator.of(dialogContext, rootNavigator: true).pop(); // Tutup dialog
+  //           },
+  //           child: Text('OK'),
+  //         ),
+  //       ],
+  //     );
+  //   },
+  // );
 }
 
 
@@ -135,10 +139,10 @@ void showDialogSession(BuildContext context) {
 
 
   void goToLoginScreen(BuildContext context) {
-    Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-        (Route<dynamic> route) => false);
+    MyApp.navKey.currentState?.pushAndRemoveUntil(
+    MaterialPageRoute(builder: (context) => const LoginScreen()),
+    (route) => false,
+  );
   }
 
 
@@ -151,14 +155,21 @@ Future<bool> checkInternetConnection() async {
   }
 }
 
-Widget loadingWidget(){
+Widget loadingWidget({String? text}){
   return Container(
                 color: const Color.fromARGB(92, 0, 0, 0),
                 width: double.infinity,
                 height: double.infinity,
                 child: Center(
-                  child: LoadingAnimationWidget.staggeredDotsWave(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [LoadingAnimationWidget.staggeredDotsWave(
                       color: Colors.white, size: 50),
+                      if(text != null) DefaultTextStyle(
+    style: TextStyle(decoration: TextDecoration.none), 
+    child : Text(text))],
+                  )
                 ),
               );
 }

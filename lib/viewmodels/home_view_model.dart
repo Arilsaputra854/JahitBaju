@@ -18,7 +18,6 @@ class HomeViewModel extends ChangeNotifier {
   List<Product>? _products;
   List<Product>? get products => _products;
 
-
   CustomizationAccess? _customizationAccess;
   CustomizationAccess? get customizationAccess => _customizationAccess;
 
@@ -45,14 +44,16 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<List<Product>?> getListProducts() async {
-    return await repository.getAllProduct();
+  Future<void> getListProducts() async {
+    _products = await repository.getAllProduct();
+    _tags = _products?.expand((product) => product.tags).toSet().toList();
+
+    notifyListeners();
   }
 
   Future<void> getAccessCustom() async {
     UserResponse response = await apiService.userGet();
     if (response.error) {
-
       _errorMsg = response.message ?? ApiService.SOMETHING_WAS_WRONG;
       notifyListeners();
     } else {
@@ -62,11 +63,10 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   void getCustomizationFeature() async {
-
     CustomizationAccessResponse response =
         await apiService.getCustomizationFeature();
     if (!response.error && response.customizationAccess != null) {
-      _customizationAccess= response.customizationAccess!;
+      _customizationAccess = response.customizationAccess!;
       notifyListeners();
     } else {
       Fluttertoast.showToast(msg: ApiService.SOMETHING_WAS_WRONG);
@@ -75,18 +75,18 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
-
   Future<FeatureOrder?> buyFeature() async {
     _loading = true;
     notifyListeners();
     BuyFeatureResponse response = await apiService.buyCostumizationFeature();
     if (response.error && response.data != null) {
       _loading = false;
-      _errorMsg =  response.message ?? ApiService.SOMETHING_WAS_WRONG;
+      _errorMsg = response.message ?? ApiService.SOMETHING_WAS_WRONG;
       notifyListeners();
       return null;
     } else {
-      _loading = false;notifyListeners();
+      _loading = false;
+      notifyListeners();
       return response.data!;
     }
   }

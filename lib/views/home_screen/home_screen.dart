@@ -6,7 +6,7 @@ import 'package:jahit_baju/views/home_screen/fragment/favorite_page.dart';
 import 'package:jahit_baju/views/home_screen/fragment/history_page.dart';
 import 'package:jahit_baju/views/home_screen/fragment/home_page.dart';
 import 'package:jahit_baju/views/home_screen/fragment/profile_page.dart';
-import 'package:jahit_baju/views/home_screen/fragment/search_page.dart';
+import 'package:jahit_baju/views/home_screen/search_page.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {

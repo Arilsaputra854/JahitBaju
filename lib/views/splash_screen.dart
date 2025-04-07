@@ -33,13 +33,14 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   void initState() {
+    super.initState();
     readUserToken();
     getAppVersion();
-    super.initState();
+    // checkForUpdate();
   }
 
   getAppVersion() {
-    version = "1.0.7";
+    version = "1.0.10";
   }
 
   @override
@@ -69,7 +70,9 @@ class _SplashScreenState extends State<SplashScreen> {
                     width: 200.w,
                     height: 200.w,
                     child: Image.asset("assets/logo/jahit_baju_logo.png")),
-                    SizedBox(height: 50.h,),
+                SizedBox(
+                  height: 50.h,
+                ),
                 Text(
                   "v${version ?? "0.0.0"}",
                   style: TextStyle(fontSize: 12.sp),
@@ -96,4 +99,12 @@ class _SplashScreenState extends State<SplashScreen> {
       });
     }
   }
+
+  // Future<void> checkForUpdate() async {
+  //   InAppUpdate.checkForUpdate().then((updateInfo) {
+  //     if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+  //       InAppUpdate.performImmediateUpdate();
+  //     }
+  //   });
+  // }
 }

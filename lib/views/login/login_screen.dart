@@ -42,9 +42,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
 
     return Consumer<LoginViewModel>(builder: (context, viewmodel, child) {
-      if(viewmodel.message != null){
-        Fluttertoast.showToast(msg: viewmodel.message!);
-      }
       return GestureDetector(child: Stack(
           alignment: Alignment.center,
           children: [
@@ -235,6 +232,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> login(LoginViewModel viewmodel) async {
+    
     await viewmodel.login().then((isSuccess) async {
       if (viewmodel.message != null) {
         Fluttertoast.showToast(msg: viewmodel.message.toString());

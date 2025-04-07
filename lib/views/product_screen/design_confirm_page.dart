@@ -6,17 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/model/look.dart';
-import 'package:jahit_baju/data/model/product.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/data/source/remote/response/cart_response.dart';
 import 'package:jahit_baju/data/source/remote/response/custom_design_response.dart';
 import 'package:jahit_baju/util/util.dart';
-import 'package:jahit_baju/viewmodels/home_view_model.dart';
 import 'package:jahit_baju/views/shipping_screen/shipping_screen.dart';
 import 'package:logger/logger.dart';
-import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:xml/xml.dart';
 import 'package:path_provider/path_provider.dart';
 
 class DesignConfirmPage extends StatefulWidget {
@@ -37,17 +33,19 @@ class DesignConfirmPage extends StatefulWidget {
 class _DesignConfirmPageState extends State<DesignConfirmPage> {
   late WebViewController _controller;
   late double deviceWidth;
-  late Logger log;
+  late Logger log = Logger();
 
   bool loading = false;
   late ApiService apiService;
 
   @override
   void initState() {
-    apiService = ApiService(context);
     super.initState();
-    log = Logger();
-    _controller = WebViewController();
+    apiService = ApiService(context);
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..loadHtmlString(widget.html);
+
     _controller.enableZoom(false);
     _controller.loadHtmlString(widget.html);
   }
@@ -238,7 +236,8 @@ class _DesignConfirmPageState extends State<DesignConfirmPage> {
           look: widget.look,
           quantity: 1,
           selectedSize: widget.size,
-          customDesignSvg: response.file!.filename, weight: widget.look.weight,          
+          customDesignSvg: response.file!.filename,
+          weight: widget.look.weight,
         );
 
         if (cartResponse != null && cartResponse.error) {
@@ -252,8 +251,8 @@ class _DesignConfirmPageState extends State<DesignConfirmPage> {
         // Handle upload failure
         Fluttertoast.showToast(msg: "Gagal menyimpan desain, coba lagi nanti.");
       }
-    } catch (e,stackTrace) {
-        FirebaseCrashlytics.instance.recordError(e, stackTrace);
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
       // Handle any errors that occur during the process
       Fluttertoast.showToast(msg: "Terjadi kesalahan");
     }

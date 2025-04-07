@@ -17,13 +17,11 @@ class ShippingViewModel extends ChangeNotifier {
   bool _loading = false;
   bool get loading => _loading;
 
-  
   Address? _userAddress;
   Address? get userAddress => _userAddress;
 
   Shipping? _shipping;
   Shipping? get shipping => _shipping;
-
 
   Packaging? _packaging;
   Packaging? get packaging => _packaging;
@@ -49,12 +47,10 @@ class ShippingViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-
   setPackaging(Packaging newPackaging) {
     _packaging = newPackaging;
     notifyListeners();
   }
-
 
   Future<void> getListShippingMethod() async {
     _loading = true;
@@ -88,11 +84,11 @@ class ShippingViewModel extends ChangeNotifier {
     if (response.error) {
       _errorMsg = response.message;
       _loading = false;
-      _userAddress =  response.data?.address;
+      _userAddress = response.data?.address;
       notifyListeners();
     } else {
       _loading = false;
-      _userAddress =  response.data?.address;
+      _userAddress = response.data?.address;
       notifyListeners();
     }
   }
@@ -120,18 +116,31 @@ class ShippingViewModel extends ChangeNotifier {
 
   Future<Order?> createOrder(Order? order) async {
     _loading = true;
-    notifyListeners();
     if (order != null) {
       OrderResponse orderResponse = await apiService.orderCreate(order);
 
-      if (orderResponse.data is Order) {
-        _loading = false;
-        notifyListeners();
-        return orderResponse.data;
-      } else if (orderResponse.data is String) {
-        _loading = false;
-        notifyListeners();
+      if (orderResponse.error) {
+        if (orderResponse.message != null) {
+          if (orderResponse.message!.contains("product stock is not enogh")) {
+            _errorMsg = "Stok produk tidak mencukupi, silakan coba lagi";
+            _loading = false;
+            notifyListeners();
+          }
+          if (orderResponse.message!.contains("product is not found")) {
+            _errorMsg = "Produk tidak ditemukan";
+            _loading = false;
+            notifyListeners();
+          }
+        } else {
+          _errorMsg = ApiService.SOMETHING_WAS_WRONG;
+          _loading = false;
+          notifyListeners();
+        }
         return null;
+      } else {
+          _loading = false;
+          notifyListeners();
+        return orderResponse.data;
       }
     }
     return null;

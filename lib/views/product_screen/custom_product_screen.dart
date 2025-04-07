@@ -43,7 +43,7 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
 
   CacheHelper cache = CacheHelper();
 
-  late String htmlContent;
+  String? htmlContent;
 
   Map<String, String> base64Textures = {};
 
@@ -65,6 +65,9 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
     svgColor = widget.look.textures ?? [];
     svgFeatures = widget.look.features ?? [];
     fetchAllAndConvertToBase64();
+    viewModel.fetchSvg().then((value) {
+      setState(() {});
+    });
 
     super.initState();
   }
@@ -88,7 +91,7 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
               body: SingleChildScrollView(child: showCustom(viewModel)),
               bottomNavigationBar: _bottomNavigationWidget(viewModel),
             ),
-            if (viewModel.loading) loadingWidget()
+            if (viewModel.loading) loadingWidget(text: viewModel.loadingText)
           ],
         );
       },
@@ -323,49 +326,48 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
   }
 
   customPreview(CustomProductViewModel viewModel) {
-    //dari server
-    if (viewModel.currentSVG == null) {
-      viewModel.fetchSvg();
+    htmlContent = '''
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=1, user-scalable=0">
+            <style>
+              body {
+                margin: 0;
+                padding: 0;
+                overflow: hidden; /* Disable scrolling */
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+              }
+              svg {
+                max-width: 100%;
+                max-height: 100%;
+                display: block;
+                margin: auto;
+              }
+            </style>
+          </head>
+          <body>
+            ${viewModel.currentSVG ?? ''}
+          </body>
+          </html>
+          ''';
+
+    if (viewModel.currentSVG != null && htmlContent != null) {
+      _controller.loadHtmlString(htmlContent!);
     }
 
-    htmlContent = '''
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-              <meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=1, user-scalable=0">
-              <style>
-                body {
-                  margin: 0;
-                  padding: 0;
-                  overflow: hidden; /* Disable scrolling */
-                  display: flex;
-                  justify-content: center;
-                  align-items: center;
-                  height: 100vh;
-                }
-                svg {
-                  max-width: 100%;
-                  max-height: 100%;
-                  display: block;
-                  margin: auto;
-                }
-              </style>
-            </head>
-            <body>
-              ${viewModel.currentSVG}
-            </body>
-            </html>
-            ''';
-    _controller.loadHtmlString(htmlContent);
-    //svg update
     return Container(
-        width: 240.w,
-        height: 300.h,
-        padding: EdgeInsets.all(10),
-        child: WebViewWidget(
-          controller: _controller,
-          gestureRecognizers: Set(),
-        ));
+      width: 240.w,
+      height: 300.h,
+      padding: EdgeInsets.all(10),
+      child: WebViewWidget(
+        controller: _controller,
+        gestureRecognizers: Set(),
+      ),
+    );
   }
 
   Future<String?> fetchAndConvertToBase64(String imageUrl) async {
@@ -642,73 +644,74 @@ class _CustomProductScreenState extends State<CustomProductScreen> {
   }
 
   _bottomNavigationWidget(CustomProductViewModel viewModel) {
-    if (viewModel.currentSVG != null) {
-      return Stack(
-        alignment: AlignmentDirectional.center,
-        children: [
-          Container(
-              width: deviceWidth,
-              padding: EdgeInsets.all(20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        backgroundColor: Colors.white,
-                        disabledBackgroundColor: Colors.grey,
-                        padding: EdgeInsets.symmetric(vertical: 15),
+    return Stack(
+      alignment: AlignmentDirectional.center,
+      children: [
+        Container(
+            width: deviceWidth,
+            padding: EdgeInsets.all(20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      onPressed: () async {
-                        Uri url = Uri.parse("http://wa.me/+6281284844428");
-                        try {
-                          await launchUrl(url,
-                              mode: LaunchMode.externalApplication);
-                        } catch (e, stackTrace) {
-                          FirebaseCrashlytics.instance
-                              .recordError(e, stackTrace);
-                          Fluttertoast.showToast(
-                              msg:
-                                  "Terjadi kesalahan, silakan coba lagi nanti.");
-                        }
-                      },
-                      child: Icon(Icons.chat)),
-                  SizedBox(width: 10),
-                  Expanded(
-                      child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
-                            backgroundColor: Colors.red,
-                            disabledBackgroundColor: Colors.grey,
-                            padding: EdgeInsets.symmetric(
-                                vertical: 15, horizontal: 10),
+                      backgroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey,
+                      padding: EdgeInsets.symmetric(vertical: 15),
+                    ),
+                    onPressed: () async {
+                      Uri url = Uri.parse("http://wa.me/+6281284844428");
+                      try {
+                        await launchUrl(url,
+                            mode: LaunchMode.externalApplication);
+                      } catch (e, stackTrace) {
+                        FirebaseCrashlytics.instance.recordError(e, stackTrace);
+                        Fluttertoast.showToast(
+                            msg:
+                                "Terjadi kesalahan, silakan coba lagi nanti. ${e}");
+                      }
+                    },
+                    child: Icon(Icons.chat)),
+                SizedBox(width: 10),
+                Expanded(
+                    child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                          backgroundColor: Colors.red,
+                          disabledBackgroundColor: Colors.grey,
+                          padding: EdgeInsets.symmetric(
+                              vertical: 15, horizontal: 10),
+                        ),
+                        onPressed: viewModel.currentSVG != null
+                            ? viewModel.currentSVG!.contains("none")
+                                ? null
+                                : () {
+                                    if (htmlContent != null) {
+                                      goToDesignConfirmation(
+                                          htmlContent!, viewModel);
+                                    }
+                                  }
+                            : null,
+                        child: Text(
+                          "Selanjutnya",
+                          style: TextStyle(
+                            color: viewModel.currentSVG != null
+                                ? viewModel.currentSVG!.contains("none")
+                                    ? Colors.black
+                                    : Colors.white
+                                : Colors.black,
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.bold,
                           ),
-                          onPressed: viewModel.currentSVG!.contains("none")
-                              ? null
-                              : () {
-                                  goToDesignConfirmation(
-                                      htmlContent, viewModel);
-                                },
-                          child: Text(
-                            "Selanjutnya",
-                            style: TextStyle(
-                              color: viewModel.currentSVG!.contains("none")
-                                  ? Colors.black
-                                  : Colors.white,
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )))
-                ],
-              )),
-        ],
-      );
-    } else {
-      return Container();
-    }
+                        )))
+              ],
+            )),
+      ],
+    );
   }
 
   _descriptionWidget(CustomProductViewModel viewModel) {

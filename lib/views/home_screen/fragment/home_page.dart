@@ -2,13 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:jahit_baju/data/model/feature_order.dart';
 import 'package:jahit_baju/data/model/customization_feature.dart';
-import 'package:jahit_baju/data/repository/repository.dart';
-import 'package:jahit_baju/data/source/remote/response/customization_feature_response.dart';
-import 'package:jahit_baju/data/source/remote/response/feature_response.dart';
-import 'package:jahit_baju/data/source/remote/response/user_response.dart';
 import 'package:jahit_baju/data/source/remote/api_service.dart';
 import 'package:jahit_baju/viewmodels/home_view_model.dart';
 import 'package:jahit_baju/data/model/product.dart';
@@ -35,6 +30,7 @@ class _HomePageState extends State<HomePage> {
     HomeViewModel viewModel = Provider.of<HomeViewModel>(context, listen: false);
     viewModel.getAccessCustom();
     viewModel.getCustomizationFeature();
+    viewModel.getListProducts();
     super.initState();
   }
 
@@ -55,20 +51,7 @@ class _HomePageState extends State<HomePage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           appBannerWidget(),
-                          FutureBuilder(
-                              future: viewModel.getListProducts(),
-                              builder: (context, snapshot) {
-                                if (snapshot.hasData) {
-                                    viewModel.setProducts(snapshot.data!);
-
-                                    List<String>? tags = viewModel.products
-                                        ?.expand((product) => product.tags)
-                                        .toSet()
-                                        .toList();
-                                    viewModel.setTags(tags!);
-                                  }
-
-                                return Column(
+                          Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     SizedBox(
@@ -234,8 +217,7 @@ class _HomePageState extends State<HomePage> {
                                       height: 20.h,
                                     ),
                                   ],
-                                );
-                              }),
+                                )
                         ],
                       ),
                     )

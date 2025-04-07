@@ -1,0 +1,1 @@
+e: file:///Users/arilsaputra/.pub-cache/hosted/pub.dev/in_app_update-2.0.0/android/src/main/kotlin/de/ffuf/in_app_update/InAppUpdatePlugin.kt:226:26 Type mismatch: inferred type is String? but String was expected

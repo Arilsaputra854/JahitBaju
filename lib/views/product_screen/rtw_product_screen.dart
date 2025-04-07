@@ -16,7 +16,6 @@ import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:swipe_image_gallery/swipe_image_gallery.dart';
 
-
 class ProductScreen extends StatefulWidget {
   final Product product;
   const ProductScreen(this.product, {super.key});
@@ -29,15 +28,23 @@ class _ProductScreenState extends State<ProductScreen> {
   Logger log = Logger();
 
   @override
+  void initState() {
+    Future.microtask(() {
+      final viewModel = Provider.of<ProductViewModel>(context, listen: false);
+      viewModel.init();
+      viewModel.setProduct(widget.product);
+      viewModel.getSizeGuide();
+      viewModel.getCareGuide();
+      viewModel.getFavoriteStatus();
+      viewModel.getNoteProduct(Product.READY_TO_WEAR);
+    });
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Consumer<ProductViewModel>(
       builder: (context, viewModel, child) {
-        if (viewModel.product == null) {
-          viewModel.setProduct(widget.product);
-          viewModel.getSizeGuide();
-          viewModel.getFavoriteStatus();
-          viewModel.getNoteProduct(Product.READY_TO_WEAR);
-        }
         return Stack(
           children: [
             Scaffold(
@@ -377,12 +384,13 @@ class _ProductScreenState extends State<ProductScreen> {
         SizedBox(
           height: 10,
         ),
-        CachedNetworkImage(
-          imageUrl: viewModel.sizeGuide!,
-          errorWidget: (context, url, error) {
-            return Icon(Icons.image_not_supported);
-          },
-        )
+        if (viewModel.sizeGuide != null)
+          CachedNetworkImage(
+            imageUrl: viewModel.sizeGuide!,
+            errorWidget: (context, url, error) {
+              return Icon(Icons.image_not_supported);
+            },
+          )
       ],
     );
   }
@@ -428,7 +436,7 @@ class _ProductScreenState extends State<ProductScreen> {
           height: 10,
         ),
         Text(
-          viewModel.productNotes?? "Catatan produk",
+          viewModel.productNotes ?? "Catatan produk",
           style: TextStyle(
             fontSize: 14.sp,
           ),

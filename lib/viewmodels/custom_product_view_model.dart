@@ -43,6 +43,9 @@ class CustomProductViewModel extends ChangeNotifier {
   bool _loading = false;
   bool get loading => _loading;
 
+  String? _loadingText;
+  String? get loadingText => _loadingText;
+
   Product? _product;
   Product? get product => _product;
 
@@ -117,23 +120,21 @@ class CustomProductViewModel extends ChangeNotifier {
   }
 
   Future<void> fetchSvg() async {
-    _loading = true;
-    notifyListeners();
-    if (look != null) {
-      final response = await http.get(Uri.parse(look!.designUrl));
-      if (response.statusCode == 200) {
-        _currentSVG = response.body;
-        _loading = false;
-        notifyListeners();
+    if (_currentSVG == null) {
+
+      if (look != null) {
+        final response = await http.get(Uri.parse(look!.designUrl));
+        if (response.statusCode == 200) {
+          _currentSVG = response.body;
+          notifyListeners();
+        } else {
+          _errorMsg = "Tidak dapat memuat desain, silakan coba lagi nanti.";
+          notifyListeners();
+        }
       } else {
-        _loading = false;
         _errorMsg = "Tidak dapat memuat desain, silakan coba lagi nanti.";
         notifyListeners();
       }
-    } else {
-      _loading = false;
-      _errorMsg = "Tidak dapat memuat desain, silakan coba lagi nanti.";
-      notifyListeners();
     }
   }
 
@@ -228,8 +229,8 @@ class CustomProductViewModel extends ChangeNotifier {
   }
 
   Future<void> getSizeGuide() async {
-    
     if (_sizeGuide == null) {
+      _loadingText = "Memuat panduan ukuran";
       _loading = true;
       notifyListeners();
       SizeGuideResponse response = await apiService.sizeGuide();
@@ -248,12 +249,17 @@ class CustomProductViewModel extends ChangeNotifier {
 
   Future<void> getNoteProduct(int type) async {
     if (_productNotes == null) {
+      _loading = true;
+      _loadingText = "Memuat catatan produk";
+      notifyListeners();
       ProductNoteResponse response = await apiService.getNoteProduct(type);
 
       if (response.error) {
+        _loading = false;
         _errorMsg = response.message ?? ApiService.SOMETHING_WAS_WRONG;
         notifyListeners();
       } else {
+        _loading = false;
         _productNotes = response.data!;
         notifyListeners();
       }
@@ -262,14 +268,18 @@ class CustomProductViewModel extends ChangeNotifier {
 
   Future<void> getCareGuide() async {
     if (_careGuides == null) {
+      _loadingText = "Memuat panduan perawatan";
+      _loading = true;
       _selectedSize = null;
       notifyListeners();
       CareGuideResponse response = await apiService.getCareGuide();
 
       if (response.error) {
+        _loading = false;
         _errorMsg = response.message ?? ApiService.SOMETHING_WAS_WRONG;
         notifyListeners();
       } else {
+        _loading = false;
         _careGuides = response.data!;
         notifyListeners();
       }

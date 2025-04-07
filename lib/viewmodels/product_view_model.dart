@@ -18,7 +18,6 @@ class ProductViewModel extends ChangeNotifier {
   String? _productNotes;
   String? get productNotes => _productNotes;
 
-
   String? _careGuides;
   String? get careGuides => _careGuides;
 
@@ -42,6 +41,13 @@ class ProductViewModel extends ChangeNotifier {
 
   ProductViewModel(this.apiService);
 
+  init(){
+    _product = null;
+    _favoriteId = null;
+    _isProductFavorited = false;
+    _selectedSize = null;
+  }
+
   setProduct(Product newProduct) {
     _selectedSize = null;
     _product = newProduct;
@@ -59,53 +65,54 @@ class ProductViewModel extends ChangeNotifier {
   }
 
   Future<void> addOrRemoveProductFavorite() async {
-  if (_product == null) {
-    Fluttertoast.showToast(msg: "Produk tidak valid.");
-    return;
-  }
+    if (_product == null) {
+      Fluttertoast.showToast(msg: "Produk tidak valid.");
+      return;
+    }
 
-  _loading = true;
-  notifyListeners();
+    _loading = true;
+    notifyListeners();
 
-  try {
-    if (_isProductFavorited == true) {
-      // Hapus dari favorit
-      if (_favoriteId != null) {
-        FavoriteResponse response = await apiService.favoriteDelete(_favoriteId!);
+    try {
+      if (_isProductFavorited == true) {
+        // Hapus dari favorit
+        if (_favoriteId != null) {
+          FavoriteResponse response =
+              await apiService.favoriteDelete(_favoriteId!);
+
+          if (response.error) {
+            _errorMsg = response.message;
+            Fluttertoast.showToast(msg: "Gagal menghapus dari favorit.");
+          } else {
+            _isProductFavorited = false;
+            _favoriteId = null;
+            Fluttertoast.showToast(msg: "Berhasil menghapus dari favorit.");
+          }
+        }
+      } else {
+        // Tambah ke favorit
+        Favorite favorite =
+            Favorite(productId: _product!.id, lastUpdate: DateTime.now());
+        FavoriteResponse response = await apiService.favoriteAdd(favorite);
 
         if (response.error) {
           _errorMsg = response.message;
-          Fluttertoast.showToast(msg: "Gagal menghapus dari favorit.");
+          Fluttertoast.showToast(msg: "Gagal menambahkan ke favorit.");
         } else {
-          _isProductFavorited = false;
-          _favoriteId = null;
-          Fluttertoast.showToast(msg: "Berhasil menghapus dari favorit.");
+          _isProductFavorited = true;
+          _favoriteId = response.id; // Simpan ID favorit yang baru ditambahkan
+          Fluttertoast.showToast(msg: "Berhasil menambahkan ke favorit.");
         }
       }
-    } else {
-      // Tambah ke favorit
-      Favorite favorite = Favorite(productId: _product!.id, lastUpdate: DateTime.now());
-      FavoriteResponse response = await apiService.favoriteAdd(favorite);
-
-      if (response.error) {
-        _errorMsg = response.message;
-        Fluttertoast.showToast(msg: "Gagal menambahkan ke favorit.");
-      } else {
-        _isProductFavorited = true;
-        _favoriteId = response.id; // Simpan ID favorit yang baru ditambahkan
-        Fluttertoast.showToast(msg: "Berhasil menambahkan ke favorit.");
-      }
+    } catch (e, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(e, stackTrace);
+      _errorMsg = "Terjadi kesalahan. Coba lagi.";
+      Fluttertoast.showToast(msg: _errorMsg!);
     }
-  } catch (e,stackTrace) {
-    FirebaseCrashlytics.instance.recordError(e, stackTrace);
-    _errorMsg = "Terjadi kesalahan. Coba lagi.";
-    Fluttertoast.showToast(msg: _errorMsg!);
+
+    _loading = false;
+    notifyListeners();
   }
-
-  _loading = false;
-  notifyListeners();
-}
-
 
   Future<bool> getFavoriteStatus() async {
     _loading = true;
@@ -181,16 +188,16 @@ class ProductViewModel extends ChangeNotifier {
   }
 
   Future<void> getCareGuide() async {
-    if(_careGuides == null){
-    CareGuideResponse response = await apiService.getCareGuide();
+    if (_careGuides == null) {
+      CareGuideResponse response = await apiService.getCareGuide();
 
-    if (response.error) {
-      _errorMsg = response.message ?? ApiService.SOMETHING_WAS_WRONG;
-      notifyListeners();
-    } else {
-      _careGuides =  response.data!;
-      notifyListeners();
+      if (response.error) {
+        _errorMsg = response.message ?? ApiService.SOMETHING_WAS_WRONG;
+        notifyListeners();
+      } else {
+        _careGuides = response.data!;
+        notifyListeners();
+      }
     }
-  }
   }
 }

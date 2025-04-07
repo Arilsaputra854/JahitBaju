@@ -33,19 +33,14 @@ class _OtpScreenState extends State<OtpScreen> {
   @override
   void didChangeDependencies() {
     if (!init) {
+      final viewModel = Provider.of<OtpScreenViewModel>(context, listen: false);
+      viewModel.initialize();
+      viewModel.setEmail(widget.email);
       precacheImage(const AssetImage("assets/background/bg.png"), context);
       init = true;
     }
 
     super.didChangeDependencies();
-  }
-
-  @override
-  void initState() {
-    final viewModel = Provider.of<OtpScreenViewModel>(context, listen: false);
-    viewModel.initialize();
-    viewModel.setEmail(widget.email);
-    super.initState();
   }
 
   @override

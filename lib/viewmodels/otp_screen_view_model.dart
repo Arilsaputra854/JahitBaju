@@ -32,16 +32,21 @@ class OtpScreenViewModel extends ChangeNotifier {
 
   final TokenStorage _tokenStorage = TokenStorage();
   void initialize() {
-    resetTimer();
     _email = null;
     _isRequestOtp = true;
     _otp = null;
+    _message = null;
+    _secondsRemaining = 300;
+    _timer?.cancel();
   }
 
   void setEmail(String email) {
+  if (_email != email) { 
     _email = email;
     notifyListeners();
   }
+}
+
 
   void setOtp(int otp) {
     _otp = otp;
@@ -80,9 +85,9 @@ class OtpScreenViewModel extends ChangeNotifier {
           notifyListeners();
           startCountdown();
         } else {
-          _isRequestOtp = false;
+          _message = "Tidak dapat mengirim kode OTP, ${response.message}";
+          _isRequestOtp = true;
           notifyListeners();
-          startCountdown();
         }
       } else {
         _message = "Kode OTP berhasil dikirim.";

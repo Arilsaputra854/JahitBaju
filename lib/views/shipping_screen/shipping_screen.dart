@@ -48,10 +48,12 @@ class _ShippingScreenState extends State<ShippingScreen> {
 
   @override
   void initState() {
-    final viewModel = Provider.of<ShippingViewModel>(context, listen: false);
+    Future.microtask((){
+      final viewModel = Provider.of<ShippingViewModel>(context, listen: false);
     viewModel.getListShippingMethod();
     viewModel.getListPackaging();
     viewModel.getUserAddress();
+    });
     super.initState();
   }
 
@@ -60,51 +62,50 @@ class _ShippingScreenState extends State<ShippingScreen> {
     deviceWidth = MediaQuery.of(context).size.width;
     deviceHeight = MediaQuery.of(context).size.height;
 
-    return 
-            Consumer<ShippingViewModel>(builder: (context, viewModel, child) {
-          if (viewModel.totalWeight == null) {
-            if (widget.product != null) {
-              viewModel.setTotalWeight(widget.product!.weight!);
-            } else if (widget.cart != null) {
-              int totalWeight = 0;
-              for (CartItem item in widget.cart!.items) {
-                totalWeight += item.weight;
-              }
-              viewModel.setTotalWeight(totalWeight);
-            } else {
-              viewModel.setTotalWeight(widget.look!.weight);
-            }
+    return Consumer<ShippingViewModel>(builder: (context, viewModel, child) {
+      if (viewModel.totalWeight == null) {
+        if (widget.product != null) {
+          viewModel.setTotalWeight(widget.product!.weight!);
+        } else if (widget.cart != null) {
+          int totalWeight = 0;
+          for (CartItem item in widget.cart!.items) {
+            totalWeight += item.weight;
           }
-          return Stack(children: [
-            Scaffold(
-              backgroundColor: Colors.white,
-                appBar: AppBar(
-                  elevation: 0,
-                  title: const Text("Pengiriman",
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  centerTitle: true,
-                ),
-                body: GestureDetector(
-                    onTap: () {
-                      FocusScope.of(context).unfocus();
-                    },
-                    child: SingleChildScrollView(
-                        child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _addressWidget(viewModel),
-                        const SizedBox(height: 15),
-                        _deliveryWidget(viewModel),
-                        const SizedBox(height: 15),
-                        _packagingWidget(viewModel),
-                        const SizedBox(height: 15),
-                        _descriptionWidget()
-                      ],
-                    ))),
-                bottomNavigationBar: _bottomNavBar(viewModel)),
-            if (viewModel.loading) loadingWidget()
-          ]);
-        });
+          viewModel.setTotalWeight(totalWeight);
+        } else {
+          viewModel.setTotalWeight(widget.look!.weight);
+        }
+      }
+      return Stack(children: [
+        Scaffold(
+            backgroundColor: Colors.white,
+            appBar: AppBar(
+              elevation: 0,
+              title: const Text("Pengiriman",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              centerTitle: true,
+            ),
+            body: GestureDetector(
+                onTap: () {
+                  FocusScope.of(context).unfocus();
+                },
+                child: SingleChildScrollView(
+                    child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _addressWidget(viewModel),
+                    const SizedBox(height: 15),
+                    _deliveryWidget(viewModel),
+                    const SizedBox(height: 15),
+                    _packagingWidget(viewModel),
+                    const SizedBox(height: 15),
+                    _descriptionWidget()
+                  ],
+                ))),
+            bottomNavigationBar: _bottomNavBar(viewModel)),
+        if (viewModel.loading) loadingWidget()
+      ]);
+    });
   }
 
   _goToPaymentScreen(ShippingViewModel viewModel) async {
@@ -148,6 +149,10 @@ class _ShippingScreenState extends State<ShippingScreen> {
         log.d("Order Cart ${order.toJson()}");
 
         viewModel.createOrder(order).then((orderFromServer) {
+          print("error ${viewModel.errorMsg}");
+          if(viewModel.errorMsg != null){
+            Fluttertoast.showToast(msg: viewModel.errorMsg!);
+          }
           if (orderFromServer != null) {
             Navigator.pushAndRemoveUntil(
               context,
@@ -251,7 +256,9 @@ class _ShippingScreenState extends State<ShippingScreen> {
               style: TextStyle(fontSize: 14.sp),
             ),
             Text(
-              viewModel.packaging != null ? convertToRupiah(viewModel.packaging!.price) : "Rp 0.00",
+              viewModel.packaging != null
+                  ? convertToRupiah(viewModel.packaging!.price)
+                  : "Rp 0.00",
               style: TextStyle(fontSize: 14.sp),
             ),
           ],
@@ -298,59 +305,59 @@ class _ShippingScreenState extends State<ShippingScreen> {
         shrinkWrap: true,
         itemCount: viewModel.listOfShipping.length,
         itemBuilder: (context, index) {
-          if(viewModel.listOfShipping[index].price != null) {
+          if (viewModel.listOfShipping[index].price != null) {
             return InkWell(
-              onTap: () {
-                setState(() {
-                  deliveryChoosedIndex = index;
-                });
+                onTap: () {
+                  setState(() {
+                    deliveryChoosedIndex = index;
+                  });
 
-                viewModel.setShipping(viewModel.listOfShipping[index]);
-              },
-              child: Card(
-                  child: Container(
-                decoration: deliveryChoosedIndex == index
-                    ? BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(width: 2),
-                        borderRadius: BorderRadius.circular(12))
-                    : BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(width: 0),
-                        borderRadius: BorderRadius.circular(12)),
-                padding: EdgeInsets.all(10),
-                child: Row(
-                  children: [
-                    CachedNetworkImage(
-                      imageUrl: viewModel.listOfShipping[index].imgUrl,
-                      errorWidget: (context, url, error) {
-                        return Icon(Icons.warning);
-                      },
-                      width: 50,
-                    ),
-                    SizedBox(
-                      width: 20,
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(viewModel.listOfShipping[index].name,
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 14.sp)),
-                        Text(convertToRupiah(
-                            viewModel.listOfShipping[index].price))
-                      ],
-                    )
-                  ],
-                ),
-              )));
-          }else{
+                  viewModel.setShipping(viewModel.listOfShipping[index]);
+                },
+                child: Card(
+                    child: Container(
+                  decoration: deliveryChoosedIndex == index
+                      ? BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(width: 2),
+                          borderRadius: BorderRadius.circular(12))
+                      : BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(width: 0),
+                          borderRadius: BorderRadius.circular(12)),
+                  padding: EdgeInsets.all(10),
+                  child: Row(
+                    children: [
+                      CachedNetworkImage(
+                        imageUrl: viewModel.listOfShipping[index].imgUrl,
+                        errorWidget: (context, url, error) {
+                          return Icon(Icons.warning);
+                        },
+                        width: 50,
+                      ),
+                      SizedBox(
+                        width: 20,
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(viewModel.listOfShipping[index].name,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14.sp)),
+                          Text(convertToRupiah(
+                              viewModel.listOfShipping[index].price))
+                        ],
+                      )
+                    ],
+                  ),
+                )));
+          } else {
             return Text(
-                      "Silakan atur alamat terlebihdahulu.",
-                      style: TextStyle(fontSize: 12.sp),
-                    );
+              "Silakan atur alamat terlebihdahulu.",
+              style: TextStyle(fontSize: 12.sp),
+            );
           }
-          
         });
   }
 
@@ -364,7 +371,6 @@ class _ShippingScreenState extends State<ShippingScreen> {
             itemBuilder: (context, index) {
               return InkWell(
                   onTap: () {
-
                     viewModel.setPackaging(viewModel.listOfPackaging[index]);
                     setState(() {
                       packagingChoosedIndex = index;
@@ -395,7 +401,8 @@ class _ShippingScreenState extends State<ShippingScreen> {
                                 style: TextStyle(
                                     fontWeight: FontWeight.normal,
                                     fontSize: 12.sp)),
-                            Text(convertToRupiah(viewModel.listOfPackaging[index].price))
+                            Text(convertToRupiah(
+                                viewModel.listOfPackaging[index].price))
                           ],
                         )
                       ],
@@ -444,12 +451,11 @@ class _ShippingScreenState extends State<ShippingScreen> {
 
   void goToAddress(address, ShippingViewModel viewModel) {
     Navigator.push(context,
-        MaterialPageRoute(builder: (context) => AddressScreen(address))).then((_){
-
-  viewModel.getListShippingMethod();
-  viewModel.getUserAddress();
-
-        });
+            MaterialPageRoute(builder: (context) => AddressScreen(address)))
+        .then((_) {
+      viewModel.getListShippingMethod();
+      viewModel.getUserAddress();
+    });
   }
 
   _addressWidget(ShippingViewModel viewModel) {
@@ -484,7 +490,8 @@ class _ShippingScreenState extends State<ShippingScreen> {
         ));
   }
 
-  void showAddressRequiredDialog(BuildContext context, ShippingViewModel viewModel) {
+  void showAddressRequiredDialog(
+      BuildContext context, ShippingViewModel viewModel) {
     showDialog(
       context: context,
       barrierDismissible:
@@ -534,7 +541,6 @@ class _ShippingScreenState extends State<ShippingScreen> {
     return Container(
         padding: EdgeInsets.symmetric(horizontal: 20),
         child: Column(
-          
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Divider(),
@@ -543,7 +549,9 @@ class _ShippingScreenState extends State<ShippingScreen> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
             ),
             const SizedBox(height: 5),
-            viewModel.userAddress != null ? deliveryList(viewModel) :  Center(
+            viewModel.userAddress != null
+                ? deliveryList(viewModel)
+                : Center(
                     child: Text(
                       "Silakan atur alamat terlebihdahulu.",
                       style: TextStyle(fontSize: 12.sp),

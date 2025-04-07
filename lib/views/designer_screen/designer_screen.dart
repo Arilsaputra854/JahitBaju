@@ -94,7 +94,7 @@ class _DesignerScreenState extends State<DesignerScreen> {
                                     children: [
                                       TextSpan(
                                         text:
-                                            'Showcase ',
+                                            'Showcase: ',
                                         style: TextStyle(
                                           fontStyle: FontStyle
                                               .normal,
